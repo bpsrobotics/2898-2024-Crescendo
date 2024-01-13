@@ -5,7 +5,7 @@
 
 package com.team2898.robot
 
-import com.revrobotics.CANSparkMax.IdleMode
+import com.revrobotics.CANSparkBase
 import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics
 import edu.wpi.first.math.trajectory.TrapezoidProfile
@@ -31,7 +31,7 @@ class Constants {
     object DriveConstants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
-        const val kMaxSpeedMetersPerSecond = 5.0
+        const val kMaxSpeedMetersPerSecond = 15.0
         const val kMaxAngularSpeed = 2 * Math.PI // radians per second (2*PI)
         const val kDirectionSlewRate = 1.2 // radians per second
         const val kMagnitudeSlewRate = 1.8 // percent per second (1 = 100%)
@@ -44,11 +44,11 @@ class Constants {
 
 
 
-        // Chassis configuration
-        val kTrackWidth = Units.inchesToMeters(16.0)
+        // Chassis configuration (left to right dist of center of the wheels)
+        val kTrackWidth = Units.inchesToMeters(22.75)
 
-        // Distance between centers of right and left wheels on robot
-        val kWheelBase = Units.inchesToMeters(15.5)
+        // Distance between centers of right and left wheels on robot (front to back dist)
+        val kWheelBase = Units.inchesToMeters(22.75)
 
         // Distance between front and back wheels on robot
         val kDriveKinematics = SwerveDriveKinematics(
@@ -120,8 +120,8 @@ class Constants {
         const val kTurningFF = 0.0
         const val kTurningMinOutput = -1.0
         const val kTurningMaxOutput = 1.0
-        val kDrivingMotorIdleMode = IdleMode.kCoast
-        val kTurningMotorIdleMode = IdleMode.kCoast
+        val kDrivingMotorIdleMode = CANSparkBase.IdleMode.kCoast
+        val kTurningMotorIdleMode = CANSparkBase.IdleMode.kCoast
         const val kDrivingMotorCurrentLimit = 40 // amps
         const val kTurningMotorCurrentLimit = 10 // amps
     }

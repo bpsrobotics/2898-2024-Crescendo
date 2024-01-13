@@ -3,11 +3,9 @@
 // the WPILib BSD license file in the root directory of this project.
 package com.team2898.robot.subsystems
 
-import com.revrobotics.CANSparkMax
-import com.revrobotics.CANSparkMaxLowLevel.MotorType.kBrushed
-import com.revrobotics.CANSparkMaxLowLevel.MotorType.kBrushless
-import com.revrobotics.RelativeEncoder
-import com.revrobotics.SparkMaxPIDController
+
+import com.revrobotics.*
+import com.revrobotics.CANSparkLowLevel.MotorType.kBrushless
 import com.team2898.engine.utils.Sugar.circleNormalize
 import com.team2898.engine.utils.Sugar.eqEpsilon
 import com.team2898.engine.utils.TurningPID
@@ -28,7 +26,7 @@ class MAXSwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset
     private val m_turningSparkMax: CANSparkMax
     public val m_drivingEncoder: RelativeEncoder
     public val m_turningEncoder: AnalogEncoder
-    private val m_drivingPIDController: SparkMaxPIDController
+    private val m_drivingPIDController: SparkPIDController
     private val m_turningPIDController: TurningPID
     private var m_chassisAngularOffset = 0.0
     public var m_desiredState = SwerveModuleState(0.0, Rotation2d())
@@ -42,7 +40,7 @@ class MAXSwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset
 
     init {
         m_drivingSparkMax = CANSparkMax(drivingCANId, kBrushless)
-        m_turningSparkMax = CANSparkMax(turningCANId, kBrushed)
+        m_turningSparkMax = CANSparkMax(turningCANId, kBrushless)
 
         // Factory reset, so we get the SPARKS MAX to a known state before configuring
         // them. This is useful in case a SPARK MAX is swapped out.
@@ -147,7 +145,7 @@ class MAXSwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset
             Rotation2d(readEnc())) //correctedDesiredState
 
         // Command driving and turning SPARKS MAX towards their respective setpoints.
-        m_drivingPIDController.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity)
+        m_drivingPIDController.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkBase.ControlType.kVelocity)
         SmartDashboard.putNumber(moduleID + "_SetPoint", optimizedDesiredState.angle.radians.circleNormalize())
         m_turningPIDController.setPoint = optimizedDesiredState.angle.radians.circleNormalize()
         m_turningPIDController.kP = ModuleConstants.kTurningP

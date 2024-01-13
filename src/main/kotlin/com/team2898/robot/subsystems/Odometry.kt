@@ -34,6 +34,7 @@ object Odometry : SubsystemBase(), PoseProvider {
         x: ChassisSpeeds -> chassisSpeeds
         Unit
     }
+    val chassisSpeedsSupplier: Supplier<ChassisSpeeds> = Supplier{ chassisSpeeds }
 
 
 
