@@ -40,7 +40,7 @@ class MAXSwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset
 
     init {
         m_drivingSparkMax = CANSparkMax(drivingCANId, kBrushless)
-        m_turningSparkMax = CANSparkMax(turningCANId, kBrushless)
+        m_turningSparkMax = CANSparkMax(turningCANId, CANSparkLowLevel.MotorType.kBrushed)
 
         // Factory reset, so we get the SPARKS MAX to a known state before configuring
         // them. This is useful in case a SPARK MAX is swapped out.
