@@ -6,6 +6,7 @@
 package com.team2898.robot
 
 import com.revrobotics.CANSparkBase
+import com.team2898.robot.subsystems.Arm
 import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics
 import edu.wpi.first.math.trajectory.TrapezoidProfile
@@ -159,6 +160,16 @@ class Constants {
         const val kArmDigitalInput = 1 //TODO() get number 4 dis
         const val kArmMaxSpeed = 1.0
         const val kArm_MaxAccel = 1.5
+        enum class ArmHeights(val position: Double) {
+            STOWED(Arm.LOWER_SOFT_STOP),
+            PICKUP(0.55),
+            LOWGOAL(0.75),
+            MIDDLECONEGOAL(1.75),
+            MIDDLEBOXGOAL(1.4),
+            HIGHCUBELAUNCH(1.8),
+            MOVING(0.8),
+            SHELF(1.55)
+        }
     }
 
     object IntakeConstants{
