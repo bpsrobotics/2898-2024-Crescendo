@@ -15,7 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState
 @Suppress("MemberVisibilityCanBePrivate", "PropertyName", "PrivatePropertyName", "RedundantVisibilityModifier",
     "unused", "SpellCheckingInspection"
 )
-class MAXSwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: Double, absEncoderId: Int, val moduleID: String = "None") {
+class SDSSwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: Double, absEncoderId: Int, val moduleID: String = "None") {
     private val m_drivingSparkMax: CANSparkMax
     private val m_turningSparkMax: CANSparkMax
     public val m_drivingEncoder: RelativeEncoder
@@ -28,8 +28,7 @@ class MAXSwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset
     /**
      * Constructs a MAXSwerveModule and configures the driving and turning motor,
      * encoder, and PID controller. This configuration is specific to the REV
-     * MAXSwerve Module built with NEOs, SPARKS MAX, and a Through Bore
-     * Encoder.
+     * MAXSwerve Module built with NEOs, SPARKS MAX, and a CTRE CANCoder
      */
 
     init {

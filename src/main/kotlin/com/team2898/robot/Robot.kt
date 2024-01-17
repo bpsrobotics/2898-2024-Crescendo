@@ -4,8 +4,10 @@
 package com.team2898.robot
 
 import com.team2898.robot.commands.TeleOp
+import com.team2898.robot.subsystems.Arm
 import com.team2898.robot.subsystems.Drivetrain
 import edu.wpi.first.wpilibj.TimedRobot
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.CommandScheduler
 import edu.wpi.first.wpilibj2.command.InstantCommand
@@ -26,6 +28,7 @@ class Robot : TimedRobot() {
      */
     override fun robotInit() {
         Drivetrain
+        SmartDashboard.putData(Arm)
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
         robotContainer = RobotContainer()
