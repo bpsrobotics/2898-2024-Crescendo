@@ -97,12 +97,12 @@ object Drivetrain
         Constants.ModuleConstants.kTurningD = SmartDashboard.getNumber("TurningKD", Constants.ModuleConstants.kTurningD)
 
 
-        SmartDashboard.putNumber("Encoders/FL_Turning_Encoder", m_frontLeft.readEnc())
-        SmartDashboard.putNumber("Encoders/FR_Turning_Encoder", m_frontRight.readEnc())
-        SmartDashboard.putNumber("Encoders/BR_Turning_Encoder", m_rearRight.readEnc())
-        SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
-        SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
-        SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
+//        SmartDashboard.putNumber("Encoders/FL_Turning_Encoder", m_frontLeft.readEnc())
+//        SmartDashboard.putNumber("Encoders/FR_Turning_Encoder", m_frontRight.readEnc())
+//        SmartDashboard.putNumber("Encoders/BR_Turning_Encoder", m_rearRight.readEnc())
+//        SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
+//        SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
+//        SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
 
     }
 
@@ -242,39 +242,36 @@ object Drivetrain
     val stateConsumer = { x: Array<SwerveModuleState> -> arrayOf(m_frontLeft.state, m_frontRight.state, m_rearLeft.state, m_rearRight.state) }
 
     fun configureAuto() {
-        class DriveSubsystem : SubsystemBase() {
-            init {
-                // All other subsystem initialization
-                // ...
 
-                // Configure AutoBuilder last
-                AutoBuilder.configureHolonomic(
-                    Odometry.poseSupplier,  // Robot pose supplier
-                    Odometry.zero,  // Method to reset odometry (will be called if your auto has a starting pose)
-                    Odometry.chassisSpeedsSupplier,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-                    driveConsumer,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
-                    HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                        PIDConstants(Constants.ModuleConstants.kDrivingP, Constants.ModuleConstants.kDrivingI, Constants.ModuleConstants.kDrivingD),  // Translation PID constants
-                        PIDConstants(Constants.ModuleConstants.kTurningP, Constants.ModuleConstants.kTurningI, Constants.ModuleConstants.kTurningD),  // Rotation PID constants
-                        4.5,  // Max module speed, in m/s
-                        0.4,  // Drive base radius in meters. Distance from robot center to furthest module.
-                        ReplanningConfig() // Default path replanning config. See the API for the options here
-                    ),
-                    BooleanSupplier {
+        // All other subsystem initialization
+        // ...
 
-                        // Boolean supplier that controls when the path will be mirrored for the red alliance
-                        // This will flip the path being followed to the red side of the field.
-                        // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-                        val alliance = DriverStation.getAlliance()
-                        if (alliance.isPresent) {
-                            alliance.get() == Alliance.Red
-                        }
-                        false
-                    },
-                    this // Reference to this subsystem to set requirements
-                )
-            }
-        }
+        // Configure AutoBuilder last
+        AutoBuilder.configureHolonomic(
+            Odometry.poseSupplier,  // Robot pose supplier
+            Odometry.zero,  // Method to reset odometry (will be called if your auto has a starting pose)
+            Odometry.chassisSpeedsSupplier,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            driveConsumer,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+            HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+                PIDConstants(Constants.ModuleConstants.kDrivingP, Constants.ModuleConstants.kDrivingI, Constants.ModuleConstants.kDrivingD),  // Translation PID constants
+                PIDConstants(Constants.ModuleConstants.kTurningP, Constants.ModuleConstants.kTurningI, Constants.ModuleConstants.kTurningD),  // Rotation PID constants
+                4.5,  // Max module speed, in m/s
+                0.4,  // Drive base radius in meters. Distance from robot center to furthest module.
+                ReplanningConfig() // Default path replanning config. See the API for the options here
+            ),
+            BooleanSupplier {
+
+                // Boolean supplier that controls when the path will be mirrored for the red alliance
+                // This will flip the path being followed to the red side of the field.
+                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+                val alliance = DriverStation.getAlliance()
+                if (alliance.isPresent) {
+                    alliance.get() == Alliance.Red
+                }
+                false
+            },
+            this // Reference to this subsystem to set requirements
+        )
 
     }
 

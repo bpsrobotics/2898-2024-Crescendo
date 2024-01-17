@@ -44,6 +44,7 @@ class Constants {
 
 
 
+
         // Chassis configuration (left to right dist of center of the wheels)
         val kTrackWidth = Units.inchesToMeters(22.75)
 
@@ -75,8 +76,8 @@ class Constants {
         const val kFrontRightTurningCanId = 8
         const val kRearRightTurningCanId = 6
         const val kGyroReversed = false
-        const val kFlywheelCanId = 9
-        const val kFeddderCanId = 10
+        const val kArm_left = 9
+        const val kArm_right = 10 //TODO()
     }
 
     object ModuleConstants {
@@ -133,15 +134,6 @@ class Constants {
         const val kSpeedMultiplierMin = 0.4
         const val kSpeedMultiplierMax = 1.0
     }
-    object ToteGrabberConstants{
-        const val kToteLimitSwitchTop = 0 //TODO
-        const val kToteLimitSwitchBottom = 1 //TODO
-        const val kMotorCanId = 9
-        const val kVolts = 1.0
-        const val kArmP = 1.0
-
-
-    }
 
     object AutoConstants {
         var commandMap: HashMap<String, Command> = HashMap<String, Command>()
@@ -163,18 +155,18 @@ class Constants {
         const val kFreeSpeedRpm = 5676.0
     }
 
-    object ShooterConstants {
+    object ArmConstants {
+        const val kArmDigitalInput = 1 //TODO() get number 4 dis
+        const val kArmMaxSpeed = 1.0
+        const val kArm_MaxAccel = 1.5
+    }
 
-        const val kFlywheelFeedForward  = 0.5
-        const val kBaseFlywheelVoltage  = 1.5
-        const val kMaxFlywheelVoltage   = 7.0
-        const val kFeederDelay          = 1.5
-        const val kFeederVoltage        = 4.0
-        const val kFeederTime           = 0.25
-        const val kFlywheelCurrent = 20
-
+    object IntakeConstants{
 
     }
+
+
+
 
 
 }
