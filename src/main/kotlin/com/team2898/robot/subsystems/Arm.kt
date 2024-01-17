@@ -12,6 +12,7 @@ import com.team2898.robot.Constants.DriveConstants.kArm_left
 import com.team2898.robot.Constants.DriveConstants.kArm_right
 import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.trajectory.TrapezoidProfile
+import edu.wpi.first.util.sendable.SendableBuilder
 import edu.wpi.first.wpilibj.DigitalInput
 import edu.wpi.first.wpilibj.DutyCycleEncoder
 import edu.wpi.first.wpilibj.Timer
@@ -154,6 +155,14 @@ object Arm : SubsystemBase() {
 
     fun isMoving(): Boolean {
         return profile != null
+    }
+    override fun initSendable(builder: SendableBuilder) {
+        builder.addDoubleProperty("position", { pos() }) {}
+        builder.addDoubleProperty("raw position", { encoder.absolutePosition }) {}
+        builder.addDoubleProperty("arm motor rate", { armMotor.encoder.velocity }) {}
+        builder.addDoubleProperty("rate", { movingAverage.average }) {}
+        builder.addDoubleProperty("rate2", { movingAverage2.average }) {}
+        builder.addDoubleProperty("motor output", { armMotor.appliedOutput }) {}
     }
 
 }
