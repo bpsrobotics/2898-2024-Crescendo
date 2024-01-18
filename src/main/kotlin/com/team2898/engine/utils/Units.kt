@@ -231,7 +231,7 @@ typealias M = Meters
 typealias Ft = Feet
 typealias In = Inches
 
-typealias `M/s` = MetersPerSecond
+typealias Mps = MetersPerSecond
 typealias Kmph = KilometersPerHour
 typealias Mph = MilesPerHour
 typealias Fps = FeetPerSecond
@@ -246,7 +246,7 @@ typealias Millis = Milliseconds
 // Conversion functions
 fun DistanceUnit.toMeters() = Meters(meterValue())
 
-fun VelocityUnit.toMetersPerSecond() = `M/s`(metersPerSecondValue())
+fun VelocityUnit.toMetersPerSecond() = Mps(metersPerSecondValue())
 
 fun Radians.toDegrees() = Degrees(value.radiansToDegrees())
 
