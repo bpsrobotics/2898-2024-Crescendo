@@ -11,6 +11,7 @@ import com.team2898.robot.Constants.ModuleConstants
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.kinematics.SwerveModulePosition
 import edu.wpi.first.math.kinematics.SwerveModuleState
+import kotlin.math.PI
 
 @Suppress("MemberVisibilityCanBePrivate", "PropertyName", "PrivatePropertyName", "RedundantVisibilityModifier",
     "unused", "SpellCheckingInspection"
@@ -105,7 +106,7 @@ class SDSSwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset
         m_drivingSparkMax.burnFlash()
         m_turningSparkMax.burnFlash()
         m_chassisAngularOffset = chassisAngularOffset
-        m_desiredState.angle = Rotation2d(m_turningEncoder.absolutePosition.valueAsDouble)
+        m_desiredState.angle = Rotation2d(readEnc())
         m_drivingEncoder.position = 0.0
         m_drivingSparkMax.idleMode
     }
@@ -115,21 +116,21 @@ class SDSSwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset
         get() =// Apply chassis angular offset to the encoder position to get the position
             // relative to the chassis.
             SwerveModuleState(m_drivingEncoder.velocity,
-                Rotation2d(m_turningEncoder.absolutePosition.valueAsDouble - m_chassisAngularOffset))
+                Rotation2d(readEnc()))
     /** The current position of the module. */
     val position: SwerveModulePosition
         get() =// Apply chassis angular offset to the encoder position to get the position
             // relative to the chassis.
             SwerveModulePosition(
                 m_drivingEncoder.position,
-                Rotation2d(m_turningEncoder.absolutePosition.valueAsDouble - m_chassisAngularOffset))
+                Rotation2d(readEnc()))
 
-//    fun readEnc(): Double {
-//        var encPos = (m_turningEncoder.absolutePosition * 2.0 * PI) - m_chassisAngularOffset
-//        encPos %= 2 * PI
-//        if(encPos < 0) return (2*PI) + encPos
-//        return encPos
-//    }
+    fun readEnc(): Double {
+        var encPos = (m_turningEncoder.absolutePosition.valueAsDouble * 2.0 * PI) - m_chassisAngularOffset
+        encPos %= 2 * PI
+        if(encPos < 0) return (2*PI) + encPos
+        return encPos
+    }
 
     /**
      * Sets the desired state for the module.
@@ -144,7 +145,7 @@ class SDSSwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset
 
         // Optimize the reference state to avoid spinning further than 90 degrees.
         val optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
-            Rotation2d(m_turningEncoder.absolutePosition.valueAsDouble)) //correctedDesiredState
+            Rotation2d(readEnc())) //correctedDesiredState
 
         // Command driving and turning SPARKS MAX towards their respective setpoints.
         m_drivingPIDController.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkBase.ControlType.kVelocity)
