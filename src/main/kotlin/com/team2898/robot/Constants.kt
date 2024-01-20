@@ -85,7 +85,7 @@ class Constants {
         // The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
         // This changes the drive speed of the module (a pinion gear with more teeth will result in a
         // robot that drives faster).
-        const val kDrivingMotorPinionTeeth = 14
+//        const val kDrivingMotorPinionTeeth = 14
 
         // Invert the turning encoder, since the output shaft rotates in the opposite direction of
         // the steering motor in the MAXSwerve Module.
@@ -93,11 +93,12 @@ class Constants {
 
         // Calculations required for driving motor conversion factors and feed forward
         const val kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60
-        const val kWheelDiameterMeters = 0.0762
+        const val kWheelDiameterMeters = 0.10033
         const val kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI
 
         // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15 teeth on the bevel pinion
-        const val kDrivingMotorReduction = 45.0 * 22 / (kDrivingMotorPinionTeeth * 15)
+//        const val kDrivingMotorReduction = 45.0 * 22 / (kDrivingMotorPinionTeeth * 15)
+        const val kDrivingMotorReduction = (14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0) //Gear Ratio of MK4I L2
         const val kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters
                 / kDrivingMotorReduction)
         const val kDrivingEncoderPositionFactor = (kWheelDiameterMeters * Math.PI
@@ -125,7 +126,7 @@ class Constants {
         val kDrivingMotorIdleMode = CANSparkBase.IdleMode.kCoast
         val kTurningMotorIdleMode = CANSparkBase.IdleMode.kCoast
         const val kDrivingMotorCurrentLimit = 40 // amps
-        const val kTurningMotorCurrentLimit = 10 // amps
+        const val kTurningMotorCurrentLimit = 20 // amps
     }
 
     object OIConstants {
