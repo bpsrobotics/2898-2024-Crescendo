@@ -38,10 +38,10 @@ class Constants {
         const val kMagnitudeSlewRate = 1.8 // percent per second (1 = 100%)
         const val kRotationalSlewRate = 2.0 // percent per second (1 = 100%)
 
-        const val kFrontLeftAnalogInput = 2
-        const val kFrontRightAnalogInput = 3
-        const val kRearRightAnalogInput = 0
-        const val kRearLeftAnalogInput = 1
+        const val kFrontLeftCANCoderID = 2
+        const val kFrontRightCANCoderID = 3
+        const val kRearRightCANCoderID = 0
+        const val kRearLeftCANCoderID = 1
 
 
 
