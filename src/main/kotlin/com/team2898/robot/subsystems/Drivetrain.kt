@@ -37,25 +37,25 @@ object Drivetrain
             DriveConstants.kFrontLeftDrivingCanId,
             DriveConstants.kFrontLeftTurningCanId,
             DriveConstants.kFrontLeftChassisAngularOffset,
-            DriveConstants.kFrontLeftAnalogInput,
+            DriveConstants.kRearRightCANCoderID,
         "FrontLeft")
     val m_frontRight: SDSSwerveModule = SDSSwerveModule(
             DriveConstants.kFrontRightDrivingCanId,
             DriveConstants.kFrontRightTurningCanId,
             DriveConstants.kFrontRightChassisAngularOffset,
-            DriveConstants.kFrontRightAnalogInput,
+            DriveConstants.kRearRightCANCoderID,
         "FrontRight")
     val m_rearLeft: SDSSwerveModule = SDSSwerveModule(
             DriveConstants.kRearLeftDrivingCanId,
             DriveConstants.kRearLeftTurningCanId,
             DriveConstants.kBackLeftChassisAngularOffset,
-            DriveConstants.kRearLeftAnalogInput,
+            DriveConstants.kRearRightCANCoderID,
         "RearLeft")
     val m_rearRight: SDSSwerveModule = SDSSwerveModule(
             DriveConstants.kRearRightDrivingCanId,
             DriveConstants.kRearRightTurningCanId,
             DriveConstants.kBackRightChassisAngularOffset,
-            DriveConstants.kRearRightAnalogInput,
+            DriveConstants.kRearRightCANCoderID,
         "RearRight")
 
     val states = arrayOf(m_frontLeft.state, m_frontRight.state, m_rearLeft.state, m_rearRight.state)
