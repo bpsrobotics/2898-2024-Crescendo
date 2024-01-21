@@ -1,6 +1,7 @@
 package com.team2898.robot.subsystems
 
 
+import com.ctre.phoenix6.hardware.CANcoder
 import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
@@ -28,7 +29,7 @@ object Arm : SubsystemBase() {
 
     private val armMotor = CANSparkMax(kArm_left, CANSparkLowLevel.MotorType.kBrushless)
     private val armMotorSecondary = CANSparkMax(kArm_right, CANSparkLowLevel.MotorType.kBrushless)
-    private val encoder = DutyCycleEncoder(kArmDigitalInput)
+    private val encoder = CANcoder(kArmDigitalInput)
 
     var setpoint = pos()
     private const val UPPER_SOFT_STOP = 0.0
@@ -38,7 +39,7 @@ object Arm : SubsystemBase() {
     var kv = 0.0
 
     fun pos(): Double {
-        val p = encoder.absolutePosition
+        val p = encoder.absolutePosition.valueAsDouble * 2 * PI
         return p
     //TODO() DO the offset stuff for these positions
     }
@@ -65,8 +66,6 @@ object Arm : SubsystemBase() {
         armMotorSecondary.setSmartCurrentLimit(40)
         armMotorSecondary.idleMode = CANSparkBase.IdleMode.kBrake
         armMotorSecondary.follow(armMotor)
-
-        encoder.distancePerRotation = PI * 2.0
 
         SmartDashboard.putNumber("arm kp", 0.0)
         SmartDashboard.putNumber("arm kd", 0.0)
@@ -158,7 +157,7 @@ object Arm : SubsystemBase() {
     }
     override fun initSendable(builder: SendableBuilder) {
         builder.addDoubleProperty("position", { pos() }) {}
-        builder.addDoubleProperty("raw position", { encoder.absolutePosition }) {}
+        builder.addDoubleProperty("raw position", { encoder.absolutePosition.valueAsDouble }) {}
         builder.addDoubleProperty("arm motor rate", { armMotor.encoder.velocity }) {}
         builder.addDoubleProperty("rate", { movingAverage.average }) {}
         builder.addDoubleProperty("rate2", { movingAverage2.average }) {}
