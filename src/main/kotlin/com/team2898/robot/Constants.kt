@@ -79,6 +79,7 @@ class Constants {
         const val kGyroReversed = false
         const val kArm_left = 9
         const val kArm_right = 10 //TODO()
+        const val kIntakeId = 11
     }
 
     object ModuleConstants {
@@ -174,7 +175,6 @@ class Constants {
     }
 
     object IntakeConstants{
-
     }
 
 
