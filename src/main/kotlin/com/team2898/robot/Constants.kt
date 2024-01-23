@@ -81,6 +81,7 @@ class Constants {
         const val kArm_right = 10 //TODO()
         const val kIntakeId = 11
         const val kShooterId = 12
+        const val kClimberId = 13
     }
 
     object ModuleConstants {
@@ -179,7 +180,13 @@ class Constants {
 
     }
 
-
+    object ClimberConstants{
+        enum class ClimbHeights(val position: Double) {
+            STOWED(0.0), //TODO guess what more real values needed
+            REACH(1.0),
+            LIFTOFF(0.6)
+        }
+    }
 
 
 
