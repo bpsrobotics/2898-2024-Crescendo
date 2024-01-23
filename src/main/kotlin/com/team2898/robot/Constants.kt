@@ -80,6 +80,7 @@ class Constants {
         const val kArm_left = 9
         const val kArm_right = 10 //TODO()
         const val kIntakeId = 11
+        const val kShooterId = 12
     }
 
     object ModuleConstants {
@@ -173,6 +174,9 @@ class Constants {
     }
 
     object IntakeConstants{
+    }
+    object ShooterConstants{
+
     }
 
 
