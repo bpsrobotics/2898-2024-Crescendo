@@ -163,14 +163,12 @@ class Constants {
         const val kArmMaxSpeed = 1.0
         const val kArm_MaxAccel = 1.5
         enum class ArmHeights(val position: Double) {
-            STOWED(Arm.LOWER_SOFT_STOP),
-            PICKUP(0.55),
-            LOWGOAL(0.75),
-            MIDDLECONEGOAL(1.75),
-            MIDDLEBOXGOAL(1.4),
-            HIGHCUBELAUNCH(1.8),
-            MOVING(0.8),
-            SHELF(1.55)
+            GROUND(Arm.LOWER_SOFT_STOP),
+            STOWED(0.0), //TODO Set these to real values
+            AMP(0.1),
+            SHOOTER1(0.2),
+            SHOOTER2(0.3)
+
         }
     }
 

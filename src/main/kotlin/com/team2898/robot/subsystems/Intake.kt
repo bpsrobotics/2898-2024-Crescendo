@@ -19,5 +19,9 @@ class Intake : SubsystemBase() {
         intakeMotor.set(speed)
     }
 
+    fun stopIntake(speed: Double){
+        intakeMotor.stopMotor()
+    }
+
 
 }
