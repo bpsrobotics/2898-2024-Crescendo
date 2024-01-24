@@ -197,6 +197,7 @@ class Constants {
         const val CLIMBER_RELEASE = 9
 
         const val PRESS_ACTIVATE_DURATION = 0.1
+        const val INPUT_BUFFER_DURATION = 0.2
     }
 
 }

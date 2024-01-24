@@ -94,19 +94,35 @@ class TeleOp : Command() {
             resetGyroTimer.stop()
         }
     }
+    val climbReachInputBuffer = Timer()
+    val climbLiftInputBuffer = Timer()
     fun peripheralControls() {
-        if (OI.climbReach.tick()) {
-            if (Climber.currentState == Constants.ClimberConstants.ClimbHeights.STOWED) {
-                Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
-            } else if (Climber.currentState == Constants.ClimberConstants.ClimbHeights.REACH) {
-                Climber.setState(Constants.ClimberConstants.ClimbHeights.STOWED)
+        if (OI.climbReach.tick() || !climbReachInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
+            when (Climber.currentState) {
+                Constants.ClimberConstants.ClimbHeights.STOWED -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+                }
+                Constants.ClimberConstants.ClimbHeights.REACH -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.STOWED)
+                }
+                else -> {
+                    climbReachInputBuffer.reset()
+                    climbReachInputBuffer.start()
+                }
             }
         }
-        if (OI.climbLift.tick()) {
-            if (Climber.currentState == Constants.ClimberConstants.ClimbHeights.REACH) {
-                Climber.setState(Constants.ClimberConstants.ClimbHeights.LIFTOFF)
-            } else if (Climber.currentState == Constants.ClimberConstants.ClimbHeights.LIFTOFF) {
-                Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+        if (OI.climbLift.tick() || !climbLiftInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
+            when (Climber.currentState) {
+                Constants.ClimberConstants.ClimbHeights.REACH -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.LIFTOFF)
+                }
+                Constants.ClimberConstants.ClimbHeights.LIFTOFF -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+                }
+                else -> {
+                    climbLiftInputBuffer.reset()
+                    climbLiftInputBuffer.start()
+                }
             }
         }
         Shooter.setFlywheelSpeed(OI.shooterFlywheel)

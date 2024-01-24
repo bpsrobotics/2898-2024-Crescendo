@@ -33,6 +33,8 @@ object Shooter : SubsystemBase() {
         shooterMotor.set(pidCalc + ffCalc)
     }
 
-
+    fun setFlywheelSpeed(speed: Double) {
+        // set shooter flywheel speed here
+    }
 
 }
