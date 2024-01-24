@@ -181,6 +181,9 @@ class Constants {
     }
 
     object ClimberConstants{
+        const val kShooterCANcoder = 1
+        const val kClimberMaxSpeed = 1.0
+        const val kClimberAcceleration = 1.0
         enum class ClimbHeights(val position: Double) {
             STOWED(0.0), //TODO guess what more real values needed
             REACH(1.0),
@@ -188,6 +191,13 @@ class Constants {
         }
     }
 
+    // set to operator/driver's preferences
+    object ButtonConstants {
+        const val CLIMBER_REACH = 7
+        const val CLIMBER_LIFT = 8
+        const val CLIMBER_RELEASE = 9
 
+        const val PRESS_ACTIVATE_DURATION = 0.1
+    }
 
 }

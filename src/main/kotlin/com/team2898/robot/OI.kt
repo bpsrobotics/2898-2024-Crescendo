@@ -105,7 +105,35 @@ object OI : SubsystemBase() {
     val grabTote get() = operatorController.getRawButton(9)//TODO change button
     val grabToteToggle get() = operatorController.getRawButtonPressed(9)//TODO change button
 
+    val climbReach = ButtonPressTracker(operatorController, Constants.ButtonConstants.CLIMBER_REACH, Constants.ButtonConstants.PRESS_ACTIVATE_DURATION)
+    val climbLift = ButtonPressTracker(operatorController, Constants.ButtonConstants.CLIMBER_LIFT, Constants.ButtonConstants.PRESS_ACTIVATE_DURATION)
+    val shooterFlywheel get() = -operatorController.getRawAxis(1) // negate so that positive = forward
 
+    class ButtonPressTracker(val controller: GenericHID, val button: Int, val time: Double) {
+        private var triggered: Boolean = false
+        private var was: Boolean = false
+        private val timer = Timer()
+        fun tick(): Boolean {
+            if (controller.getRawButton(button)) {
+                if (!was) {
+                    was = true
+                    timer.reset()
+                    timer.start()
+                }
+            } else {
+                if (was) {
+                    timer.stop()
+                    was = false
+                    triggered = false
+                }
+            }
+            if (timer.hasElapsed(time) && !triggered) {
+                triggered = true
+                return true
+            }
+            return false
+        }
+    }
     enum class Direction {
         LEFT, RIGHT, UP, DOWN, INACTIVE;
 
@@ -132,13 +160,13 @@ object OI : SubsystemBase() {
         private val rumblePower = 0.0
         private val rumbleSide = GenericHID.RumbleType.kRightRumble
         private val rumbleTimer = Timer()
-        public fun set(time: Double, power: Double, side: GenericHID.RumbleType = GenericHID.RumbleType.kBothRumble){
+        fun set(time: Double, power: Double, side: GenericHID.RumbleType = GenericHID.RumbleType.kBothRumble){
             rumbleTimer.reset()
             rumbleTime = time
             driverController.setRumble(side, power)
             rumbleTimer.start()
         }
-        public fun update(){
+        fun update(){
             if(rumbleTimer.hasElapsed(rumbleTime)){
                 driverController.setRumble(GenericHID.RumbleType.kBothRumble, 0.0)
             }

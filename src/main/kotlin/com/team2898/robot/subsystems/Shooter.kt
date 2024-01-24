@@ -15,6 +15,7 @@ object Shooter : SubsystemBase() {
     val kD = 0.0
     private val pid = PIDController(kP, kI, kD)
     private val shooterEncoder = shooterMotor.encoder
+    private var targetSpeed = 0.0
     init{
         shooterMotor.restoreFactoryDefaults()
         shooterMotor.setSmartCurrentLimit(40)
@@ -24,6 +25,8 @@ object Shooter : SubsystemBase() {
         val first = pid.calculate(shooterEncoder.velocity)
     }
 
-
+    fun setFlywheelSpeed(speed: Double) {
+        targetSpeed = speed
+    }
 
 }
