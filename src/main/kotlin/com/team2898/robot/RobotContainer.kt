@@ -5,6 +5,8 @@ package com.team2898.robot
 
 //import com.team2898.robot.Constants.OperatorConstants
 
+import com.pathplanner.lib.auto.AutoBuilder
+import com.pathplanner.lib.path.PathPlannerPath
 import com.team2898.robot.Constants.AutoConstants.commandMap
 import com.team2898.robot.commands.autos.TestAuto
 import com.team2898.robot.commands.autos.TestAuto2
