@@ -12,14 +12,11 @@ import com.team2898.engine.utils.Sugar.eqEpsilon
 import com.team2898.engine.utils.TurningPID
 import com.team2898.robot.Constants
 import com.team2898.robot.OI
-import com.team2898.robot.subsystems.Drivetrain
-import com.team2898.robot.subsystems.NavX
-import com.team2898.robot.subsystems.Odometry
+import com.team2898.robot.subsystems.*
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
-import edu.wpi.first.wpilibj2.command.CommandBase
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -97,9 +94,27 @@ class TeleOp : Command() {
             resetGyroTimer.stop()
         }
     }
+    fun peripheralControls() {
+        if (OI.climbReach.tick()) {
+            if (Climber.currentState == Constants.ClimberConstants.ClimbHeights.STOWED) {
+                Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+            } else if (Climber.currentState == Constants.ClimberConstants.ClimbHeights.REACH) {
+                Climber.setState(Constants.ClimberConstants.ClimbHeights.STOWED)
+            }
+        }
+        if (OI.climbLift.tick()) {
+            if (Climber.currentState == Constants.ClimberConstants.ClimbHeights.REACH) {
+                Climber.setState(Constants.ClimberConstants.ClimbHeights.LIFTOFF)
+            } else if (Climber.currentState == Constants.ClimberConstants.ClimbHeights.LIFTOFF) {
+                Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+            }
+        }
+        Shooter.setFlywheelSpeed(OI.shooterFlywheel)
+    }
     override fun execute() {
         var speedMultiplier = Constants.OIConstants.kSpeedMultiplierMin
         handleResetGyro()
+        peripheralControls()
         val SpeedDif = Constants.OIConstants.kSpeedMultiplierMax - Constants.OIConstants.kSpeedMultiplierMin
         if(OI.rightTrigger > 0.2) speedMultiplier += SpeedDif* OI.rightTrigger
         val turnSpeed = getTurnSpeed() * speedMultiplier
