@@ -10,18 +10,27 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase
 
 object Shooter : SubsystemBase() {
     private val shooterMotor = CANSparkMax(kShooterId, CANSparkLowLevel.MotorType.kBrushless)
+    private val shooterEncoder = shooterMotor.encoder
+    // PID Constants
     val kP = 0.0
     val kI = 0.0
     val kD = 0.0
     private val pid = PIDController(kP, kI, kD)
-    private val shooterEncoder = shooterMotor.encoder
+    // Feed Forward Constants
+    val kS = 0.0
+    val kV = 0.0
+    val kA = 0.0
+    val ff = SimpleMotorFeedforward(kS, kV, kA)
+
     init{
         shooterMotor.restoreFactoryDefaults()
         shooterMotor.setSmartCurrentLimit(40)
     }
 
     fun shoot(){
-        val first = pid.calculate(shooterEncoder.velocity)
+        val pidCalc = pid.calculate(shooterEncoder.velocity)
+        val ffCalc = ff.calculate(pid.setpoint)
+        shooterMotor.set(pidCalc + ffCalc)
     }
 
 

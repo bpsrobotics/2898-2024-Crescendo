@@ -5,7 +5,6 @@ package com.team2898.robot.subsystems
 
 
 
-import com.bpsrobotics.engine.utils.Inches
 import com.pathplanner.lib.auto.AutoBuilder
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig
 import com.pathplanner.lib.util.PIDConstants
@@ -13,6 +12,8 @@ import com.pathplanner.lib.util.ReplanningConfig
 import com.team2898.engine.utils.SwerveUtils
 import com.team2898.robot.Constants
 import com.team2898.robot.Constants.DriveConstants
+import com.team2898.robot.Constants.DriveConstants.kDriveKinematics
+import com.team2898.robot.Constants.DriveConstants.kMaxSpeedMetersPerSecond
 import edu.wpi.first.math.filter.SlewRateLimiter
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
@@ -192,8 +193,11 @@ object Drivetrain
         m_rearLeft.setDesiredState(swerveModuleStates.get(2))
         m_rearRight.setDesiredState(swerveModuleStates.get(3))
     }
-    val driveConsumer = { x: ChassisSpeeds -> drive(x.vxMetersPerSecond, x.vyMetersPerSecond, x.omegaRadiansPerSecond, false, true) }
-
+    val chassisDrive = {
+            speeds: ChassisSpeeds ->
+        val wantedStates = kDriveKinematics.toSwerveModuleStates(speeds)
+        setModuleStates(wantedStates)
+    }
 
 
     /**
@@ -252,12 +256,12 @@ object Drivetrain
             Odometry.poseSupplier,  // Robot pose supplier
             Odometry.zero,  // Method to reset odometry (will be called if your auto has a starting pose)
             Odometry.chassisSpeedsSupplier,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            driveConsumer,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+            chassisDrive,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
                 PIDConstants(Constants.ModuleConstants.kDrivingP, Constants.ModuleConstants.kDrivingI, Constants.ModuleConstants.kDrivingD),  // Translation PID constants
                 PIDConstants(Constants.ModuleConstants.kTurningP, Constants.ModuleConstants.kTurningI, Constants.ModuleConstants.kTurningD),  // Rotation PID constants
-                5.0,  // Max module speed, in m/s
-                Inches(28.0).meterValue(),  // Drive base radius in meters. Distance from robot center to furthest module.
+                kMaxSpeedMetersPerSecond,  // Max module speed, in m/s
+                0.7112,  // Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() // Default path replanning config. See the API for the options here
             ),
             BooleanSupplier {

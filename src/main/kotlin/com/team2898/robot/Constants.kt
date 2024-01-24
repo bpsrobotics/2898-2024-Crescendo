@@ -32,7 +32,7 @@ class Constants {
     object DriveConstants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
-        const val kMaxSpeedMetersPerSecond = 15.0
+        const val kMaxSpeedMetersPerSecond = 4.5
         const val kMaxAngularSpeed = 2 * Math.PI // radians per second (2*PI)
         const val kDirectionSlewRate = 1.2 // radians per second
         const val kMagnitudeSlewRate = 1.8 // percent per second (1 = 100%)
@@ -143,7 +143,6 @@ class Constants {
     object AutoConstants {
         var commandMap: HashMap<String, Command> = HashMap<String, Command>()
 
-        const val kMaxSpeedMetersPerSecond = 5.0
         const val kMaxAccelerationMetersPerSecondSquared = 3.0
         const val kMaxAngularSpeedRadiansPerSecond = Math.PI
         const val kMaxAngularSpeedRadiansPerSecondSquared = Math.PI
