@@ -1,6 +1,7 @@
 package com.team2898.robot.subsystems
 
 
+import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.revrobotics.CANSparkMaxLowLevel
 import com.team2898.robot.Constants
@@ -15,8 +16,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase
 
 object Shooter : SubsystemBase() {
 
-    private val flywheelController = CANSparkMax(kFlywheelCanId, CANSparkMaxLowLevel.MotorType.kBrushless)
-    private val feederController = CANSparkMax(kFeddderCanId, CANSparkMaxLowLevel.MotorType.kBrushless)
+    private val flywheelController = CANSparkMax(kFlywheelCanId, CANSparkLowLevel.MotorType.kBrushless)
+    private val feederController = CANSparkMax(kFeddderCanId, CANSparkLowLevel.MotorType.kBrushless)
     private val feederTimer = Timer()
     private var timeLastFed = -1.0
     private var feedBall = false

@@ -5,6 +5,8 @@ package com.team2898.robot
 
 //import com.team2898.robot.Constants.OperatorConstants
 
+import com.pathplanner.lib.auto.AutoBuilder
+import com.pathplanner.lib.path.PathPlannerPath
 import com.team2898.robot.Constants.AutoConstants.commandMap
 import com.team2898.robot.commands.autos.TestAuto
 import com.team2898.robot.commands.autos.TestAuto2
@@ -38,15 +40,16 @@ class RobotContainer {
     init {
         // Configure the trigger bindings
         configureBindings()
-        autoCommandChooser.addOption("test auto", TestAuto())
-        autoCommandChooser.setDefaultOption("testAuto2", TestAuto2())
+        autoCommandChooser.setDefaultOption("test auto", TestAuto())
+        autoCommandChooser.addOption("testAuto2", TestAuto2())
 
         SmartDashboard.putData("Auto mode", autoCommandChooser)
 
 
     }
     fun getAutonomousCommand(): Command{
-        return autoCommandChooser.selected
+        val path = PathPlannerPath.fromPathFile("Practice")
+        return AutoBuilder.followPath(path)
     }
 
     /**

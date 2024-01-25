@@ -31,7 +31,7 @@ class Constants {
     object DriveConstants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
-        const val kMaxSpeedMetersPerSecond = 15.0
+        const val kMaxSpeedMetersPerSecond = 4.5
         const val kMaxAngularSpeed = 2 * Math.PI // radians per second (2*PI)
         const val kDirectionSlewRate = 1.2 // radians per second
         const val kMagnitudeSlewRate = 1.8 // percent per second (1 = 100%)
@@ -107,7 +107,7 @@ class Constants {
         const val kTurningEncoderVelocityFactor = 2 * Math.PI / 60.0 // radians per second
         const val kTurningEncoderPositionPIDMinInput = 0.0 // radians
         const val kTurningEncoderPositionPIDMaxInput = kTurningEncoderPositionFactor // radians
-        const val kDrivingP = 0.04
+        const val kDrivingP = 0.03
         const val kDrivingI = 0.0
         const val kDrivingD = 0.0
         const val kDrivingFF = 1 / kDriveWheelFreeSpeedRps
