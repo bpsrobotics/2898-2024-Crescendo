@@ -5,6 +5,8 @@ import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Joystick
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.XboxController
+import edu.wpi.first.wpilibj.event.BooleanEvent
+import edu.wpi.first.wpilibj.event.EventLoop
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 import kotlin.math.pow
 import kotlin.math.sign
@@ -105,35 +107,11 @@ object OI : SubsystemBase() {
     val grabTote get() = operatorController.getRawButton(9)//TODO change button
     val grabToteToggle get() = operatorController.getRawButtonPressed(9)//TODO change button
 
-    val climbReach = ButtonPressTracker(operatorController, Constants.ButtonConstants.CLIMBER_REACH, Constants.ButtonConstants.PRESS_ACTIVATE_DURATION)
-    val climbLift = ButtonPressTracker(operatorController, Constants.ButtonConstants.CLIMBER_LIFT, Constants.ButtonConstants.PRESS_ACTIVATE_DURATION)
+    val loop = EventLoop()
+    val climbReach: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_REACH, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
+    val climbLift: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_LIFT, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
     val shooterFlywheel get() = -operatorController.getRawAxis(1) // negate so that positive = forward
 
-    class ButtonPressTracker(val controller: GenericHID, val button: Int, val time: Double) {
-        private var triggered: Boolean = false
-        private var was: Boolean = false
-        private val timer = Timer()
-        fun tick(): Boolean {
-            if (controller.getRawButton(button)) {
-                if (!was) {
-                    was = true
-                    timer.reset()
-                    timer.start()
-                }
-            } else {
-                if (was) {
-                    timer.stop()
-                    was = false
-                    triggered = false
-                }
-            }
-            if (timer.hasElapsed(time) && !triggered) {
-                triggered = true
-                return true
-            }
-            return false
-        }
-    }
     enum class Direction {
         LEFT, RIGHT, UP, DOWN, INACTIVE;
 
@@ -174,6 +152,7 @@ object OI : SubsystemBase() {
     }
     override fun periodic(){
         Rumble.update()
+        loop.poll()
     }
 
 //    init {

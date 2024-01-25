@@ -97,7 +97,7 @@ class TeleOp : Command() {
     val climbReachInputBuffer = Timer()
     val climbLiftInputBuffer = Timer()
     fun peripheralControls() {
-        if (OI.climbReach.tick() || !climbReachInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
+        if (OI.climbReach.asBoolean || !climbReachInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
             when (Climber.currentState) {
                 Constants.ClimberConstants.ClimbHeights.STOWED -> {
                     Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
@@ -111,7 +111,7 @@ class TeleOp : Command() {
                 }
             }
         }
-        if (OI.climbLift.tick() || !climbLiftInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
+        if (OI.climbLift.asBoolean || !climbLiftInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
             when (Climber.currentState) {
                 Constants.ClimberConstants.ClimbHeights.REACH -> {
                     Climber.setState(Constants.ClimberConstants.ClimbHeights.LIFTOFF)
