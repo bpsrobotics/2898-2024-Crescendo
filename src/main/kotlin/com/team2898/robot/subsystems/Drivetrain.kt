@@ -76,13 +76,13 @@ object Drivetrain
         SmartDashboard.putNumber("TurningKD", Constants.ModuleConstants.kTurningD)
         configureAuto()
 
-        Constants.AutoConstants.kDriveP = SmartDashboard.getNumber("Auto Drive P", kDriveP)
-        Constants.AutoConstants.kDriveI = SmartDashboard.getNumber("Auto Drive I", kDriveI)
-        Constants.AutoConstants.kDriveD = SmartDashboard.getNumber("Auto Drive D", kDriveD)
+        SmartDashboard.putNumber("Auto Drive P", kDriveP)
+        SmartDashboard.putNumber("Auto Drive I", kDriveI)
+        SmartDashboard.putNumber("Auto Drive D", kDriveD)
 
-        Constants.AutoConstants.kTurnP = SmartDashboard.getNumber("Auto Turn P", kTurnP)
-        Constants.AutoConstants.kTurnI = SmartDashboard.getNumber("Auto Turn I", kTurnI)
-        Constants.AutoConstants.kTurnD = SmartDashboard.getNumber("Auto Turn D", kTurnD)
+        SmartDashboard.putNumber("Auto Turn P", kTurnP)
+        SmartDashboard.putNumber("Auto Turn I", kTurnI)
+        SmartDashboard.putNumber("Auto Turn D", kTurnD)
     }
 
 
@@ -268,7 +268,7 @@ object Drivetrain
 
         AutoBuilder.configureHolonomic(
             Odometry::supplyPose,  // Robot pose supplier
-            Odometry::setpoint,  // Method to reset odometry (will be called if your auto has a starting pose)
+            Odometry::resetOdometry,  // Method to reset odometry (will be called if your auto has a starting pose)
             Odometry::chassisSpeeds,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
             this::chassisDrive,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
