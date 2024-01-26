@@ -34,7 +34,7 @@ class RobotContainer {
     private val m_driverController = CommandXboxController(0)
 
     private var autoCommandChooser: SendableChooser<Command> = SendableChooser()
-
+    private var autoPathChooser: SendableChooser<Command>? = null
 
     /** The container for the robot. Contains subsystems, OI devices, and commands.  */
     init {
@@ -45,10 +45,14 @@ class RobotContainer {
 
         SmartDashboard.putData("Auto mode", autoCommandChooser)
 
+        val autoPathChooser = AutoBuilder.buildAutoChooser()
+        SmartDashboard.putData("autoPathChooser", autoPathChooser)
+
+
 
     }
     fun getAutonomousCommand(): Command{
-        val path = PathPlannerPath.fromPathFile("Practice")
+        val path = PathPlannerPath.fromPathFile("1MeterFw")
         return AutoBuilder.followPath(path)
     }
 

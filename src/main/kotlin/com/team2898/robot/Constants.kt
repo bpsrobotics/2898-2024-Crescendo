@@ -150,9 +150,14 @@ class Constants {
         const val kMaxAccelerationMetersPerSecondSquared = 3.0
         const val kMaxAngularSpeedRadiansPerSecond = Math.PI
         const val kMaxAngularSpeedRadiansPerSecondSquared = Math.PI
-        const val kPXController = 1.0
-        const val kPYController = 1.0
-        const val kPThetaController = 1.0
+
+        var kDriveP = 1.0
+        var kDriveI = 0.0
+        var kDriveD = 0.0
+
+        var kTurnP = 0.0
+        var kTurnI = 0.0
+        var kTurnD = 0.0
 
         // Constraint for the motion profiled robot angle controller
         val kThetaControllerConstraints = TrapezoidProfile.Constraints(

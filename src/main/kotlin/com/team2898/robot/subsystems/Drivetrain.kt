@@ -11,6 +11,12 @@ import com.pathplanner.lib.util.PIDConstants
 import com.pathplanner.lib.util.ReplanningConfig
 import com.team2898.engine.utils.SwerveUtils
 import com.team2898.robot.Constants
+import com.team2898.robot.Constants.AutoConstants.kDriveD
+import com.team2898.robot.Constants.AutoConstants.kDriveI
+import com.team2898.robot.Constants.AutoConstants.kDriveP
+import com.team2898.robot.Constants.AutoConstants.kTurnD
+import com.team2898.robot.Constants.AutoConstants.kTurnI
+import com.team2898.robot.Constants.AutoConstants.kTurnP
 import com.team2898.robot.Constants.DriveConstants
 import com.team2898.robot.Constants.DriveConstants.kDriveKinematics
 import com.team2898.robot.Constants.DriveConstants.kMaxSpeedMetersPerSecond
@@ -69,6 +75,14 @@ object Drivetrain
         SmartDashboard.putNumber("TurningKI", Constants.ModuleConstants.kTurningI)
         SmartDashboard.putNumber("TurningKD", Constants.ModuleConstants.kTurningD)
         configureAuto()
+
+        Constants.AutoConstants.kDriveP = SmartDashboard.getNumber("Auto Drive P", kDriveP)
+        Constants.AutoConstants.kDriveI = SmartDashboard.getNumber("Auto Drive I", kDriveI)
+        Constants.AutoConstants.kDriveD = SmartDashboard.getNumber("Auto Drive D", kDriveD)
+
+        Constants.AutoConstants.kTurnP = SmartDashboard.getNumber("Auto Turn P", kTurnP)
+        Constants.AutoConstants.kTurnI = SmartDashboard.getNumber("Auto Turn I", kTurnI)
+        Constants.AutoConstants.kTurnD = SmartDashboard.getNumber("Auto Turn D", kTurnD)
     }
 
 
@@ -106,6 +120,8 @@ object Drivetrain
         SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
         SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
         SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
+
+
 
     }
 
@@ -194,8 +210,8 @@ object Drivetrain
         m_rearLeft.setDesiredState(swerveModuleStates.get(2))
         m_rearRight.setDesiredState(swerveModuleStates.get(3))
     }
-    val chassisDrive = {
-            speeds: ChassisSpeeds ->
+
+    fun chassisDrive(speeds: ChassisSpeeds){
         val wantedStates = kDriveKinematics.toSwerveModuleStates(speeds)
         println("wanted states: " + wantedStates)
         setModuleStates(wantedStates)
@@ -251,13 +267,13 @@ object Drivetrain
     fun configureAuto() {
 
         AutoBuilder.configureHolonomic(
-            Odometry.poseSupplier,  // Robot pose supplier
-            Odometry.zero,  // Method to reset odometry (will be called if your auto has a starting pose)
-            Odometry.chassisSpeedsSupplier,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            chassisDrive,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+            Odometry::supplyPose,  // Robot pose supplier
+            Odometry::setpoint,  // Method to reset odometry (will be called if your auto has a starting pose)
+            Odometry::chassisSpeeds,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            this::chassisDrive,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                PIDConstants(Constants.ModuleConstants.kDrivingP, Constants.ModuleConstants.kDrivingI, Constants.ModuleConstants.kDrivingD),  // Translation PID constants
-                PIDConstants(Constants.ModuleConstants.kTurningP, Constants.ModuleConstants.kTurningI, Constants.ModuleConstants.kTurningD),  // Rotation PID constants
+                PIDConstants(kDriveP, kDriveI, kDriveD),  // Translation PID constants
+                PIDConstants(kTurnP, kTurnI, kTurnD),  // Rotation PID constants
                 kMaxSpeedMetersPerSecond,  // Max module speed, in m/s
                 kTrackWidth / 2,  // Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() // Default path replanning config. See the API for the options here

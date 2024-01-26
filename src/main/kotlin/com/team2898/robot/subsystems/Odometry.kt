@@ -28,6 +28,9 @@ object Odometry : SubsystemBase(), PoseProvider {
     override val pose: Pose2d
         get() = SwerveOdometry.poseMeters
     var poseSupplier: Supplier<Pose2d> = Supplier {pose}
+    fun supplyPose(): Pose2d {
+        return Pose2d(pose.x, pose.y, pose.rotation)
+    }
 
     val chassisSpeeds: ChassisSpeeds
         get() = Constants.DriveConstants.kDriveKinematics.toChassisSpeeds(Drivetrain.m_frontLeft.state, Drivetrain.m_frontRight.state, Drivetrain.m_rearLeft.state, Drivetrain.m_rearRight.state)
@@ -39,6 +42,7 @@ object Odometry : SubsystemBase(), PoseProvider {
 
 
 
+
     /** Robot rotation speed in m/s */
     var velocity: Translation2d = Translation2d()
     private var lastPose = Pose2d()
@@ -47,7 +51,10 @@ object Odometry : SubsystemBase(), PoseProvider {
     fun zero(){
         reset(Pose2d(0.0,0.0,Rotation2d.fromDegrees(0.0)))
     }
-    val zero = { p : Pose2d -> reset(p)}
+
+    fun setpoint(p: Pose2d) {
+        reset(p)
+    }
 
     init {
         timer.start()
