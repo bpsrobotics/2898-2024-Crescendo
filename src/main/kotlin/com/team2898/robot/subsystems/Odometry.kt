@@ -27,7 +27,7 @@ import java.util.function.Supplier
 
 object Odometry : SubsystemBase(), PoseProvider {
     private val vision = Vision("testCamera")
-    var SwerveOdometry = SwerveDrivePoseEstimator(
+    val SwerveOdometry = SwerveDrivePoseEstimator(
         Constants.DriveConstants.kDriveKinematics,
         Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
             Drivetrain.m_frontLeft.position,
@@ -82,7 +82,8 @@ object Odometry : SubsystemBase(), PoseProvider {
     override fun update(){
         var currentVisionValues = vision.getEstimatedPose(pose)
         if (currentVisionValues != null) {
-
+            //SwerveOdometry.setVisionMeasurementStdDevs() //TODO figure out STDev method
+            SwerveOdometry.addVisionMeasurement(currentVisionValues.estimatedPose.toPose2d(), currentVisionValues.timestampSeconds )//TODO Check timestamp seconds is in synch with robot code
         }
         NavX.update(timer.get())
         SwerveOdometry.update(

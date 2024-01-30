@@ -28,8 +28,10 @@ class Vision (
         cam,
         robotToCam
     )
-    fun getEstimatedPose(prevEstimatedRobotPose: Pose2d?): Optional<EstimatedRobotPose?>? {
+    fun getEstimatedPose(prevEstimatedRobotPose: Pose2d?): EstimatedRobotPose? {
         PoseEstimator.setReferencePose(prevEstimatedRobotPose)
-        return PoseEstimator.update()
+        val pose = PoseEstimator.update() ?: return null
+        return pose.get()
+
     }
 }
