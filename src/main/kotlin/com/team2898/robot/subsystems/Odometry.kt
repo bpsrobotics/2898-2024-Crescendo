@@ -3,30 +3,43 @@ package com.team2898.robot.subsystems
 import com.bpsrobotics.engine.utils.Degrees
 import com.bpsrobotics.engine.utils.Meters
 import com.team2898.engine.utils.odometry.PoseProvider
+import com.team2898.engine.utils.odometry.Vision
 import com.team2898.robot.Constants
+import edu.wpi.first.apriltag.AprilTagFieldLayout
+import edu.wpi.first.apriltag.AprilTagFields
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator
 import edu.wpi.first.math.geometry.Pose2d
+import edu.wpi.first.math.geometry.Pose3d
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.ChassisSpeeds
+import edu.wpi.first.math.kinematics.Odometry
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry
 import edu.wpi.first.util.sendable.SendableBuilder
 import edu.wpi.first.util.sendable.SendableRegistry
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.SubsystemBase
+import org.photonvision.PhotonPoseEstimator
+import org.photonvision.PhotonPoseEstimator.PoseStrategy
 import java.util.function.Supplier
 
+
 object Odometry : SubsystemBase(), PoseProvider {
-    var SwerveOdometry = SwerveDriveOdometry(
+    private val vision = Vision("testCamera")
+    var SwerveOdometry = SwerveDrivePoseEstimator(
         Constants.DriveConstants.kDriveKinematics,
         Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
             Drivetrain.m_frontLeft.position,
             Drivetrain.m_frontRight.position,
             Drivetrain.m_rearLeft.position,
             Drivetrain.m_rearRight.position
-        ))
+        ),
+        Pose2d(Translation2d(0.0,0.0),Rotation2d(0.0,0.0))
+
+    )
     override val pose: Pose2d
-        get() = SwerveOdometry.poseMeters
+        get() = SwerveOdometry.estimatedPosition
     var poseSupplier: Supplier<Pose2d> = Supplier {pose}
     fun supplyPose(): Pose2d {
         return Pose2d(pose.x, pose.y, pose.rotation)
@@ -67,6 +80,10 @@ object Odometry : SubsystemBase(), PoseProvider {
         update()
     }
     override fun update(){
+        var currentVisionValues = vision.getEstimatedPose(pose)
+        if (currentVisionValues != null) {
+
+        }
         NavX.update(timer.get())
         SwerveOdometry.update(
             Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
