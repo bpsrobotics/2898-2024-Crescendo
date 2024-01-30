@@ -3,7 +3,7 @@ package com.team2898.robot.subsystems
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.team2898.robot.Constants.ClimberConstants
-import com.team2898.robot.Constants.DriveConstants.kClimberId
+import com.team2898.robot.RobotMap.ClimberId
 import edu.wpi.first.wpilibj.event.BooleanEvent
 import edu.wpi.first.wpilibj.event.EventLoop
 import edu.wpi.first.wpilibj2.command.SubsystemBase
@@ -13,7 +13,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 object Climber : SubsystemBase() {
-    private val climberMotor = CANSparkMax(kClimberId, CANSparkLowLevel.MotorType.kBrushless)
+    private val climberMotor = CANSparkMax(ClimberId, CANSparkLowLevel.MotorType.kBrushless)
     private val climberCoder = climberMotor.encoder
     var currentState: ClimberConstants.ClimbHeights? = null
         private set
@@ -40,7 +40,7 @@ object Climber : SubsystemBase() {
         val position = climberCoder.position
         val velocity = climberCoder.velocity
         if (abs(position - targetState.position) > 0.3) {
-            if (abs(velocity) > 0.01) setSpeed = max(0.0, min(1.0, abs(ClimberConstants.kClimberMaxSpeed / velocity)))
+            if (abs(velocity) > 0.01) setSpeed = max(0.0, min(1.0, abs(ClimberConstants.ClimberMaxSpeed / velocity)))
             climberMotor.set(setSpeed)
         } else {
             climberMotor.set(0.0)

@@ -6,16 +6,15 @@ import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.team2898.engine.utils.MovingAverage
-import com.team2898.robot.Constants.ArmConstants.kArmDigitalInput
-import com.team2898.robot.Constants.ArmConstants.kArmMaxSpeed
-import com.team2898.robot.Constants.ArmConstants.kArm_MaxAccel
-import com.team2898.robot.Constants.DriveConstants.kArm_left
-import com.team2898.robot.Constants.DriveConstants.kArm_right
+import com.team2898.robot.Constants.ArmConstants.ArmDigitalInput
+import com.team2898.robot.Constants.ArmConstants.ArmMaxSpeed
+import com.team2898.robot.Constants.ArmConstants.Arm_MaxAccel
+
+import com.team2898.robot.RobotMap.Arm_left
+import com.team2898.robot.RobotMap.Arm_right
 import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.util.sendable.SendableBuilder
-import edu.wpi.first.wpilibj.DigitalInput
-import edu.wpi.first.wpilibj.DutyCycleEncoder
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 
@@ -27,9 +26,9 @@ import kotlin.math.sin
 
 object Arm : SubsystemBase() {
 
-    private val armMotor = CANSparkMax(kArm_left, CANSparkLowLevel.MotorType.kBrushless)
-    private val armMotorSecondary = CANSparkMax(kArm_right, CANSparkLowLevel.MotorType.kBrushless)
-    private val encoder = CANcoder(kArmDigitalInput)
+    private val armMotor = CANSparkMax(Arm_left, CANSparkLowLevel.MotorType.kBrushless)
+    private val armMotorSecondary = CANSparkMax(Arm_right, CANSparkLowLevel.MotorType.kBrushless)
+    private val encoder = CANcoder(ArmDigitalInput)
 
     var setpoint = pos()
     private const val UPPER_SOFT_STOP = 0.0
@@ -50,8 +49,8 @@ object Arm : SubsystemBase() {
     val profileTimer = Timer()
 
     val constraints = TrapezoidProfile.Constraints(
-        kArmMaxSpeed,
-        kArm_MaxAccel
+        ArmMaxSpeed,
+        Arm_MaxAccel
     )
     val pid = PIDController(0.0, 0.0, 0.0)
     var profile: TrapezoidProfile? = null

@@ -18,18 +18,22 @@ import java.util.function.Supplier
 
 object Odometry : SubsystemBase(), PoseProvider {
     var SwerveOdometry = SwerveDriveOdometry(
-        Constants.DriveConstants.kDriveKinematics,
+        Constants.DriveConstants.DriveKinematics,
         Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
-            Drivetrain.m_frontLeft.position,
-            Drivetrain.m_frontRight.position,
-            Drivetrain.m_rearLeft.position,
-            Drivetrain.m_rearRight.position
+            Drivetrain.frontLeft.position,
+            Drivetrain.frontRight.position,
+            Drivetrain.rearLeft.position,
+            Drivetrain.rearRight.position
         ))
     override val pose: Pose2d
         get() = SwerveOdometry.poseMeters
     var poseSupplier: Supplier<Pose2d> = Supplier {pose}
+    fun supplyPose(): Pose2d {
+        return Pose2d(pose.x, pose.y, pose.rotation)
+    }
 
-    val chassisSpeeds = Constants.DriveConstants.kDriveKinematics.toChassisSpeeds(Drivetrain.m_frontLeft.state, Drivetrain.m_frontRight.state, Drivetrain.m_rearLeft.state, Drivetrain.m_rearRight.state)
+    val chassisSpeeds: ChassisSpeeds
+        get() = Constants.DriveConstants.DriveKinematics.toChassisSpeeds(Drivetrain.frontLeft.state, Drivetrain.frontRight.state, Drivetrain.rearLeft.state, Drivetrain.rearRight.state)
     val chassisSpeedsConsumer = {
         x: ChassisSpeeds -> chassisSpeeds
         Unit
@@ -46,7 +50,10 @@ object Odometry : SubsystemBase(), PoseProvider {
     fun zero(){
         reset(Pose2d(0.0,0.0,Rotation2d.fromDegrees(0.0)))
     }
-    val zero = { p : Pose2d -> reset(p)}
+
+    fun setpoint(p: Pose2d) {
+        reset(p)
+    }
 
     init {
         timer.start()
@@ -62,10 +69,10 @@ object Odometry : SubsystemBase(), PoseProvider {
         NavX.update(timer.get())
         SwerveOdometry.update(
             Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
-                Drivetrain.m_frontLeft.position,
-                Drivetrain.m_frontRight.position,
-                Drivetrain.m_rearLeft.position,
-                Drivetrain.m_rearRight.position
+                Drivetrain.frontLeft.position,
+                Drivetrain.frontRight.position,
+                Drivetrain.rearLeft.position,
+                Drivetrain.rearRight.position
             ))
         velocity = Translation2d((lastPose.x - pose.x)/timer.get(), (lastPose.y - pose.y)/timer.get())
         lastPose = pose
@@ -79,10 +86,10 @@ object Odometry : SubsystemBase(), PoseProvider {
     fun resetOdometry(pose: Pose2d?) {
         SwerveOdometry.resetPosition(
             Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
-                Drivetrain.m_frontLeft.position,
-                Drivetrain.m_frontRight.position,
-                Drivetrain.m_rearLeft.position,
-                Drivetrain.m_rearRight.position
+                Drivetrain.frontLeft.position,
+                Drivetrain.frontRight.position,
+                Drivetrain.rearLeft.position,
+                Drivetrain.rearRight.position
             ),
             pose)
     }

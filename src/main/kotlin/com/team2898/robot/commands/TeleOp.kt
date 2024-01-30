@@ -128,21 +128,28 @@ class TeleOp : Command() {
         Shooter.setFlywheelSpeed(OI.shooterFlywheel)
     }
     override fun execute() {
-        var speedMultiplier = Constants.OIConstants.kSpeedMultiplierMin
-        handleResetGyro()
-        peripheralControls()
-        val SpeedDif = Constants.OIConstants.kSpeedMultiplierMax - Constants.OIConstants.kSpeedMultiplierMin
-        if(OI.rightTrigger > 0.2) speedMultiplier += SpeedDif* OI.rightTrigger
-        val turnSpeed = getTurnSpeed() * speedMultiplier
-
+//        var speedMultiplier = Constants.OIConstants.kSpeedMultiplierMin
+//        handleResetGyro()
+////        peripheralControls()
+//        val SpeedDif = Constants.OIConstants.kSpeedMultiplierMax - Constants.OIConstants.kSpeedMultiplierMin
+//        if(OI.rightTrigger > 0.2) speedMultiplier += SpeedDif* OI.rightTrigger
+//        val turnSpeed = getTurnSpeed() * speedMultiplier
+//
+//        Drivetrain.drive(
+//            (OI.translationY)*speedMultiplier, //* OI.translationY.sign,
+//            (OI.translationX)*speedMultiplier, //* OI.translationX.sign,
+//            turnSpeed,
+//            fieldRelative = true,
+//            rateLimit = true
         Drivetrain.drive(
-            -(OI.translationY)*speedMultiplier, //* OI.translationY.sign,
-            -(OI.translationX)*speedMultiplier, //* OI.translationX.sign,
-            turnSpeed,
+            -OI.translationX,
+            -OI.translationY,
+            getTurnSpeed(),
             fieldRelative = true,
             rateLimit = true
-
         )
+//
+//        )
 
     }
 
