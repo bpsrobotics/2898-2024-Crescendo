@@ -35,9 +35,9 @@ class Constants {
         // the robot, rather the allowed maximum speeds
         const val MaxSpeedMetersPerSecond = 2.0
         const val MaxAngularSpeed = 2 * Math.PI // radians per second (2*PI)
-        const val DirectionSlewRate = 1.2 // radians per second
+        const val DirectionSlewRate = 2.0 // radians per second
         const val MagnitudeSlewRate = 1.8 // percent per second (1 = 100%)
-        const val RotationalSlewRate = 2.0 // percent per second (1 = 100%)
+        const val RotationalSlewRate = 10.0 // percent per second (1 = 100%)
 
         // Chassis configuration (left to right dist of center of the wheels)
         val TrackWidth = Units.inchesToMeters(22.75)
@@ -97,7 +97,7 @@ class Constants {
         const val DrivingKv = 0.0
         const val DrivingMinOutput = -1.0
         const val DrivingMaxOutput = 1.0
-        var TurningP = 1.25
+        var TurningP = 0.5
         var TurningI = 0.0
         var TurningD = 0.0
 //        var Ks = 0.06 //0.085

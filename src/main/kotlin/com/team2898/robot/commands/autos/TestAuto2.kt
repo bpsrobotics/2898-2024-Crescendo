@@ -9,8 +9,8 @@ class TestAuto2 : Command() {
     private val time = edu.wpi.first.wpilibj.Timer()
     override fun execute(){
         println(time.get())
-        if(!time.hasElapsed(3.0)) Drivetrain.drive(0.25, 0.0,0.0,true, true)
-        else Drivetrain.drive(0.0,0.0,0.0,true,true)
+        if(!time.hasElapsed(3.0)) Drivetrain.drive(0.25, 0.0,0.0,true, true, false)
+        else Drivetrain.drive(0.0,0.0,0.0,true,true, false)
     }
 
     override fun initialize() {

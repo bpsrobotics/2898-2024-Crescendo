@@ -13,6 +13,7 @@ import com.team2898.engine.utils.SwerveUtils
 import com.team2898.robot.Constants
 import com.team2898.robot.Constants.DriveConstants
 import com.team2898.robot.Constants.DriveConstants.DriveKinematics
+import com.team2898.robot.Constants.DriveConstants.MaxAngularSpeed
 import com.team2898.robot.Constants.DriveConstants.MaxSpeedMetersPerSecond
 import com.team2898.robot.RobotMap.FrontLeftCANCoderID
 import com.team2898.robot.RobotMap.FrontLeftDrivingCanId
@@ -90,9 +91,9 @@ object Drivetrain
         SmartDashboard.putNumber("TurningKI", Constants.ModuleConstants.TurningI)
         SmartDashboard.putNumber("TurningKD", Constants.ModuleConstants.TurningD)
 
-        SmartDashboard.getNumber("DrivingKP", Constants.ModuleConstants.DrivingP)
-        SmartDashboard.getNumber("DrivingKI", Constants.ModuleConstants.DrivingI)
-        SmartDashboard.getNumber("DrivingKD", Constants.ModuleConstants.DrivingD)
+        SmartDashboard.putNumber("DrivingKP", Constants.ModuleConstants.DrivingP)
+        SmartDashboard.putNumber("DrivingKI", Constants.ModuleConstants.DrivingI)
+        SmartDashboard.putNumber("DrivingKD", Constants.ModuleConstants.DrivingD)
 
         configureAuto()
     }
@@ -165,8 +166,9 @@ object Drivetrain
      * @param fieldRelative Whether the provided x and y speeds are relative to the
      * field.
      * @param rateLimit     Whether to enable rate limiting for smoother control.
+     * @param secondOrder Whether to apply second order kinematics
      */
-    fun drive(xSpeed: Double, ySpeed: Double, rot: Double, fieldRelative: Boolean, rateLimit: Boolean) {
+    fun drive(xSpeed: Double, ySpeed: Double, rot: Double, fieldRelative: Boolean, rateLimit: Boolean, secondOrder: Boolean) {
         val xSpeedCommanded: Double
         val ySpeedCommanded: Double
         if (rateLimit) {
@@ -214,21 +216,26 @@ object Drivetrain
         val xSpeedDelivered: Double = xSpeedCommanded * DriveConstants.MaxSpeedMetersPerSecond
         val ySpeedDelivered: Double = ySpeedCommanded * DriveConstants.MaxSpeedMetersPerSecond
         val rotDelivered: Double = currentRotation * DriveConstants.MaxAngularSpeed
-        val swerveModuleStates = DriveConstants.DriveKinematics.toSwerveModuleStates(
-                if (fieldRelative) ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(NavX.getInvertedAngle())) else ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered))
+
+        val speed = if (fieldRelative) ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(NavX.getInvertedAngle())) else ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
+        val secondOrderSpeeds = ChassisSpeeds.discretize(speed, 0.05)
+        val swerveModuleStates = DriveConstants.DriveKinematics.toSwerveModuleStates(if (secondOrder) secondOrderSpeeds else speed)
         SwerveDriveKinematics.desaturateWheelSpeeds(
                 swerveModuleStates, DriveConstants.MaxSpeedMetersPerSecond)
         frontLeft.setDesiredState(swerveModuleStates.get(0))
         frontRight.setDesiredState(swerveModuleStates.get(1))
         rearLeft.setDesiredState(swerveModuleStates.get(2))
         rearRight.setDesiredState(swerveModuleStates.get(3))
+//        chassisDrive(if (secondOrder) secondOrderSpeeds else speed)
 
     }
+
     val chassisDrive = {
             speeds: ChassisSpeeds ->
         val wantedStates = DriveKinematics.toSwerveModuleStates(speeds)
         setModuleStates(wantedStates)
     }
+
 
 
     /**

@@ -5,8 +5,9 @@ package com.team2898.robot.subsystems
 
 
 import com.ctre.phoenix6.hardware.CANcoder
-import com.revrobotics.*
 import com.revrobotics.CANSparkLowLevel.MotorType.kBrushless
+import com.revrobotics.CANSparkMax
+import com.revrobotics.RelativeEncoder
 import com.team2898.robot.Constants.ModuleConstants
 import com.team2898.robot.Constants.ModuleConstants.DrivingD
 import com.team2898.robot.Constants.ModuleConstants.DrivingI
@@ -15,6 +16,7 @@ import com.team2898.robot.Constants.ModuleConstants.DrivingKv
 import com.team2898.robot.Constants.ModuleConstants.DrivingMotorCurrentLimit
 import com.team2898.robot.Constants.ModuleConstants.DrivingP
 import com.team2898.robot.Constants.ModuleConstants.TurningMotorCurrentLimit
+import edu.wpi.first.math.MathUtil.angleModulus
 import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.controller.SimpleMotorFeedforward
 import edu.wpi.first.math.geometry.Rotation2d
@@ -38,7 +40,6 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
     private var m_chassisAngularOffset = 0.0
     public var m_desiredState = SwerveModuleState(0.0, Rotation2d())
     val motorInvert = inverted
-    val sb: StringBuilder
 
     /**
      * Constructs a MAXSwerveModule and configures the driving and turning motor,
@@ -47,7 +48,6 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
      */
 
     init {
-        sb = StringBuilder()
         drivingSparkMax = CANSparkMax(drivingCANId, kBrushless)
         turningSparkMax = CANSparkMax(turningCANId, kBrushless)
         // Factory reset, so we get the SPARKS MAX to a known state before configuring
@@ -73,12 +73,6 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
         turningPIDController = PIDController(
             ModuleConstants.TurningP, ModuleConstants.TurningI, ModuleConstants.TurningD)
 
-//        if (motorInvert) {
-//            m_turningPIDController.enableContinuousInput(-2 * PI, 0.0)
-//        } else {
-//            m_turningPIDController.enableContinuousInput(0.0, 2 * PI)
-//        }
-//        m_turningPIDController.enableContinuousInput(-2 * PI, 2 * PI)
         turningPIDController.enableContinuousInput(-PI, PI)
 
         drivingSparkMax.idleMode = ModuleConstants.DrivingMotorIdleMode
@@ -131,11 +125,11 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
 
     fun readEnc(): Rotation2d {
         val encPos = ((turningEncoder.absolutePosition.valueAsDouble - 0.5) * 2 * PI) - m_chassisAngularOffset
-
+        val modPos = angleModulus(encPos)
         if (motorInvert) {
-            return Rotation2d(-encPos)
+            return Rotation2d(-modPos)
         } else {
-            return Rotation2d(encPos)
+            return Rotation2d(modPos)
         }
     }
 
@@ -145,6 +139,10 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
      * @param desiredState Desired state with speed and angle.
      */
     fun setDesiredState(desiredState: SwerveModuleState) {
+        if (Math.abs(desiredState.speedMetersPerSecond) < 0.001){
+            stop()
+            return
+        }
 
         val optimizedDesiredState = SwerveModuleState.optimize(desiredState,
             state.angle)
@@ -158,14 +156,18 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
         drivingSparkMax.set(feedforward + drivePid)
         turningSparkMax.set(turningPIDController.calculate(state.angle.radians, optimizedDesiredState.angle.radians))
         SmartDashboard.putNumber("turn voltage " + moduleID, turningPIDController.calculate(state.angle.radians, optimizedDesiredState.angle.radians))
-        m_desiredState = desiredState
 
-        sb.append("$drivePid, $moduleID")
+        m_desiredState = desiredState
 
     }
 
     /** Zeroes all the SwerveModule encoders.  */
     fun resetEncoders() {
         drivingEncoder.position = 0.0
+    }
+
+    fun stop(){
+        drivingSparkMax.set(0.0)
+        turningSparkMax.set(0.0)
     }
 }

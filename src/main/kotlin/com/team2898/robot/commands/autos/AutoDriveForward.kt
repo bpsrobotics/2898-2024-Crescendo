@@ -21,7 +21,7 @@ class AutoDriveForward : Command(){
     }
     override fun execute() {
         println("MOBILITY-ING")
-        Drivetrain.drive(0.0, 0.25, 0.0, true, true)
+        Drivetrain.drive(0.0, 0.25, 0.0, true, true, false)
     }
     override fun isFinished(): Boolean {
         return timer.hasElapsed(2.4) || Odometry.SwerveOdometry.poseMeters.y > 1
