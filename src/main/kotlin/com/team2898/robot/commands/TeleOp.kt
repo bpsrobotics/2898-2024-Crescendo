@@ -18,7 +18,7 @@ import com.team2898.robot.subsystems.Odometry
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
-import edu.wpi.first.wpilibj2.command.CommandBase
+import edu.wpi.first.wpilibj2.command.Command
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -30,7 +30,7 @@ enum class DriveMode {
 /**
     Called when the Tele-Operated stage of the game begins.
  */
-class TeleOp : CommandBase() {
+class TeleOp : Command() {
     init {
         addRequirements(Drivetrain)
     }

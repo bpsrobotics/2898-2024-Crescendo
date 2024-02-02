@@ -127,7 +127,7 @@ object Drivetrain
 
     /** Current estimated pose of the robot.*/
     val pose: Pose2d
-        get() = Odometry.SwerveOdometry.poseMeters
+        get() = Odometry.SwerveOdometry.estimatedPosition
 
 
 

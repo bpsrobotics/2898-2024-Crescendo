@@ -7,6 +7,8 @@ import com.team2898.engine.utils.odometry.Vision
 import com.team2898.robot.Constants
 import edu.wpi.first.apriltag.AprilTagFieldLayout
 import edu.wpi.first.apriltag.AprilTagFields
+import edu.wpi.first.math.Matrix
+import edu.wpi.first.math.Nat
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Pose3d
@@ -81,9 +83,13 @@ object Odometry : SubsystemBase(), PoseProvider {
     }
     override fun update(){
         var currentVisionValues = vision.getEstimatedPose(pose)
+        val stdDevs = Matrix(Nat.N3(), Nat.N1())
         if (currentVisionValues != null) {
-            //SwerveOdometry.setVisionMeasurementStdDevs() //TODO figure out STDev method
-            SwerveOdometry.addVisionMeasurement(currentVisionValues.estimatedPose.toPose2d(), currentVisionValues.timestampSeconds )//TODO Check timestamp seconds is in synch with robot code
+            SwerveOdometry.setVisionMeasurementStdDevs(stdDevs) //TODO figure out STDev method
+            SwerveOdometry.addVisionMeasurement(
+                currentVisionValues.estimatedPose.toPose2d(),
+                currentVisionValues.timestampSeconds
+            )//TODO Check timestamp seconds is in synch with robot code
         }
         NavX.update(timer.get())
         SwerveOdometry.update(
