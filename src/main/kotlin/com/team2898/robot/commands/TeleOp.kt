@@ -136,7 +136,7 @@ class TeleOp : Command() {
             getTurnSpeed(),
             fieldRelative = true,
             rateLimit = true,
-            secondOrder = false
+            secondOrder = true
         )
 
 

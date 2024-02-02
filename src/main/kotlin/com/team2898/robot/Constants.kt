@@ -33,7 +33,7 @@ class Constants {
     object DriveConstants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
-        const val MaxSpeedMetersPerSecond = 2.0
+        const val MaxSpeedMetersPerSecond = 4.5
         const val MaxAngularSpeed = 2 * Math.PI // radians per second (2*PI)
         const val DirectionSlewRate = 2.0 // radians per second
         const val MagnitudeSlewRate = 1.8 // percent per second (1 = 100%)
@@ -45,18 +45,18 @@ class Constants {
         // Distance between centers of right and left wheels on robot (front to back dist)
         val WheelBase = Units.inchesToMeters(22.75)
 
-        // Distance between front and back wheels on robot
+        // Distance between front and back wheels on robot: CHANGE TO MATCH WITH ROBOT
         val DriveKinematics = SwerveDriveKinematics(
-                Translation2d(WheelBase / 2, TrackWidth / 2),
-                Translation2d(WheelBase / 2, -TrackWidth / 2),
-                Translation2d(-WheelBase / 2, TrackWidth / 2),
-                Translation2d(-WheelBase / 2, -TrackWidth / 2))
+                Translation2d(-WheelBase / 2, TrackWidth / 2), // Front Left (-,+) 4:4
+                Translation2d(-WheelBase / 2, -TrackWidth / 2), // Front Right (+,+)1:3
+                Translation2d(WheelBase / 2, TrackWidth / 2), // Back Left (+,-)2:1
+                Translation2d(WheelBase / 2, -TrackWidth / 2)) //Back Right (-,-)3:2
 
         // Angular offsets of the modules relative to the chassis in radians
-        const val FrontLeftChassisAngularOffset  = 0.5 * PI
-        const val FrontRightChassisAngularOffset = 0.5 * PI
-        const val BackLeftChassisAngularOffset   = 0.5 * PI
-        const val BackRightChassisAngularOffset  = 0.5 * PI
+        const val FrontLeftChassisAngularOffset  = 0.0
+        const val FrontRightChassisAngularOffset = 0.0
+        const val BackLeftChassisAngularOffset   = 0.0
+        const val BackRightChassisAngularOffset  = 0.0
 
         const val GyroReversed = false
 
@@ -89,7 +89,7 @@ class Constants {
         const val TurningEncoderVelocityFactor = 2 * Math.PI / 60.0 // radians per second
         const val TurningEncoderPositionPIDMinInput = 0.0 // radians
         const val TurningEncoderPositionPIDMaxInput = TurningEncoderPositionFactor // radians
-        var DrivingP = 0.2
+        var DrivingP = 1.0
         var DrivingI = 0.0
         var DrivingD = 0.0
         const val DrivingFF = 1 / DriveWheelFreeSpeedRps
@@ -104,8 +104,8 @@ class Constants {
         const val TurningFF = 0.0
         const val TurningMinOutput = 0.5
         const val TurningMaxOutput = 1.0
-        val DrivingMotorIdleMode = CANSparkBase.IdleMode.kCoast
-        val TurningMotorIdleMode = CANSparkBase.IdleMode.kCoast
+        val DrivingMotorIdleMode = CANSparkBase.IdleMode.kBrake
+        val TurningMotorIdleMode = CANSparkBase.IdleMode.kBrake
         const val DrivingMotorCurrentLimit = 40 // amps
         const val TurningMotorCurrentLimit = 40 // amps
     }

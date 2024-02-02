@@ -110,7 +110,7 @@ object Drivetrain
     // Odometry class for tracking robot pose
     var m_odometry = SwerveDriveOdometry(
             DriveConstants.DriveKinematics,
-            Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
+            Rotation2d.fromDegrees(NavX.getAngle()), arrayOf(
             frontLeft.position,
             frontRight.position,
             rearLeft.position,
@@ -217,8 +217,8 @@ object Drivetrain
         val ySpeedDelivered: Double = ySpeedCommanded * DriveConstants.MaxSpeedMetersPerSecond
         val rotDelivered: Double = currentRotation * DriveConstants.MaxAngularSpeed
 
-        val speed = if (fieldRelative) ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(NavX.getInvertedAngle())) else ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
-        val secondOrderSpeeds = ChassisSpeeds.discretize(speed, 0.05)
+        val speed = if (fieldRelative) ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(NavX.getAngle())) else ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
+        val secondOrderSpeeds = ChassisSpeeds.discretize(speed, 0.01)
         val swerveModuleStates = DriveConstants.DriveKinematics.toSwerveModuleStates(if (secondOrder) secondOrderSpeeds else speed)
         SwerveDriveKinematics.desaturateWheelSpeeds(
                 swerveModuleStates, DriveConstants.MaxSpeedMetersPerSecond)
@@ -277,7 +277,7 @@ object Drivetrain
     }
     /** The robot's heading in degrees, from -180 to 180 */
     val heading: Double
-        get() = Rotation2d.fromDegrees(NavX.getInvertedAngle()).degrees
+        get() = Rotation2d.fromDegrees(NavX.getAngle()).degrees
     /** The turn rate of the robot, in degrees per second */
     val turnRate: Double
         get() = NavX.navx.rate * if (DriveConstants.GyroReversed) -1.0 else 1.0

@@ -124,7 +124,7 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
     }
 
     fun readEnc(): Rotation2d {
-        val encPos = ((turningEncoder.absolutePosition.valueAsDouble - 0.5) * 2 * PI) - m_chassisAngularOffset
+        val encPos = ((turningEncoder.absolutePosition.valueAsDouble) * 2 * PI) - m_chassisAngularOffset
         val modPos = angleModulus(encPos)
         if (motorInvert) {
             return Rotation2d(-modPos)
@@ -143,8 +143,12 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
             stop()
             return
         }
+        // Apply chassis angular offset to the desired state.
+        val correctedDesiredState = SwerveModuleState()
+        correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond
+        correctedDesiredState.angle = desiredState.angle
 
-        val optimizedDesiredState = SwerveModuleState.optimize(desiredState,
+        val optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
             state.angle)
 
         SmartDashboard.putNumber("drive optimized desired state angle" + moduleID, optimizedDesiredState.angle.radians)
