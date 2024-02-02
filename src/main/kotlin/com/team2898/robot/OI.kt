@@ -1,5 +1,6 @@
 package com.team2898.robot
 
+import com.team2898.engine.utils.Vector
 import edu.wpi.first.math.MathUtil
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Joystick
@@ -102,6 +103,13 @@ object OI : SubsystemBase() {
         get() = driverController.rightBumperReleased
 
     val highHat get() = operatorController.pov
+    val hatVector get() = when (operatorController.pov) {
+        0 -> Vector(0,1)
+        90 -> Vector(1,0)
+        180 -> Vector(0,-1)
+        270 -> Vector(-1,0)
+        else -> Vector.zero
+    }
     val moving get() = operatorController.getRawButton(7)
 
     val grabTote get() = operatorController.getRawButton(9)//TODO change button
@@ -119,6 +127,13 @@ object OI : SubsystemBase() {
             LEFT  -> RIGHT
             RIGHT -> LEFT
             else  -> this
+        }
+        fun toVector() = when (this) {
+            LEFT -> Vector(-1,0)
+            RIGHT -> Vector(1,0)
+            UP -> Vector(0,1)
+            DOWN -> Vector(0,-1)
+            INACTIVE -> Vector.zero
         }
     }
 
