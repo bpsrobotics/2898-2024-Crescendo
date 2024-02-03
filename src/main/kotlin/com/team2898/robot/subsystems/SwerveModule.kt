@@ -22,6 +22,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.kinematics.SwerveModulePosition
 import edu.wpi.first.math.kinematics.SwerveModuleState
+import edu.wpi.first.units.Voltage
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import kotlin.math.PI
 
@@ -169,5 +170,8 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
     fun stop(){
         drivingSparkMax.set(0.0)
         turningSparkMax.set(0.0)
+    }
+    fun driveVoltage(voltage: Double){
+        drivingSparkMax.setVoltage(voltage)
     }
 }

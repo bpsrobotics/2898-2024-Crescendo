@@ -5,6 +5,9 @@ package com.team2898.robot.subsystems
 
 
 
+import com.bpsrobotics.engine.utils.Meters
+import com.bpsrobotics.engine.utils.MetersPerSecond
+import com.bpsrobotics.engine.utils.Volts
 import com.pathplanner.lib.auto.AutoBuilder
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig
 import com.pathplanner.lib.util.PIDConstants
@@ -13,7 +16,6 @@ import com.team2898.engine.utils.SwerveUtils
 import com.team2898.robot.Constants
 import com.team2898.robot.Constants.DriveConstants
 import com.team2898.robot.Constants.DriveConstants.DriveKinematics
-import com.team2898.robot.Constants.DriveConstants.MaxAngularSpeed
 import com.team2898.robot.Constants.DriveConstants.MaxSpeedMetersPerSecond
 import com.team2898.robot.RobotMap.FrontLeftCANCoderID
 import com.team2898.robot.RobotMap.FrontLeftDrivingCanId
@@ -35,11 +37,14 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry
 import edu.wpi.first.math.kinematics.SwerveModuleState
 import edu.wpi.first.networktables.NetworkTableInstance
+import edu.wpi.first.units.*
+import edu.wpi.first.units.MutableMeasure.mutable
 import edu.wpi.first.util.WPIUtilJNI
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.DriverStation.Alliance
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.SubsystemBase
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import java.util.function.BooleanSupplier
 
 
@@ -155,7 +160,62 @@ object Drivetrain
         Odometry.resetOdometry(pose)
     }
 
+    // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
+    private val m_appliedVoltage: MutableMeasure<Voltage> = mutable(Volts.of(0))
 
+    // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
+    private val m_distance: MutableMeasure<Distance> = mutable(Meters.of(0))
+
+    // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
+    private val m_velocity: MutableMeasure<Velocity<Distance>> = mutable(MetersPerSecond.of(0))
+    // Create a new SysId routine for characterizing the drive.
+    val sysIdRoutine = SysIdRoutine(
+        // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
+        SysIdRoutine.Config(),
+        SysIdRoutine.Mechanism(
+            // Tell SysId how to plumb the driving voltage to the motors.
+            { volts: Measure<Voltage> ->
+                    for (module in modules){
+                        module.driveVoltage(volts.`in`(Volts))
+                    }
+            },
+        )
+    )
+//    private val m_sysIdRoutine = SysIdRoutine(
+//        SysIdRoutine.Config(),
+//        Mechanism(
+//            { volts: Measure<Voltage?> ->
+//                runSwerveCharacterization(
+//                    volts.`in`(
+//                        Units.Volts
+//                    )
+//                )
+//            },
+//            { log: SysIdRoutineLog ->
+//                log.motor("drive-left")
+//                    .voltage(
+//                        m_appliedVoltage.mut_replace(
+//                            modules[3].getDriveVoltage(), Volts
+//                        )
+//                    )
+//                    .linearPosition(m_distance.mut_replace(modules[3].getPosition().distanceMeters, Meters))
+//                    .linearVelocity(
+//                        m_velocity.mut_replace(modules[3].getDriveSpeed(), MetersPerSecond)
+//                    )
+//                log.motor("drive-right")
+//                    .voltage(
+//                        m_appliedVoltage.mut_replace(
+//                            modules[0].getDriveVoltage() * RobotController.getBatteryVoltage(), Volts
+//                        )
+//                    )
+//                    .linearPosition(m_distance.mut_replace(modules[3].getPosition().distanceMeters, Meters))
+//                    .linearVelocity(
+//                        m_velocity.mut_replace(modules[0].getDriveSpeed(), MetersPerSecond)
+//                    )
+//            },
+//            this
+//        )
+//    )
 
     /**
      * Method to drive the robot using joystick info.
