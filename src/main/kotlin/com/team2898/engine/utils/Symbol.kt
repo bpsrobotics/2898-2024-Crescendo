@@ -9,9 +9,10 @@ import kotlin.random.Random
  * Similar to [the JavaScript version](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol).
  */
 class Symbol(val description: String?) {
-    constructor(id: String, description: String?) : this(description) {
+    private constructor(id: String, description: String?) : this(description) {
         this.id = id
     }
+    constructor() : this(null)
     private var id: String
     init {
         var l = 32

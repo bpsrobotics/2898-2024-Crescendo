@@ -2,6 +2,7 @@ package com.team2898.robot.subsystems
 
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
+import com.team2898.engine.utils.async.Promise
 import com.team2898.robot.Constants.ClimberConstants
 import com.team2898.robot.RobotMap.ClimberId
 import edu.wpi.first.wpilibj.event.BooleanEvent
@@ -19,6 +20,8 @@ object Climber : SubsystemBase() {
         private set
     var targetState: ClimberConstants.ClimbHeights = ClimberConstants.ClimbHeights.STOWED
         private set
+    private var onceArrived: ((value: Unit) -> Unit)? = null
+    private var onceCancelled: ((error: Exception) -> Unit)? = null
     private var setSpeed = 1.0 // speed control
     val distanceToGo get() = targetState.position - climberCoder.position
     val absDistanceToGo get() = abs(distanceToGo)
@@ -35,6 +38,15 @@ object Climber : SubsystemBase() {
         targetState = newState
         currentState = null
     }
+    fun go(newState: ClimberConstants.ClimbHeights): Promise<Unit> {
+        onceCancelled?.invoke(Exception("Climber movement cancelled"))
+        targetState = newState
+        currentState = null
+        val r = Promise.withResolvers<Unit>()
+        onceArrived = r.resolve
+        onceCancelled = r.reject
+        return r.promise
+    }
 
     override fun periodic() {
         val position = climberCoder.position
@@ -45,6 +57,7 @@ object Climber : SubsystemBase() {
         } else {
             climberMotor.set(0.0)
             currentState = targetState
+            onceArrived?.invoke(Unit)
         }
     }
 }
