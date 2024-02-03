@@ -118,9 +118,13 @@ object OI : SubsystemBase() {
 
     val alignmentPad get() = when(driverController.pov) {
         0    -> Direction.UP
+        45   -> Direction.UPRIGHT
         90   -> Direction.RIGHT
+        135  -> Direction.RIGHTDOWN
         180  -> Direction.DOWN
+        225  -> Direction.LEFTDOWN
         270  -> Direction.LEFT
+        315  -> Direction.UPLEFT
         else -> Direction.INACTIVE
     }
     val operatorThrottle get() = -operatorController.getRawAxis(1)
