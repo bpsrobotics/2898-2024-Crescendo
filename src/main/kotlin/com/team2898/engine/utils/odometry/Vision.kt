@@ -12,9 +12,7 @@ import org.photonvision.PhotonPoseEstimator
 import java.util.*
 
 
-class Vision (
-    CameraName: String
-) {
+class Vision (CameraName: String) {
     val cam = PhotonCamera(CameraName);
     var robotToCam = Transform3d(
         Translation3d(0.5, 0.0, 0.5),
@@ -28,10 +26,9 @@ class Vision (
         cam,
         robotToCam
     )
-    fun getEstimatedPose(prevEstimatedRobotPose: Pose2d?): EstimatedRobotPose? {
+    fun getEstimatedPose(prevEstimatedRobotPose: Pose2d): EstimatedRobotPose {
         PoseEstimator.setReferencePose(prevEstimatedRobotPose)
-        val pose = PoseEstimator.update() ?: return null
+        val pose = PoseEstimator.update()
         return pose.get()
-
     }
 }
