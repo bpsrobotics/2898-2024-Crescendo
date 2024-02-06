@@ -5,6 +5,7 @@ package com.team2898.robot
 
 import com.team2898.robot.commands.TeleOp
 import com.team2898.robot.subsystems.Drivetrain
+import com.team2898.robot.subsystems.Odometry
 import com.team2898.robot.subsystems.Shooter
 import edu.wpi.first.wpilibj.TimedRobot
 import edu.wpi.first.wpilibj2.command.Command
@@ -27,6 +28,7 @@ class Robot : TimedRobot() {
     override fun robotInit() {
         Drivetrain
         Shooter
+        Odometry
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
         robotContainer = RobotContainer()

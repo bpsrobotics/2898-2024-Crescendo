@@ -47,13 +47,9 @@ class Vision (
         val result = cam.latestResult
         return result.hasTargets()
     }
-    fun getEstimatedPose(prevEstimatedRobotPose: Pose2d): EstimatedRobotPose {
-        PoseEstimator.setReferencePose(prevEstimatedRobotPose)
-        val pose = PoseEstimator.update()
-
-        return pose.get()
-
-
-
+    fun getEstimatedPose(prevEstimatedRobotPose: Pose2d?): Optional<EstimatedRobotPose>? {
+        if(prevEstimatedRobotPose != null) PoseEstimator.setReferencePose(prevEstimatedRobotPose)
+        val pose = PoseEstimator.update() ?: return null
+        return pose
     }
 }

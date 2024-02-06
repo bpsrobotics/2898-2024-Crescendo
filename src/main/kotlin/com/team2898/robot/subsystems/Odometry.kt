@@ -7,6 +7,7 @@ import com.team2898.engine.utils.odometry.Vision
 import com.team2898.robot.Constants
 import edu.wpi.first.apriltag.AprilTagFieldLayout
 import edu.wpi.first.apriltag.AprilTagFields
+import edu.wpi.first.math.MatBuilder
 import edu.wpi.first.math.Matrix
 import edu.wpi.first.math.Nat
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator
@@ -17,6 +18,8 @@ import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.ChassisSpeeds
 import edu.wpi.first.math.kinematics.Odometry
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry
+import edu.wpi.first.math.numbers.N1
+import edu.wpi.first.math.numbers.N3
 import edu.wpi.first.util.sendable.SendableBuilder
 import edu.wpi.first.util.sendable.SendableRegistry
 import edu.wpi.first.wpilibj.Timer
@@ -28,7 +31,7 @@ import java.util.function.Supplier
 
 
 object Odometry : SubsystemBase(), PoseProvider {
-    private val vision = Vision("Camera_Module_V1")
+    private val vision = Vision("Camera_Module_v1")
     val SwerveOdometry = SwerveDrivePoseEstimator(
         Constants.DriveConstants.kDriveKinematics,
         Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
@@ -83,16 +86,20 @@ object Odometry : SubsystemBase(), PoseProvider {
         update()
     }
     override fun update(){
-        if (vision.hasTargets()) {
-            var currentVisionValues = vision.getEstimatedPose(pose)
-            val stdDevs = Matrix(Nat.N3(), Nat.N1())
-            if (vision.hasTargets()) {
+        var currentVisionValues = vision.getEstimatedPose(pose)
+        if (currentVisionValues!= null) {
+            if(currentVisionValues.isPresent){
+                val getCurrentVisionValues = currentVisionValues.get()
+                val stdDevs: Matrix<N3, N1> = Matrix(Nat.N3(), Nat.N1())
+                stdDevs.fill(10.0)
+                //stdDevs.set(1,3,1000.0)
                 SwerveOdometry.setVisionMeasurementStdDevs(stdDevs) //TODO figure out STDev method
                 SwerveOdometry.addVisionMeasurement(
-                    currentVisionValues.estimatedPose.toPose2d(),
-                    currentVisionValues.timestampSeconds
+                    getCurrentVisionValues.estimatedPose.toPose2d(),
+                    getCurrentVisionValues.timestampSeconds
                 )//TODO Check timestamp seconds is in synch with robot code
             }
+
         }
         NavX.update(timer.get())
         SwerveOdometry.update(
