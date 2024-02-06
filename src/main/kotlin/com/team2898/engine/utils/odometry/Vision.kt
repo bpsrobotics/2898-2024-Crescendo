@@ -1,19 +1,35 @@
 package com.team2898.engine.utils.odometry
 
+import edu.wpi.first.apriltag.AprilTag
 import edu.wpi.first.apriltag.AprilTagFieldLayout
 import edu.wpi.first.apriltag.AprilTagFields
-import edu.wpi.first.math.geometry.Pose2d
-import edu.wpi.first.math.geometry.Rotation3d
-import edu.wpi.first.math.geometry.Transform3d
-import edu.wpi.first.math.geometry.Translation3d
+import edu.wpi.first.math.geometry.*
 import org.photonvision.EstimatedRobotPose
 import org.photonvision.PhotonCamera
 import org.photonvision.PhotonPoseEstimator
 import java.util.*
 
+val aprilTags1: MutableList<AprilTag> = mutableListOf(
+    AprilTag(1,
+        Pose3d(
+            Translation3d(1.05,1.07,0.0),
+            Rotation3d()
+        )
+    ),
+    AprilTag(3,
+        Pose3d(
+            Translation3d(0.15,1.07,0.0),
+            Rotation3d()
+        )
+    )
+)
+val testLayout1 = AprilTagFieldLayout(aprilTags1,10.0,5.0)
+
+val crescendoFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile)
 
 class Vision (
-    CameraName: String
+    CameraName: String,
+    private val aprilTagFieldLayout: AprilTagFieldLayout = crescendoFieldLayout
 ) {
     val cam = PhotonCamera(CameraName);
     var robotToCam = Transform3d(
@@ -21,7 +37,7 @@ class Vision (
         Rotation3d(0.0, 0.0, 0.0)
     )
 
-    val aprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile)
+
     val PoseEstimator = PhotonPoseEstimator(
         aprilTagFieldLayout,
         PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
