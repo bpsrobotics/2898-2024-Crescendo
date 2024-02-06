@@ -28,7 +28,7 @@ import java.util.function.Supplier
 
 
 object Odometry : SubsystemBase(), PoseProvider {
-    private val vision = Vision("testCamera")
+    private val vision = Vision("Camera_Module_V1")
     val SwerveOdometry = SwerveDrivePoseEstimator(
         Constants.DriveConstants.kDriveKinematics,
         Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
@@ -40,6 +40,7 @@ object Odometry : SubsystemBase(), PoseProvider {
         Pose2d(Translation2d(0.0,0.0),Rotation2d(0.0,0.0))
 
     )
+
     override val pose: Pose2d
         get() = SwerveOdometry.estimatedPosition
     var poseSupplier: Supplier<Pose2d> = Supplier {pose}
@@ -82,14 +83,16 @@ object Odometry : SubsystemBase(), PoseProvider {
         update()
     }
     override fun update(){
-        var currentVisionValues = vision.getEstimatedPose(pose)
-        val stdDevs = Matrix(Nat.N3(), Nat.N1())
-        if (currentVisionValues != null) {
-            SwerveOdometry.setVisionMeasurementStdDevs(stdDevs) //TODO figure out STDev method
-            SwerveOdometry.addVisionMeasurement(
-                currentVisionValues.estimatedPose.toPose2d(),
-                currentVisionValues.timestampSeconds
-            )//TODO Check timestamp seconds is in synch with robot code
+        if (vision.hasTargets()) {
+            var currentVisionValues = vision.getEstimatedPose(pose)
+            val stdDevs = Matrix(Nat.N3(), Nat.N1())
+            if (vision.hasTargets()) {
+                SwerveOdometry.setVisionMeasurementStdDevs(stdDevs) //TODO figure out STDev method
+                SwerveOdometry.addVisionMeasurement(
+                    currentVisionValues.estimatedPose.toPose2d(),
+                    currentVisionValues.timestampSeconds
+                )//TODO Check timestamp seconds is in synch with robot code
+            }
         }
         NavX.update(timer.get())
         SwerveOdometry.update(
@@ -101,10 +104,11 @@ object Odometry : SubsystemBase(), PoseProvider {
             ))
         velocity = Translation2d((lastPose.x - pose.x)/timer.get(), (lastPose.y - pose.y)/timer.get())
         lastPose = pose
-        SmartDashboard.putNumber("Odometry/FieldX", pose.x)
-        SmartDashboard.putNumber("Odometry/FieldY", pose.y)
+        SmartDashboard.putNumber("Odometry/FieldX", pose.x.toDouble())
+        SmartDashboard.putNumber("Odometry/FieldY", pose.y.toDouble())
         SmartDashboard.putNumberArray("Odometry/velocity", arrayOf(velocity.x,velocity.y))
         SmartDashboard.putNumber("Odometry/test", timer.get())
+        SmartDashboard.putBoolean("Odometry/HasTarget", vision.hasTargets())
         timer.reset()
     }
     @Suppress("unused")

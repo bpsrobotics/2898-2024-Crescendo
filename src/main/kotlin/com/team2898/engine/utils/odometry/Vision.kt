@@ -25,28 +25,35 @@ val aprilTags1: MutableList<AprilTag> = mutableListOf(
 )
 val testLayout1 = AprilTagFieldLayout(aprilTags1,10.0,5.0)
 
-val crescendoFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile)
-
 class Vision (
     CameraName: String
 ) {
+
     val cam = PhotonCamera(CameraName);
     var robotToCam = Transform3d(
         Translation3d(0.5, 0.0, 0.5),
         Rotation3d(0.0, 0.0, 0.0)
     )
+    val aprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile)
 
 
     val PoseEstimator = PhotonPoseEstimator(
-        aprilTagFieldLayout,
+        testLayout1,
         PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
         cam,
         robotToCam
     )
+    fun hasTargets() : Boolean{
+        val result = cam.latestResult
+        return result.hasTargets()
+    }
     fun getEstimatedPose(prevEstimatedRobotPose: Pose2d): EstimatedRobotPose {
         PoseEstimator.setReferencePose(prevEstimatedRobotPose)
         val pose = PoseEstimator.update()
+
         return pose.get()
+
+
 
     }
 }
