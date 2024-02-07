@@ -1,5 +1,6 @@
 package com.team2898.robot.subsystems
 
+import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.team2898.robot.RobotMap.ShooterId
@@ -24,6 +25,8 @@ object Shooter : SubsystemBase() {
     init{
         shooterMotor.restoreFactoryDefaults()
         shooterMotor.setSmartCurrentLimit(40)
+        shooterMotor.idleMode = CANSparkBase.IdleMode.kCoast
+
     }
 
     fun shoot(){

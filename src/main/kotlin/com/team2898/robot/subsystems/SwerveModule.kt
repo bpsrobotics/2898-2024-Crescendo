@@ -39,7 +39,7 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
     private val turningPIDController: PIDController
     private var m_chassisAngularOffset = 0.0
     public var m_desiredState = SwerveModuleState(0.0, Rotation2d())
-    val motorInvert = inverted
+    val encInvert = inverted
 
     /**
      * Constructs a MAXSwerveModule and configures the driving and turning motor,
@@ -54,7 +54,7 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
         // them. This is useful in case a SPARK MAX is swapped out.
         drivingSparkMax.restoreFactoryDefaults()
         turningSparkMax.restoreFactoryDefaults()
-//        drivingSparkMax.inverted
+        drivingSparkMax.inverted
 //        m_turningSparkMax.inverted
         drivingSparkMax.setSmartCurrentLimit(DrivingMotorCurrentLimit)
         turningSparkMax.setSmartCurrentLimit(TurningMotorCurrentLimit)
@@ -97,7 +97,6 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
 
         update()
 
-//       File("test.csv").writeText(sb.toString())
     }
 
     /** The current state of the module. */
@@ -126,7 +125,7 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
     fun readEnc(): Rotation2d {
         val encPos = ((turningEncoder.absolutePosition.valueAsDouble) * 2 * PI) - m_chassisAngularOffset
         val modPos = angleModulus(encPos)
-        if (motorInvert) {
+        if (encInvert) {
             return Rotation2d(-modPos)
         } else {
             return Rotation2d(modPos)
@@ -143,15 +142,12 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
             stop()
             return
         }
-        // Apply chassis angular offset to the desired state.
-        val correctedDesiredState = SwerveModuleState()
-        correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond
-        correctedDesiredState.angle = desiredState.angle
 
-        val optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
+        val optimizedDesiredState = SwerveModuleState.optimize(desiredState,
             state.angle)
 
-        SmartDashboard.putNumber("drive optimized desired state angle" + moduleID, optimizedDesiredState.angle.radians)
+        SmartDashboard.putNumber("desired state angle" + moduleID, optimizedDesiredState.angle.radians)
+        SmartDashboard.putNumber("angle dif" + moduleID, optimizedDesiredState.angle.degrees - state.angle.degrees)
 
         val drivePid = drivingPIDController.calculate(state.speedMetersPerSecond, optimizedDesiredState.speedMetersPerSecond)
         val feedforward = drivingFeedForward.calculate(optimizedDesiredState.speedMetersPerSecond)
