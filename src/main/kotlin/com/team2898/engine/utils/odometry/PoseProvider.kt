@@ -1,9 +1,9 @@
 package com.team2898.engine.utils.odometry
 
-import com.bpsrobotics.engine.utils.Degrees
-import com.bpsrobotics.engine.utils.Meters
-import com.bpsrobotics.engine.utils.deg
-import com.bpsrobotics.engine.utils.m
+import com.team2898.engine.utils.Degrees
+import com.team2898.engine.utils.Meters
+import com.team2898.engine.utils.deg
+import com.team2898.engine.utils.m
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.util.sendable.Sendable
 import edu.wpi.first.util.sendable.SendableBuilder
@@ -11,7 +11,7 @@ import edu.wpi.first.util.sendable.SendableRegistry
 
 /** Provides an orientation and position for the robot */
 interface PoseProvider : Sendable {
-    /** Provides the pose as a WPIlib Pose2d */
+    /** Provides the pose as a WPIlib Pose2D */
     val pose: Pose2d
 
     /** Updates the [pose] variable */

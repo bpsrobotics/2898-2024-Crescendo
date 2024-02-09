@@ -17,6 +17,7 @@ class EventTarget<DataType> {
     }
     fun removeListener(identifier: Symbol) {
         listeners.remove(identifier)
+        onceListeners.remove(identifier)
     }
     fun dispatch(event: DataType) {
         listeners.forEach { (_, u) ->

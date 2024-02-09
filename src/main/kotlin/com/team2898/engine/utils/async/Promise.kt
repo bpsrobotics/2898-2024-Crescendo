@@ -1,6 +1,7 @@
 package com.team2898.engine.utils.async
 
 import com.team2898.engine.utils.AggregateException
+import com.team2898.engine.utils.Union2
 import edu.wpi.first.wpilibj.event.BooleanEvent
 import edu.wpi.first.wpilibj.event.EventLoop
 
@@ -34,112 +35,65 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
         rejectedWith = error
         onRejected.dispatch(error)
     }
-    override fun<N> then(success: (value: T) -> N): Promise<N> {
-        return Promise { rs, rj ->
-            onResolved.addListener { value ->
-                try { rs(success(value)) }
-                catch (e: Throwable) {rj(e)}
-            }
-            onRejected.addListener { error -> rj(error) }
-        }
-    }
-    override fun<N> then(success: (value: T) -> Promise<N>): Promise<N> {
-        return Promise { rs, rj ->
+    override fun<N> then(success: (value: T) -> Union2<N, Promise<N>>)
+        = Promise { rs, rj ->
             onResolved.addListener { value ->
                 try {
                     val x = success(value)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener(rj)
+                    x.using({
+                        rs(it)
+                    }, {
+                        it.onResolved.addListener { value2 -> rs(value2) }
+                        it.onRejected.addListener(rj)
+                    })
                 } catch (e: Throwable) {
                     rj(e)
                 }
             }
             onRejected.addListener { error -> rj(error) }
         }
-    }
-    override fun<N> then(success: (value: T) -> N, failure: (error: Throwable) -> N) : Promise<N> {
-        return Promise { rs, rj ->
-            onResolved.addListener { value ->
-                try { rs(success(value)) }
-                catch (e: Throwable) {rj(e)}
-            }
-            onRejected.addListener { error ->
-                try { rs(failure(error)) }
-                catch (e: Throwable) {rj(e)}
-            }
-        }
-    }
-    override fun<N> then(success: (value: T) -> Promise<N>, failure: (error: Throwable) -> N) : Promise<N> {
+    override fun <N> then(
+        success: (value: T) -> Union2<N, Promise<N>>,
+        failure: (error: Throwable) -> Union2<N, Promise<N>>
+    ): Promise<N> {
         return Promise { rs, rj ->
             onResolved.addListener { value ->
                 try {
                     val x = success(value)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener(rj)
-                } catch (e: Throwable) {
-                    rj(e)
-                }
-            }
-            onRejected.addListener { error ->
-                try { rs(failure(error)) }
-                catch (e: Throwable) {rj(e)}
-            }
-        }
-    }
-    override fun<N> then(success: (value: T) -> N, failure: (error: Throwable) -> Promise<N>) : Promise<N> {
-        return Promise { rs, rj ->
-            onResolved.addListener { value ->
-                try { rs(success(value)) }
-                catch (e: Throwable) {rj(e)}
+                    x.using({
+                        rs(it)
+                    }, {
+                        it.onResolved.addListener { value2 -> rs(value2) }
+                        it.onRejected.addListener(rj)
+                    })
+                } catch (e: Throwable) {rj(e)}
             }
             onRejected.addListener { error ->
                 try {
                     val x = failure(error)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener(rj)
-                }
-                catch (e: Throwable) {
-                    rj(e)
-                }
+                    x.using({
+                        rs(it)
+                    }, {
+                        it.onResolved.addListener { value2 -> rs(value2) }
+                        it.onRejected.addListener(rj)
+                    })
+                } catch (e: Throwable) {rj(e)}
             }
         }
     }
-    override fun<N> then(success: (value: T) -> Promise<N>, failure: (error: Throwable) -> Promise<N>) : Promise<N> {
-        return Promise { rs, rj ->
-            onResolved.addListener { value ->
-                try {
-                    val x = success(value)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener { error -> rj(error) }
-                } catch (e: Throwable) {
-                    rj(e)
-                }
-            }
-            onRejected.addListener { error ->
-                try {
-                    val x = failure(error)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener { error2 -> rj(error2) }
-                } catch (e: Throwable) {
-                    rj(e)
-                }
-            }
-        }
-    }
-    override fun catch(failure: (error: Throwable) -> T): Promise<T> {
-        return Promise { rs, rj ->
-            onResolved.addListener { value -> rs(value) }
-            onRejected.addListener { error -> try {rs(failure(error))} catch (e: Throwable) {rj(e)} }
-        }
-    }
-    override fun catch(failure: (error: Throwable) -> Promise<T>): Promise<T> {
+
+    override fun catch(failure: (error: Throwable) -> Union2<T, Promise<T>>): Promise<T> {
         return Promise { rs, rj ->
             onResolved.addListener { value -> rs(value) }
             onRejected.addListener { error ->
                 try {
                     val x = failure(error)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener { error2 -> rj(error2) }
+                    x.using({
+                        rs(it)
+                    }, {
+                        it.onResolved.addListener { value2 -> rs(value2) }
+                        it.onRejected.addListener(rj)
+                    })
                 } catch (e: Throwable) {
                     rj(e)
                 }
