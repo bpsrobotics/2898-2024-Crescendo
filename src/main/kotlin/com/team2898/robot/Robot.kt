@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.CommandScheduler
 import edu.wpi.first.wpilibj2.command.InstantCommand
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -74,10 +75,23 @@ class Robot : TimedRobot() {
             m_autonomousCommand!!.cancel()
         }
         TeleOp().schedule()
+
     }
 
     /** This function is called periodically during operator control.  */
-    override fun teleopPeriodic() {}
+    override fun teleopPeriodic() {
+        if (OI.driverX && OI.alignmentPad == OI.Direction.UP) {
+            Drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward).schedule()
+        } else if (OI.driverX && OI.alignmentPad == OI.Direction.DOWN) {
+            Drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse).schedule()
+        } else if (OI.driverY && OI.alignmentPad == OI.Direction.UP){
+            Drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward).schedule()
+        } else if (OI.driverY && OI.alignmentPad == OI.Direction.DOWN){
+            Drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse).schedule()
+        } else {
+            println("not doing")
+        }
+    }
     override fun testInit() {
         // Cancels all running commands at the start of test mode.
         CommandScheduler.getInstance().cancelAll()
