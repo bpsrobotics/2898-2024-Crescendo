@@ -102,6 +102,9 @@ object OI : SubsystemBase() {
     val resetGyroEnd
         get() = driverController.rightBumperReleased
 
+    val alignButton
+        get() = driverController.yButton
+
     val highHat get() = operatorController.pov
     val hatVector get() = when (operatorController.pov) {
         0 -> Vector(0,1)

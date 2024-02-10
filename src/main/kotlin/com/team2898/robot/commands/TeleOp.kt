@@ -13,14 +13,16 @@ import com.team2898.engine.utils.TurningPID
 import com.team2898.robot.Constants
 import com.team2898.robot.OI
 import com.team2898.robot.subsystems.*
+import com.team2898.engine.utils.odometry.Vision
+import edu.wpi.first.math.geometry.Pose2d
+import edu.wpi.first.math.geometry.Rotation2d
+import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.pow
-import kotlin.math.sign
+import kotlin.math.*
+
 enum class DriveMode {
     Normal,
     Defense
@@ -49,6 +51,8 @@ class TeleOp : Command() {
     var breakTimerGoal = 0.0
     var drivemode = DriveMode.Normal
     var resetGyroTimer = Timer()
+    private val vision = Vision("Camera_Module_v1")
+    var alignMode = false
     // Called every time the scheduler runs while the command is scheduled.
     fun turnSpeedNormal():Double {
         return -OI.turnX
@@ -127,7 +131,38 @@ class TeleOp : Command() {
         }
         Shooter.setFlywheelSpeed(OI.shooterFlywheel)
     }
+
+    fun alignRobot() {
+        var currentPose = Odometry.supplyPose()
+        var targetRotation = currentPose.rotation.degrees
+        val pose = vision.getCameraData()
+
+        if (OI.alignButton || vision.hasTargets()) {
+            alignMode = true
+        }
+
+        if (alignMode) {
+            val xDist = pose.x
+            val yDist = pose.y
+            targetRotation = atan2(xDist, yDist)
+
+        }
+        val targetRotationNegativeError = targetRotation - 10.0
+        val targetRotationPositiveError = targetRotation + 10.0
+
+        if (currentPose.rotation.degrees <= targetRotationPositiveError || currentPose.rotation.degrees >= targetRotationNegativeError) {
+            alignMode = false
+        } else {
+            val rotationSpeed = if (targetRotation - currentPose.rotation.degrees > 0) {
+                0.1
+            } else{
+                -0.1
+            }
+            Drivetrain.drive(0.0,0.0,rotationSpeed,true,true,true)
+        }
+    }
     override fun execute() {
+        alignRobot()
         handleResetGyro()
 ////        peripheralControls()
         Drivetrain.drive(
