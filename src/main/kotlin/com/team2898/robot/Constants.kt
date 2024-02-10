@@ -12,7 +12,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics
 import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.math.util.Units
 import edu.wpi.first.wpilibj2.command.Command
-import kotlin.math.PI
 
 
 /**
@@ -119,7 +118,7 @@ class Constants {
     }
 
     object AutoConstants {
-        var commandMap: HashMap<String, Command> = HashMap<String, Command>()
+        var commandMap: HashMap<String, Command> = HashMap()
 
         const val MaxAccelerationMetersPerSecondSquared = 3.0
         const val MaxAngularSpeedRadiansPerSecond = Math.PI
@@ -172,6 +171,14 @@ class Constants {
         const val CLIMBER_REACH = 7
         const val CLIMBER_LIFT = 8
         const val CLIMBER_RELEASE = 9
+
+        // Hold ARM_SELECT and press ARM_SELECT_* to change position
+        const val ARM_SELECT = 10
+        const val ARM_SELECT_GROUND = 7
+        const val ARM_SELECT_STOWED = 8
+        const val ARM_SELECT_AMP = 9
+        const val ARM_SELECT_SHOOTER1 = 11
+        const val ARM_SELECT_SHOOTER2 = 12
 
         const val PRESS_ACTIVATE_DURATION = 0.1
         const val INPUT_BUFFER_DURATION = 0.2

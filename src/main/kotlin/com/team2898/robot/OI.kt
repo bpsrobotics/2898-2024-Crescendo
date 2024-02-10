@@ -120,6 +120,13 @@ object OI : SubsystemBase() {
     val climbLift: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_LIFT, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
     val shooterFlywheel get() = -operatorController.getRawAxis(1) // negate so that positive = forward
 
+    val armSelecting: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT, loop)
+    val armSelectGround: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT_GROUND, loop).rising()
+    val armSelectStowed: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT_STOWED, loop).rising()
+    val armSelectAmp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT_AMP, loop).rising()
+    val armSelectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT_SHOOTER1, loop).rising()
+    val armSelectShooter2: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT_SHOOTER2, loop).rising()
+
     enum class Direction {
         LEFT, RIGHT, UP, DOWN, INACTIVE;
 

@@ -9,7 +9,6 @@
  */
 package com.team2898.engine.utils
 
-import com.team2898.engine.utils.Sugar.radiansToDegrees
 import kotlin.math.PI
 
 interface Unit {
@@ -23,6 +22,7 @@ interface DistanceUnit : Unit {
 
 @JvmInline
 value class Meters(override val value: Double) : DistanceUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun meterValue() = value
 
     override fun toString(): String {
@@ -32,6 +32,7 @@ value class Meters(override val value: Double) : DistanceUnit {
 
 @JvmInline
 value class Feet(override val value: Double) : DistanceUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun meterValue() = value * 0.3048
 
     override fun toString(): String {
@@ -41,6 +42,7 @@ value class Feet(override val value: Double) : DistanceUnit {
 
 @JvmInline
 value class Inches(override val value: Double) : DistanceUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun meterValue() = value * 0.0254
 
     override fun toString(): String {
@@ -55,6 +57,7 @@ interface VelocityUnit : Unit {
 
 @JvmInline
 value class MetersPerSecond(override val value: Double) : VelocityUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun metersPerSecondValue() = value
 
     override fun toString(): String {
@@ -64,6 +67,7 @@ value class MetersPerSecond(override val value: Double) : VelocityUnit {
 
 @JvmInline
 value class FeetPerSecond(override val value: Double) : VelocityUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun metersPerSecondValue() = value * 0.3084
 
     override fun toString(): String {
@@ -73,11 +77,13 @@ value class FeetPerSecond(override val value: Double) : VelocityUnit {
 
 @JvmInline
 value class KilometersPerHour(override val value: Double) : VelocityUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun metersPerSecondValue() = value / 3.6
 }
 
 @JvmInline
 value class MilesPerHour(override val value: Double) : VelocityUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun metersPerSecondValue() = value * 0.44704
 
     override fun toString(): String {
@@ -92,6 +98,7 @@ interface AccelerationUnit : Unit {
 
 @JvmInline
 value class MetersPerSecondSquared(override val value: Double) : AccelerationUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun metersPerSecondSquaredValue() = value
 
     override fun toString(): String {
@@ -106,7 +113,14 @@ interface AngularVelocityUnit : Unit {
 
 @JvmInline
 value class RPM(override val value: Double) : AngularVelocityUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun rotationsPerMinute() = value
+}
+
+@JvmInline
+value class RPS(override val value: Double) : AngularVelocityUnit {
+    constructor(v: Int) : this(v.toDouble())
+    override fun rotationsPerMinute() = value * 60
 }
 
 // Angles
@@ -116,6 +130,7 @@ interface AngleUnit : Unit {
 
 @JvmInline
 value class Radians(override val value: Double) : AngleUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun radiansValue() = value
 
     override fun toString(): String {
@@ -125,6 +140,7 @@ value class Radians(override val value: Double) : AngleUnit {
 
 @JvmInline
 value class Degrees(override val value: Double) : AngleUnit {
+    constructor(v: Int) : this(v.toDouble())
     companion object {
         const val DEGREES_TO_RADS = (2 * PI) / 360
     }
@@ -138,6 +154,7 @@ value class Degrees(override val value: Double) : AngleUnit {
 
 @JvmInline
 value class Rotations(override val value: Double): AngleUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun radiansValue() = value * 2 * PI
 
     override fun toString(): String {
@@ -152,6 +169,7 @@ interface MassUnit : Unit {
 
 @JvmInline
 value class Kilograms(override val value: Double) : MassUnit, WeightUnit {  // special case, both mass and weight
+    constructor(v: Int) : this(v.toDouble())
     override fun kilogramsValue() = value
 
     override fun kilogramsWeightValue() = value
@@ -168,6 +186,7 @@ interface WeightUnit : Unit {
 
 @JvmInline
 value class Pounds(override val value: Double) : WeightUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun kilogramsWeightValue() = value * 0.453592
 
     override fun toString(): String {
@@ -182,6 +201,7 @@ interface TimeUnit : Unit {
 
 @JvmInline
 value class Seconds(override val value: Double) : TimeUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun secondsValue() = value
 
     override fun toString(): String {
@@ -189,13 +209,42 @@ value class Seconds(override val value: Double) : TimeUnit {
     }
 }
 
+@JvmInline
+value class Minutes(override val value: Double) : TimeUnit {
+    constructor(v: Int) : this(v.toDouble())
+    override fun secondsValue() = value * 60
+}
+
+@JvmInline
+value class Hours(override val value: Double) : TimeUnit {
+    constructor(v: Int) : this(v.toDouble())
+    override fun secondsValue() = value * 3600
+}
+
+@JvmInline
+value class Milliseconds(override val value: Double) : TimeUnit {
+    constructor(v: Int) : this(v.toDouble())
+    /**
+     * Creates a new [Milliseconds], but with a long input instead. It's converted to a double,
+     * this is purely so that you don't have to specify 10.0 milliseconds, which would be weird.
+     */
+    constructor(count: Long) : this(count.toDouble())
+
+    override fun secondsValue() = value * 0.001
+
+    override fun toString(): String {
+        return "$value ms"
+    }
+}
+
 // Frequency
-interface FrequencyValue : Unit {
+interface FrequencyUnit : Unit {
     fun hertzValue(): Double
 }
 
 @JvmInline
-value class Hertz(override val value: Double) : FrequencyValue {
+value class Hertz(override val value: Double) : FrequencyUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun hertzValue() = value
 
     override fun toString(): String {
@@ -203,26 +252,11 @@ value class Hertz(override val value: Double) : FrequencyValue {
     }
 }
 
-fun FrequencyValue.toMillis() = Millis(1000 / hertzValue())
-
-@JvmInline
-value class Milliseconds(override val value: Double) : TimeUnit {
-    /**
-     * Creates a new [Milliseconds], but with a long input instead. It's converted to a double,
-     * this is purely so that you don't have to specify 10.0 milliseconds, which would be weird.
-     */
-    constructor(count: Long) : this(count.toDouble())
-
-    override fun secondsValue() = value / 1000
-
-    override fun toString(): String {
-        return "$value ms"
-    }
-}
 
 // Electrical (no interface because there is only one set of electrical units)
 @JvmInline
 value class Volts(override val value: Double) : Unit {
+    constructor(v: Int) : this(v.toDouble())
     override fun toString(): String {
         return "$value v"
     }
@@ -230,6 +264,7 @@ value class Volts(override val value: Double) : Unit {
 
 @JvmInline
 value class Amps(override val value: Double) : Unit {
+    constructor(v: Int) : this(v.toDouble())
     override fun toString(): String {
         return "$value a"
     }
@@ -254,10 +289,27 @@ typealias Millis = Milliseconds
 
 // Conversion functions
 fun DistanceUnit.toMeters() = Meters(meterValue())
+fun DistanceUnit.toFeet() = Feet(meterValue() / Feet(1.0).meterValue())
+fun DistanceUnit.toInches() = Inches(meterValue() / Inches(1.0).meterValue())
 
 fun VelocityUnit.toMetersPerSecond() = mps(metersPerSecondValue())
+fun VelocityUnit.toFeetPerSecond() = FeetPerSecond(metersPerSecondValue() / FeetPerSecond(1.0).metersPerSecondValue())
+fun VelocityUnit.toKilometersPerHour() = KilometersPerHour(metersPerSecondValue() / KilometersPerHour(1.0).metersPerSecondValue())
+fun VelocityUnit.toMilesPerHour() = MilesPerHour(metersPerSecondValue() / MilesPerHour(1.0).metersPerSecondValue())
 
-fun Radians.toDegrees() = Degrees(value.radiansToDegrees())
+fun AngularVelocityUnit.toRotationsPerMinute() = RPM(rotationsPerMinute())
+fun AngularVelocityUnit.toRotationsPerSecond() = RPS(rotationsPerMinute() / RPS(1.0).rotationsPerMinute())
+
+fun AngleUnit.toRadians() = Radians(radiansValue())
+fun AngleUnit.toDegrees() = Degrees(radiansValue() / Degrees(1.0).radiansValue())
+fun AngleUnit.toRotations() = Rotations(radiansValue() / Rotations(1.0).radiansValue())
+
+fun TimeUnit.toSeconds() = Seconds(secondsValue())
+fun TimeUnit.toMinutes() = Minutes(secondsValue() / Minutes(1.0).secondsValue())
+fun TimeUnit.toHours() = Hours(secondsValue() / Hours(1.0).secondsValue())
+fun TimeUnit.toMilliseconds() = Milliseconds(secondsValue() / Milliseconds(1.0).secondsValue())
+
+fun FrequencyUnit.toMillis() = Millis(1000 / hertzValue())
 
 val Double.meters get() = Meters(this)
 val Int.meters get() = Meters(this.toDouble())
@@ -309,12 +361,16 @@ val Double.lbs get() = Pounds(this)
 val Int.lbs get() = Pounds(this.toDouble())
 val Double.seconds get() = Seconds(this)
 val Int.seconds get() = Seconds(this.toDouble())
+val Double.minutes get() = Minutes(this)
+val Int.minutes get() = Minutes(this.toDouble())
+val Double.hours get() = Hours(this)
+val Int.hours get() = Hours(this.toDouble())
+val Double.milliseconds get() = Milliseconds(this)
+val Int.milliseconds get() = Milliseconds(this.toDouble())
 val Double.hertz get() = Hertz(this)
 val Int.hertz get() = Hertz(this.toDouble())
 val Double.hz get() = Hertz(this)
 val Int.hz get() = Hertz(this.toDouble())
-val Double.milliseconds get() = Milliseconds(this)
-val Int.milliseconds get() = Milliseconds(this.toDouble())
 val Double.ms get() = Milliseconds(this)
 val Int.ms get() = Milliseconds(this.toDouble())
 val Double.volts get() = Volts(this)
@@ -401,14 +457,22 @@ inline operator fun Seconds.plus(other: Seconds) = (value + other.value).seconds
 inline operator fun Seconds.unaryPlus() = value.seconds
 inline operator fun Seconds.minus(other: Seconds) = (value - other.value).seconds
 inline operator fun Seconds.unaryMinus() = (-value).seconds
-inline operator fun Hertz.plus(other: Hertz) = (value + other.value).hertz
-inline operator fun Hertz.unaryPlus() = value.hertz
-inline operator fun Hertz.minus(other: Hertz) = (value - other.value).hertz
-inline operator fun Hertz.unaryMinus() = (-value).hertz
+inline operator fun Minutes.plus(other: Seconds) = (value + other.value).minutes
+inline operator fun Minutes.unaryPlus() = value.minutes
+inline operator fun Minutes.minus(other: Seconds) = (value - other.value).minutes
+inline operator fun Minutes.unaryMinus() = (-value).minutes
+inline operator fun Hours.plus(other: Seconds) = (value + other.value).hours
+inline operator fun Hours.unaryPlus() = value.hours
+inline operator fun Hours.minus(other: Seconds) = (value - other.value).hours
+inline operator fun Hours.unaryMinus() = (-value).hours
 inline operator fun Milliseconds.plus(other: Milliseconds) = (value + other.value).milliseconds
 inline operator fun Milliseconds.unaryPlus() = value.milliseconds
 inline operator fun Milliseconds.minus(other: Milliseconds) = (value - other.value).milliseconds
 inline operator fun Milliseconds.unaryMinus() = (-value).milliseconds
+inline operator fun Hertz.plus(other: Hertz) = (value + other.value).hertz
+inline operator fun Hertz.unaryPlus() = value.hertz
+inline operator fun Hertz.minus(other: Hertz) = (value - other.value).hertz
+inline operator fun Hertz.unaryMinus() = (-value).hertz
 inline operator fun Volts.plus(other: Volts) = (value + other.value).volts
 inline operator fun Volts.unaryPlus() = value.volts
 inline operator fun Volts.minus(other: Volts) = (value - other.value).volts

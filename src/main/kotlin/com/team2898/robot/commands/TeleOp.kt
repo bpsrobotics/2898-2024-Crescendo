@@ -21,10 +21,7 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sign
-enum class DriveMode {
-    Normal,
-    Defense
-}
+
 /**
     Called when the Tele-Operated stage of the game begins.
  */
@@ -43,7 +40,7 @@ class TeleOp : Command() {
 
     var angle = 0.0
 
-    val PID = TurningPID(3.5,0.05)
+    val pid = TurningPID(3.5,0.05)
     val kS = 0.1
     val breakTimer = Timer()
     var breakTimerGoal = 0.0
@@ -57,8 +54,8 @@ class TeleOp : Command() {
         angle += OI.turnX.pow(2).degreesToRadians() * -5 * OI.turnX.sign
         SmartDashboard.putNumber("angle", angle)
 
-        PID.setPoint = angle
-        var turnSpeed = PID.turnspeedOutputNoNormalize(-NavX.totalRotation.degreesToRadians())
+        pid.setPoint = angle
+        var turnSpeed = pid.turnspeedOutputNoNormalize(-NavX.totalRotation.degreesToRadians())
         if (!turnSpeed.eqEpsilon(0, 0.04)) turnSpeed += kS * turnSpeed.sign
         return turnSpeed
     }
@@ -67,8 +64,8 @@ class TeleOp : Command() {
         angle = atan2(OI.turnY,OI.turnX)
         SmartDashboard.putNumber("angle", angle)
 
-        PID.setPoint = angle
-        var turnSpeed = PID.turnspeedOutputNoNormalize(NavX.getInvertedAngle().degreesToRadians())
+        pid.setPoint = angle
+        var turnSpeed = pid.turnspeedOutputNoNormalize(NavX.getInvertedAngle().degreesToRadians())
         if (!turnSpeed.eqEpsilon(0, 0.04)) turnSpeed += kS * turnSpeed.sign
         return turnSpeed
     }
@@ -97,31 +94,41 @@ class TeleOp : Command() {
     val climbReachInputBuffer = Timer()
     val climbLiftInputBuffer = Timer()
     fun peripheralControls() {
-        if (OI.climbReach.asBoolean || !climbReachInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
-            when (Climber.currentState) {
-                Constants.ClimberConstants.ClimbHeights.STOWED -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
-                }
-                Constants.ClimberConstants.ClimbHeights.REACH -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.STOWED)
-                }
-                else -> {
-                    climbReachInputBuffer.reset()
-                    climbReachInputBuffer.start()
+        if (OI.armSelecting.asBoolean) {
+            when {
+                OI.armSelectGround.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.GROUND.position)
+                OI.armSelectStowed.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.STOWED.position)
+                OI.armSelectAmp.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.AMP.position)
+                OI.armSelectShooter1.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER1.position)
+                OI.armSelectShooter2.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER2.position)
+            }
+        } else {
+            if (OI.climbReach.asBoolean || !climbReachInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
+                when (Climber.currentState) {
+                    Constants.ClimberConstants.ClimbHeights.STOWED -> {
+                        Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+                    }
+                    Constants.ClimberConstants.ClimbHeights.REACH -> {
+                        Climber.setState(Constants.ClimberConstants.ClimbHeights.STOWED)
+                    }
+                    else -> {
+                        climbReachInputBuffer.reset()
+                        climbReachInputBuffer.start()
+                    }
                 }
             }
-        }
-        if (OI.climbLift.asBoolean || !climbLiftInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
-            when (Climber.currentState) {
-                Constants.ClimberConstants.ClimbHeights.REACH -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.LIFTOFF)
-                }
-                Constants.ClimberConstants.ClimbHeights.LIFTOFF -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
-                }
-                else -> {
-                    climbLiftInputBuffer.reset()
-                    climbLiftInputBuffer.start()
+            if (OI.climbLift.asBoolean || !climbLiftInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
+                when (Climber.currentState) {
+                    Constants.ClimberConstants.ClimbHeights.REACH -> {
+                        Climber.setState(Constants.ClimberConstants.ClimbHeights.LIFTOFF)
+                    }
+                    Constants.ClimberConstants.ClimbHeights.LIFTOFF -> {
+                        Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+                    }
+                    else -> {
+                        climbLiftInputBuffer.reset()
+                        climbLiftInputBuffer.start()
+                    }
                 }
             }
         }
@@ -150,5 +157,12 @@ class TeleOp : Command() {
     // Returns true when the command should end.
     override fun isFinished(): Boolean {
         return false
+    }
+
+    companion object {
+        enum class DriveMode {
+            Normal,
+            Defense
+        }
     }
 }
