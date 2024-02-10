@@ -33,7 +33,7 @@ class Constants {
     object DriveConstants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
-        const val MaxSpeedMetersPerSecond = 4.5
+        const val MaxSpeedMetersPerSecond = 4.0
         const val MaxAngularSpeed = 2 * Math.PI // radians per second (2*PI)
         const val DirectionSlewRate = 2.0 // radians per second
         const val MagnitudeSlewRate = 1.8 // percent per second (1 = 100%)
@@ -49,8 +49,8 @@ class Constants {
         val DriveKinematics = SwerveDriveKinematics(
                 Translation2d(-WheelBase / 2, TrackWidth / 2), // Front Left (-,+) 4:4
                 Translation2d(-WheelBase / 2, -TrackWidth / 2), // Front Right (+,+)1:3
-                Translation2d(WheelBase / 2, TrackWidth / 2), // Back Left (+,-)2:1
-                Translation2d(WheelBase / 2, -TrackWidth / 2)) //Back Right (-,-)3:2
+                Translation2d(WheelBase / 2, TrackWidth / 2), // Back Left (-,-)3:1
+                Translation2d(WheelBase / 2, -TrackWidth / 2)) //Back Right (+,-)2:2
 
         // Angular offsets of the modules relative to the chassis in radians
         const val FrontLeftChassisAngularOffset  = 0.0
@@ -89,7 +89,7 @@ class Constants {
         const val TurningEncoderVelocityFactor = 2 * Math.PI / 60.0 // radians per second
         const val TurningEncoderPositionPIDMinInput = 0.0 // radians
         const val TurningEncoderPositionPIDMaxInput = TurningEncoderPositionFactor // radians
-        var DrivingP = 1.0
+        var DrivingP = 0.5
         var DrivingI = 0.0
         var DrivingD = 0.0
         const val DrivingFF = 1 / DriveWheelFreeSpeedRps
@@ -97,7 +97,7 @@ class Constants {
         const val DrivingKv = 0.0
         const val DrivingMinOutput = -1.0
         const val DrivingMaxOutput = 1.0
-        var TurningP = 0.5
+        var TurningP = 0.75
         var TurningI = 0.0
         var TurningD = 0.0
 //        var Ks = 0.06 //0.085
