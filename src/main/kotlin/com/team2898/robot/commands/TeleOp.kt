@@ -45,7 +45,7 @@ class TeleOp : Command() {
     val breakTimer = Timer()
     var breakTimerGoal = 0.0
     var drivemode = DriveMode.Normal
-    var resetGyroTimer = Timer()
+//    var resetGyroTimer = Timer()
     // Called every time the scheduler runs while the command is scheduled.
     fun turnSpeedNormal():Double {
         return -OI.turnX
@@ -77,62 +77,71 @@ class TeleOp : Command() {
         }
     }
     fun handleResetGyro(){
-        if(OI.resetGyroStart){
-            resetGyroTimer.reset()
-            resetGyroTimer.start()
-        }
-        if(OI.resetGyro){
-            if(resetGyroTimer.hasElapsed(0.5)){
+//        if(OI.resetGyroStart){
+//            resetGyroTimer.reset()
+//            resetGyroTimer.start()
+//        }
+        if(OI.resetGyro.asBoolean) {
+//            if(resetGyroTimer.hasElapsed(0.5)){
                 NavX.reset()
                 OI.Rumble.set(0.25,1.0, GenericHID.RumbleType.kRightRumble)
-            }
+//            }
         }
-        if(OI.resetGyroEnd){
-            resetGyroTimer.stop()
-        }
+//        if(OI.resetGyroEnd){
+//            resetGyroTimer.stop()
+//        }
     }
-    val climbReachInputBuffer = Timer()
-    val climbLiftInputBuffer = Timer()
+    val armCD = Timer()
     fun peripheralControls() {
-        if (OI.armSelecting.asBoolean) {
-            when {
-                OI.armSelectGround.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.GROUND.position)
-                OI.armSelectStowed.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.STOWED.position)
-                OI.armSelectAmp.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.AMP.position)
-                OI.armSelectShooter1.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER1.position)
-                OI.armSelectShooter2.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER2.position)
+        OI.loop.poll()
+        if (armCD.hasElapsed(0.3)) {
+            if (OI.armSelectUp.asBoolean) {
+                Arm.setGoal(Constants.ArmConstants.ArmHeights.entries.toTypedArray().find { it.position == Arm.setpoint }?.up()?.position ?: Arm.setpoint)
+                armCD.reset()
+                armCD.start()
             }
-        } else {
-            if (OI.climbReach.asBoolean || !climbReachInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
-                when (Climber.currentState) {
-                    Constants.ClimberConstants.ClimbHeights.STOWED -> {
-                        Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
-                    }
-                    Constants.ClimberConstants.ClimbHeights.REACH -> {
-                        Climber.setState(Constants.ClimberConstants.ClimbHeights.STOWED)
-                    }
-                    else -> {
-                        climbReachInputBuffer.reset()
-                        climbReachInputBuffer.start()
-                    }
-                }
-            }
-            if (OI.climbLift.asBoolean || !climbLiftInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
-                when (Climber.currentState) {
-                    Constants.ClimberConstants.ClimbHeights.REACH -> {
-                        Climber.setState(Constants.ClimberConstants.ClimbHeights.LIFTOFF)
-                    }
-                    Constants.ClimberConstants.ClimbHeights.LIFTOFF -> {
-                        Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
-                    }
-                    else -> {
-                        climbLiftInputBuffer.reset()
-                        climbLiftInputBuffer.start()
-                    }
-                }
+            if (OI.armSelectDown.asBoolean) {
+                Arm.setGoal(Constants.ArmConstants.ArmHeights.entries.toTypedArray().find { it.position == Arm.setpoint }?.down()?.position ?: Arm.setpoint)
+                armCD.reset()
+                armCD.start()
             }
         }
-        Shooter.setFlywheelSpeed(OI.shooterFlywheel)
+        if (OI.climbReach.asBoolean) {
+            when (Climber.currentState) {
+                Constants.ClimberConstants.ClimbHeights.STOWED -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+                }
+                Constants.ClimberConstants.ClimbHeights.REACH -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.STOWED)
+                }
+                else -> {}
+            }
+        }
+        if (OI.climbLift.asBoolean) {
+            when (Climber.currentState) {
+                Constants.ClimberConstants.ClimbHeights.REACH -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.LIFTOFF)
+                }
+                Constants.ClimberConstants.ClimbHeights.LIFTOFF -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+                }
+                else -> {}
+            }
+        }
+        if (Arm.currentPosition != null) {
+            if (OI.operatorTrigger.asBoolean) {
+                Shooter.setFlywheelSpeed(Arm.currentPosition!!.velocity)
+            } else if (OI.operatorTriggerReleased.asBoolean) {
+                Shooter.shoot()
+            } else {
+                Shooter.setFlywheelSpeed(0.0)
+            }
+        }
+        if (Arm.currentPosition == Constants.ArmConstants.ArmHeights.GROUND && OI.runIntake.asBoolean) {
+            Intake.runIntake(Constants.IntakeConstants.INTAKE_SPEED)
+        } else {
+            Intake.stopIntake()
+        }
     }
     override fun execute() {
         handleResetGyro()

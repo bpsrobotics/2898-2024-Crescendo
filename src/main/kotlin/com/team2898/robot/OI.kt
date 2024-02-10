@@ -29,6 +29,7 @@ object OI : SubsystemBase() {
      */
     private const val DEADZONE_THRESHOLD = 0.1
 
+    val loop = EventLoop()
     /**
      * Utility function for controller axis, optional deadzone and square/cube for extra fine-grain control
      */
@@ -95,12 +96,7 @@ object OI : SubsystemBase() {
         get() = driverController.yButton
     val normalModeButton
         get() = driverController.xButton
-    val resetGyroStart
-        get() = driverController.rightBumperPressed
-    val resetGyro
-        get() = driverController.rightBumper
-    val resetGyroEnd
-        get() = driverController.rightBumperReleased
+    val resetGyro: BooleanEvent = driverController.rightBumper(loop).debounce(0.5).rising()
 
     val highHat get() = operatorController.pov
     val hatVector get() = when (operatorController.pov) {
@@ -115,20 +111,16 @@ object OI : SubsystemBase() {
     val grabTote get() = operatorController.getRawButton(9)//TODO change button
     val grabToteToggle get() = operatorController.getRawButtonPressed(9)//TODO change button
 
-    val loop = EventLoop()
     val climbReach: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_REACH, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
     val climbLift: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_LIFT, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
-    val shooterFlywheel get() = -operatorController.getRawAxis(1) // negate so that positive = forward
 
-    val armSelecting: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT, loop)
-    val armSelectGround: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT_GROUND, loop).rising()
-    val armSelectStowed: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT_STOWED, loop).rising()
-    val armSelectAmp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT_AMP, loop).rising()
-    val armSelectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT_SHOOTER1, loop).rising()
-    val armSelectShooter2: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_SELECT_SHOOTER2, loop).rising()
+    val armSelectUp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_UP, loop)
+    val armSelectDown: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DOWN, loop)
+
+    val runIntake: BooleanEvent = BooleanEvent(loop) { alignmentPad == Direction.DOWN }
 
     enum class Direction {
-        LEFT, RIGHT, UP, DOWN, INACTIVE;
+        LEFT, RIGHT, UP, DOWN, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, INACTIVE;
 
         fun mirrored() = when (this) {
             LEFT  -> RIGHT
@@ -141,19 +133,28 @@ object OI : SubsystemBase() {
             UP -> Vector(0,1)
             DOWN -> Vector(0,-1)
             INACTIVE -> Vector.zero
+            UPLEFT -> Vector(-1,1)
+            UPRIGHT -> Vector(1, 1)
+            DOWNLEFT -> Vector(-1, -1)
+            DOWNRIGHT -> Vector(1, -1)
         }
     }
 
     val alignmentPad get() = when(driverController.pov) {
         0    -> Direction.UP
+        45   -> Direction.UPRIGHT
         90   -> Direction.RIGHT
+        135  -> Direction.DOWNRIGHT
         180  -> Direction.DOWN
+        225  -> Direction.DOWNLEFT
         270  -> Direction.LEFT
+        315  -> Direction.UPLEFT
         else -> Direction.INACTIVE
     }
     val operatorThrottle get() = -operatorController.getRawAxis(1)
 
-    val operatorTrigger get() = operatorController.trigger
+    val operatorTrigger: BooleanEvent = operatorController.button(1, loop)
+    val operatorTriggerReleased: BooleanEvent = operatorTrigger.falling()
     object Rumble {
         private var isRumbling  = false
         private var rumbleTime  = 0.0
@@ -174,7 +175,6 @@ object OI : SubsystemBase() {
     }
     override fun periodic(){
         Rumble.update()
-        loop.poll()
     }
 
 //    init {

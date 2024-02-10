@@ -6,10 +6,11 @@ import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.team2898.engine.utils.MovingAverage
-import com.team2898.robot.Constants.ArmConstants.ArmDigitalInput
+import com.team2898.robot.Constants.ArmConstants
 import com.team2898.robot.Constants.ArmConstants.ArmMaxSpeed
 import com.team2898.robot.Constants.ArmConstants.Arm_MaxAccel
 
+import com.team2898.robot.RobotMap
 import com.team2898.robot.RobotMap.Arm_left
 import com.team2898.robot.RobotMap.Arm_right
 import edu.wpi.first.math.controller.PIDController
@@ -28,7 +29,7 @@ object Arm : SubsystemBase() {
 
     private val armMotor = CANSparkMax(Arm_left, CANSparkLowLevel.MotorType.kBrushless)
     private val armMotorSecondary = CANSparkMax(Arm_right, CANSparkLowLevel.MotorType.kBrushless)
-    private val encoder = CANcoder(ArmDigitalInput)
+    private val encoder = CANcoder(RobotMap.ArmCANCoder)
 
     var setpoint = pos()
     private const val UPPER_SOFT_STOP = 0.0
@@ -36,6 +37,7 @@ object Arm : SubsystemBase() {
     var ksin = 0.0
     var ks = 0.0
     var kv = 0.0
+    var currentPosition: ArmConstants.ArmHeights? = null
 
     fun pos(): Double {
         val p = encoder.absolutePosition.valueAsDouble * 2 * PI
@@ -96,7 +98,7 @@ object Arm : SubsystemBase() {
         movingAverage.add(dp / dt)
         movingAverage2.add(dp / dt)
         val rate = movingAverage.average
-        val averagedRate = movingAverage2.average
+//        val averagedRate = movingAverage2.average
 
         integral.add((rate - armMotor.encoder.velocity).absoluteValue)
 
@@ -104,6 +106,7 @@ object Arm : SubsystemBase() {
         pid.d = SmartDashboard.getNumber("arm kd", 0.0)
         if (setpoint == 0.0 || setpoint !in LOWER_SOFT_STOP..UPPER_SOFT_STOP || ((p - setpoint).absoluteValue < 0.05 && rate.absoluteValue < 0.1) || profileTimer.get() > (profile?.totalTime() ?: 0.0)) {
             profile = null
+            currentPosition = ArmConstants.ArmHeights.entries.toTypedArray().find { (it.position - p).absoluteValue < 0.05 }
         }
 //        val targetSpeed = profile?.calculate(profileTimer.get())?.velocity ?: 0.0
 //        val targetSpeed = profile.calculate(profileTimer.get(), )
@@ -145,6 +148,9 @@ object Arm : SubsystemBase() {
         profileTimer.reset()
         profileTimer.start()
 
+    }
+    fun setGoal(newPos: ArmConstants.ArmHeights) {
+        setGoal(newPos.position)
     }
 
     fun stop() {

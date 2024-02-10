@@ -7,7 +7,7 @@
  * Note: if you specify an argument type as one of the interfaces declared in this file, it will box
  * the type, leading to a performance hit.  _This is likely fine_, because computers are fast.
  */
-package com.team2898.engine.utils
+package com.team2898.engine.utils.units
 
 import kotlin.math.PI
 
@@ -31,6 +31,12 @@ value class Meters(override val value: Double) : DistanceUnit {
 }
 
 @JvmInline
+value class Kilometers(override val value: Double) : DistanceUnit {
+    constructor(v: Int) : this(v.toDouble())
+    override fun meterValue() = value * 1000
+}
+
+@JvmInline
 value class Feet(override val value: Double) : DistanceUnit {
     constructor(v: Int) : this(v.toDouble())
     override fun meterValue() = value * 0.3048
@@ -48,6 +54,15 @@ value class Inches(override val value: Double) : DistanceUnit {
     override fun toString(): String {
         return "$value in"
     }
+}
+
+interface AreaUnit : Unit {
+    fun metersSquaredValue(): Double
+}
+
+@JvmInline
+value class MetersSquared(override val value: Double) : AreaUnit {
+    override fun metersSquaredValue() = value
 }
 
 // Velocity
@@ -272,6 +287,7 @@ value class Amps(override val value: Double) : Unit {
 
 // Typealiases for ease of use
 typealias M = Meters
+typealias KM = Kilometers
 typealias Ft = Feet
 typealias In = Inches
 
@@ -289,6 +305,7 @@ typealias Millis = Milliseconds
 
 // Conversion functions
 fun DistanceUnit.toMeters() = Meters(meterValue())
+fun DistanceUnit.toKilometers() = Kilometers(meterValue() / Kilometers(1.0).meterValue())
 fun DistanceUnit.toFeet() = Feet(meterValue() / Feet(1.0).meterValue())
 fun DistanceUnit.toInches() = Inches(meterValue() / Inches(1.0).meterValue())
 
@@ -315,14 +332,22 @@ val Double.meters get() = Meters(this)
 val Int.meters get() = Meters(this.toDouble())
 val Double.m get() = Meters(this)
 val Int.m get() = Meters(this.toDouble())
+val Double.km get() = Kilometers(this)
+val Int.km get() = Kilometers(this.toDouble())
 val Double.feet get() = Feet(this)
 val Int.feet get() = Feet(this.toDouble())
 val Double.ft get() = Feet(this)
 val Int.ft get() = Feet(this.toDouble())
 val Double.inches get() = Inches(this)
 val Int.inches get() = Inches(this.toDouble())
+val Double.metersSquared get() = MetersSquared(this)
+val Int.metersSquared get() = MetersSquared(this.toDouble())
+val Double.m2 get() = MetersSquared(this)
+val Int.m2 get() = MetersSquared(this.toDouble())
 val Double.metersPerSecond get() = MetersPerSecond(this)
 val Int.metersPerSecond get() = MetersPerSecond(this.toDouble())
+val Double.mps get() = MetersPerSecond(this)
+val Int.mps get() = MetersPerSecond(this.toDouble())
 val Double.feetPerSecond get() = FeetPerSecond(this)
 val Int.feetPerSecond get() = FeetPerSecond(this.toDouble())
 val Double.kilometersPerHour get() = KilometersPerHour(this)
@@ -335,10 +360,14 @@ val Double.mph get() = MilesPerHour(this)
 val Int.mph get() = MilesPerHour(this.toDouble())
 val Double.metersPerSecondSquared get() = MetersPerSecondSquared(this)
 val Int.metersPerSecondSquared get() = MetersPerSecondSquared(this.toDouble())
-val Double.RPM get() = RPM(this)
-val Int.RPM get() = RPM(this.toDouble())
+val Double.rotationsPerMinute get() = RPM(this)
+val Int.rotationsPerMinute get() = RPM(this.toDouble())
 val Double.rpm get() = RPM(this)
 val Int.rpm get() = RPM(this.toDouble())
+val Double.rotationsPerSecond get() = RPS(this)
+val Int.rotationsPerSecond get() = RPS(this.toDouble())
+val Double.rps get() = RPS(this)
+val Int.rps get() = RPS(this.toDouble())
 val Double.radians get() = Radians(this)
 val Int.radians get() = Radians(this.toDouble())
 val Double.rad get() = Radians(this)
@@ -383,38 +412,40 @@ inline operator fun Meters.unaryPlus() = value.meters
 inline operator fun Meters.minus(other: Meters) = (value - other.value).meters
 inline operator fun Meters.unaryMinus() = (-value).meters
 inline operator fun Meters.times(other: Hertz) = (value * other.value).metersPerSecond // TECHNICALLY Herts are the reciprocal of Seconds
-inline operator fun Meters.div(other: Seconds) = (value / other.value).metersPerSecond
-inline operator fun Meters.div(other: Milliseconds) = (value / (other.value * 0.001)).metersPerSecond
+inline operator fun Meters.div(other: TimeUnit) = (value / other.toSeconds().value).metersPerSecond
+inline operator fun Kilometers.plus(other: Kilometers) = (value + other.value).km
+inline operator fun Kilometers.unaryPlus() = value.km
+inline operator fun Kilometers.minus(other: Kilometers) = (value - other.value).km
+inline operator fun Kilometers.unaryMinus() = (-value).km
+inline operator fun Kilometers.div(other: TimeUnit) = (value / other.toHours().value).kilometersPerHour
 inline operator fun Feet.plus(other: Feet) = (value + other.value).feet
 inline operator fun Feet.unaryPlus() = value.feet
 inline operator fun Feet.minus(other: Feet) = (value - other.value).feet
 inline operator fun Feet.unaryMinus() = (-value).feet
-inline operator fun Feet.div(other: Seconds) = (value / other.value).feetPerSecond
-inline operator fun Feet.div(other: Milliseconds) = (value / (other.value * 0.001)).feetPerSecond
+inline operator fun Feet.div(other: TimeUnit) = (value / other.toSeconds().value).feetPerSecond
 inline operator fun Inches.plus(other: Inches) = (value + other.value).inches
 inline operator fun Inches.unaryPlus() = value.inches
 inline operator fun Inches.minus(other: Inches) = (value - other.value).inches
 inline operator fun Inches.unaryMinus() = (-value).inches
-inline operator fun Inches.div(other: Seconds) = ((value / 12) / other.value).feetPerSecond
-inline operator fun Inches.div(other: Milliseconds) = ((value / 12) / (other.value * 0.001)).feetPerSecond
+inline operator fun Inches.div(other: TimeUnit) = ((value / 12) / other.toSeconds().value).feetPerSecond
+inline operator fun DistanceUnit.times(other: DistanceUnit) = (toMeters().value * other.toMeters().value).m2
 inline operator fun MetersPerSecond.plus(other: MetersPerSecond) = (value + other.value).metersPerSecond
 inline operator fun MetersPerSecond.unaryPlus() = value.metersPerSecond
 inline operator fun MetersPerSecond.minus(other: MetersPerSecond) = (value - other.value).metersPerSecond
 inline operator fun MetersPerSecond.unaryMinus() = (-value).metersPerSecond
-inline operator fun MetersPerSecond.times(other: Seconds) = (value * other.value).m
-inline operator fun MetersPerSecond.times(other: Milliseconds) = (value * other.value * 0.001).m
-inline operator fun MetersPerSecond.div(other: Seconds) = (value / other.value).metersPerSecondSquared
-inline operator fun MetersPerSecond.div(other: Milliseconds) = (value / (other.value * 0.001)).metersPerSecondSquared
+inline operator fun MetersPerSecond.times(other: TimeUnit) = (value * other.toSeconds().value).m
+inline operator fun VelocityUnit.div(other: TimeUnit) = (toMetersPerSecond().value / other.toSeconds().value).metersPerSecondSquared
+inline operator fun VelocityUnit.div(other: DistanceUnit) = (toMetersPerSecond().value / other.toMeters().value).hz
 inline operator fun FeetPerSecond.plus(other: FeetPerSecond) = (value + other.value).feetPerSecond
 inline operator fun FeetPerSecond.unaryPlus() = value.feetPerSecond
 inline operator fun FeetPerSecond.minus(other: FeetPerSecond) = (value - other.value).feetPerSecond
 inline operator fun FeetPerSecond.unaryMinus() = (-value).feetPerSecond
-inline operator fun FeetPerSecond.times(other: Seconds) = (value * other.value).feet
-inline operator fun FeetPerSecond.times(other: Milliseconds) = (value * other.value * 0.001).feet
+inline operator fun FeetPerSecond.times(other: TimeUnit) = (value * other.toSeconds().value).feet
 inline operator fun KilometersPerHour.plus(other: KilometersPerHour) = (value + other.value).kilometersPerHour
 inline operator fun KilometersPerHour.unaryPlus() = value.kilometersPerHour
 inline operator fun KilometersPerHour.minus(other: KilometersPerHour) = (value - other.value).kilometersPerHour
 inline operator fun KilometersPerHour.unaryMinus() = (-value).kilometersPerHour
+inline operator fun KilometersPerHour.times(other: TimeUnit) = (value * other.toHours().value).km
 inline operator fun MilesPerHour.plus(other: MilesPerHour) = (value + other.value).milesPerHour
 inline operator fun MilesPerHour.unaryPlus() = value.milesPerHour
 inline operator fun MilesPerHour.minus(other: MilesPerHour) = (value - other.value).milesPerHour
@@ -443,8 +474,8 @@ inline operator fun Rotations.plus(other: Degrees) = (value + other.value).rotat
 inline operator fun Rotations.unaryPlus() = value.rotations
 inline operator fun Rotations.minus(other: Degrees) = (value - other.value).rotations
 inline operator fun Rotations.unaryMinus() = (-value).rotations
-inline operator fun Rotations.div(other: Seconds) = (value / (other.value / 60)).rpm
-inline operator fun Rotations.div(other: Milliseconds) = (value / (other.value / 60000)).rpm
+inline operator fun AngleUnit.div(other: TimeUnit) = (toRotations().value / other.toSeconds().value).rps
+inline operator fun AngleUnit.times(other: FrequencyUnit) = (toRotations().value / other.toMillis().toSeconds().value).rps
 inline operator fun Kilograms.plus(other: Kilograms) = (value + other.value).kilograms
 inline operator fun Kilograms.unaryPlus() = value.kilograms
 inline operator fun Kilograms.minus(other: Kilograms) = (value - other.value).kilograms
@@ -457,13 +488,13 @@ inline operator fun Seconds.plus(other: Seconds) = (value + other.value).seconds
 inline operator fun Seconds.unaryPlus() = value.seconds
 inline operator fun Seconds.minus(other: Seconds) = (value - other.value).seconds
 inline operator fun Seconds.unaryMinus() = (-value).seconds
-inline operator fun Minutes.plus(other: Seconds) = (value + other.value).minutes
+inline operator fun Minutes.plus(other: Minutes) = (value + other.value).minutes
 inline operator fun Minutes.unaryPlus() = value.minutes
-inline operator fun Minutes.minus(other: Seconds) = (value - other.value).minutes
+inline operator fun Minutes.minus(other: Minutes) = (value - other.value).minutes
 inline operator fun Minutes.unaryMinus() = (-value).minutes
-inline operator fun Hours.plus(other: Seconds) = (value + other.value).hours
+inline operator fun Hours.plus(other: Hours) = (value + other.value).hours
 inline operator fun Hours.unaryPlus() = value.hours
-inline operator fun Hours.minus(other: Seconds) = (value - other.value).hours
+inline operator fun Hours.minus(other: Hours) = (value - other.value).hours
 inline operator fun Hours.unaryMinus() = (-value).hours
 inline operator fun Milliseconds.plus(other: Milliseconds) = (value + other.value).milliseconds
 inline operator fun Milliseconds.unaryPlus() = value.milliseconds

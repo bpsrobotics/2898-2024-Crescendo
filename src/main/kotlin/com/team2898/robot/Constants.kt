@@ -6,13 +6,14 @@
 package com.team2898.robot
 
 import com.revrobotics.CANSparkBase
+import com.team2898.engine.utils.units.MetersPerSecond
 import com.team2898.robot.subsystems.Arm
 import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics
 import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.math.util.Units
 import edu.wpi.first.wpilibj2.command.Command
-
+import com.team2898.engine.utils.units.*
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -137,23 +138,37 @@ class Constants {
     }
 
     object ArmConstants {
-        const val ArmDigitalInput = 1 //TODO() get number 4 dis
         const val ArmMaxSpeed = 1.0
         const val Arm_MaxAccel = 1.5
-        enum class ArmHeights(val position: Double) {
-            GROUND(Arm.LOWER_SOFT_STOP),
-            STOWED(0.0), //TODO Set these to real values
-            AMP(0.1),
-            SHOOTER1(0.2),
-            SHOOTER2(0.3)
+        enum class ArmHeights(val position: Double, val velocity: MetersPerSecond) {
+            GROUND(Arm.LOWER_SOFT_STOP, 0.0.mps),
+            STOWED(0.0, 0.0.mps), //TODO Set these to real values
+            AMP(0.1, 0.5.mps),
+            SHOOTER1(0.2, 5.mps),
+            SHOOTER2(0.3, 5.mps);
 
+            fun up() = when (this) {
+                GROUND -> STOWED
+                STOWED -> AMP
+                AMP -> SHOOTER1
+                SHOOTER1 -> SHOOTER2
+                SHOOTER2 -> SHOOTER2
+            }
+            fun down() = when (this) {
+                GROUND -> GROUND
+                STOWED -> GROUND
+                AMP -> STOWED
+                SHOOTER1 -> AMP
+                SHOOTER2 -> SHOOTER1
+            }
         }
     }
 
     object IntakeConstants{
+        const val INTAKE_SPEED = 1.0
     }
     object ShooterConstants{
-
+        val FLYWHEEL_CIRCUMFERENCE = 4.inches
     }
 
     object ClimberConstants{
@@ -168,17 +183,12 @@ class Constants {
 
     // set to operator/driver's preferences
     object ButtonConstants {
-        const val CLIMBER_REACH = 7
-        const val CLIMBER_LIFT = 8
+        const val CLIMBER_REACH = 8
+        const val CLIMBER_LIFT = 10
         const val CLIMBER_RELEASE = 9
 
-        // Hold ARM_SELECT and press ARM_SELECT_* to change position
-        const val ARM_SELECT = 10
-        const val ARM_SELECT_GROUND = 7
-        const val ARM_SELECT_STOWED = 8
-        const val ARM_SELECT_AMP = 9
-        const val ARM_SELECT_SHOOTER1 = 11
-        const val ARM_SELECT_SHOOTER2 = 12
+        const val ARM_UP = 5
+        const val ARM_DOWN = 3
 
         const val PRESS_ACTIVATE_DURATION = 0.1
         const val INPUT_BUFFER_DURATION = 0.2

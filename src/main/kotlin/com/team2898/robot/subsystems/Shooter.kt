@@ -3,6 +3,8 @@ package com.team2898.robot.subsystems
 import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
+import com.team2898.engine.utils.units.*
+import com.team2898.robot.Constants.ShooterConstants
 import com.team2898.robot.RobotMap.ShooterId
 import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.controller.SimpleMotorFeedforward
@@ -35,8 +37,9 @@ object Shooter : SubsystemBase() {
         shooterMotor.set(pidCalc + ffCalc)
     }
 
-    fun setFlywheelSpeed(speed: Double) {
-        // set shooter flywheel speed here
+    fun setFlywheelSpeed(speed: MetersPerSecond) {
+        pid.setpoint = (1.rot * (speed / ShooterConstants.FLYWHEEL_CIRCUMFERENCE.toMeters())).value
     }
 
+    fun setFlywheelSpeed(speed: Double) = setFlywheelSpeed(speed.mps)
 }
