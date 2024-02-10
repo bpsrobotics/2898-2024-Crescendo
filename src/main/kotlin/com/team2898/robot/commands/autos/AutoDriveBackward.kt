@@ -17,7 +17,7 @@ class AutoDriveBackward : Command(){
         Odometry.resetOdometry(Pose2d())
     }
     override fun execute() {
-        println("MOBILITY-ING")
+        println("Command executed: AutoDriveBackward")
         Drivetrain.drive(0.0, -0.25, 0.0, true, true)
     }
     override fun isFinished(): Boolean {
