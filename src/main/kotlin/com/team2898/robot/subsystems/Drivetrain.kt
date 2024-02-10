@@ -185,8 +185,8 @@ object Drivetrain
             { volts: Measure<Voltage> ->
                 for (module in modules){
                         module.voltageDrive(volts.`in`(Volts))
-                        println("module number${module.moduleID} + position" + module.position.distanceMeters)
-                        println(volts.`in`(Volts))
+//                        println("module number${module.moduleID} + position" + module.position.distanceMeters)
+//                        println(volts.`in`(Volts))
                     }
             },
             { log: SysIdRoutineLog ->
@@ -200,38 +200,7 @@ object Drivetrain
                             module.drivingEncoder.velocity, MetersPerSecond
                         ))
                 }
-//                log.motor("drive" + modules[0].moduleID)
-//                    .voltage(m_appliedVoltage.mut_replace(
-//                        modules[0].getVoltage(), Volts
-//                    ))
-//                    .linearPosition(m_distance.mut_replace(modules[0].position.distanceMeters, Meters))
-//                    .linearVelocity(m_velocity.mut_replace(
-//                        modules[0].drivingEncoder.velocity, MetersPerSecond
-//                    ))
-//                log.motor("drive" + modules[1].moduleID)
-//                    .voltage(m_appliedVoltage.mut_replace(
-//                        modules[1].getVoltage(), Volts
-//                    ))
-//                    .linearPosition(m_distance.mut_replace(modules[1].position.distanceMeters, Meters))
-//                    .linearVelocity(m_velocity.mut_replace(
-//                        modules[1].drivingEncoder.velocity, MetersPerSecond
-//                    ))
-//                log.motor("drive" + modules[2].moduleID)
-//                    .voltage(m_appliedVoltage.mut_replace(
-//                        modules[2].getVoltage(), Volts
-//                    ))
-//                    .linearPosition(m_distance.mut_replace(modules[2].position.distanceMeters, Meters))
-//                    .linearVelocity(m_velocity.mut_replace(
-//                        modules[2].drivingEncoder.velocity, MetersPerSecond
-//                    ))
-//                log.motor("drive" + modules[3].moduleID)
-//                    .voltage(m_appliedVoltage.mut_replace(
-//                        modules[3].getVoltage(), Volts
-//                    ))
-//                    .linearPosition(m_distance.mut_replace(modules[3].position.distanceMeters, Meters))
-//                    .linearVelocity(m_velocity.mut_replace(
-//                        modules[3].drivingEncoder.velocity, MetersPerSecond
-//                    ))
+
             },
             this
         )

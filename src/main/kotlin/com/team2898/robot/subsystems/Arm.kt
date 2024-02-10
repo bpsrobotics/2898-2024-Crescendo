@@ -60,6 +60,7 @@ object Arm : SubsystemBase() {
         armMotor.restoreFactoryDefaults()
         armMotor.setSmartCurrentLimit(40)
         armMotor.idleMode = CANSparkBase.IdleMode.kBrake
+        armMotor.inverted
 
         armMotorSecondary.restoreFactoryDefaults()
         armMotorSecondary.setSmartCurrentLimit(40)

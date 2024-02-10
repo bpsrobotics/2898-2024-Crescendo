@@ -32,6 +32,7 @@ object Odometry : SubsystemBase(), PoseProvider {
         return Pose2d(pose.x, pose.y, pose.rotation)
     }
 
+
     val chassisSpeeds: ChassisSpeeds
         get() = Constants.DriveConstants.DriveKinematics.toChassisSpeeds(Drivetrain.frontLeft.state, Drivetrain.frontRight.state, Drivetrain.rearLeft.state, Drivetrain.rearRight.state)
     val chassisSpeedsConsumer = {

@@ -82,12 +82,16 @@ class Robot : TimedRobot() {
     override fun teleopPeriodic() {
         if (OI.driverX && OI.alignmentPad == OI.Direction.UP) {
             Drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward).schedule()
+            println("quasi forward")
         } else if (OI.driverX && OI.alignmentPad == OI.Direction.DOWN) {
             Drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse).schedule()
+            println("quasi reverse")
         } else if (OI.driverY && OI.alignmentPad == OI.Direction.UP){
             Drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward).schedule()
+            println("dynamic forward")
         } else if (OI.driverY && OI.alignmentPad == OI.Direction.DOWN){
             Drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse).schedule()
+            print("dynamic reverse")
         } else {
             println("not doing")
         }
