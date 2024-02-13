@@ -32,6 +32,7 @@ object Arm : SubsystemBase() {
     private val encoder = CANcoder(RobotMap.ArmCANCoder)
 
     var setpoint = pos()
+    var targetState = ArmConstants.ArmHeights.STOWED
     private const val UPPER_SOFT_STOP = 0.0
     val LOWER_SOFT_STOP = 0.0 //TODO() Set Stop Positions
     var ksin = 0.0
@@ -137,6 +138,8 @@ object Arm : SubsystemBase() {
         if (newPos !in LOWER_SOFT_STOP..UPPER_SOFT_STOP) return
 //        currentGoal = newPos
         setpoint = newPos
+        ArmConstants.ArmHeights.entries.toTypedArray().find { (it.position - newPos).absoluteValue < 0.05 }
+            ?.also { targetState = it }
 //        profile = TrapezoidProfile(constraints,
 //            TrapezoidProfile.State(newPos, 0.0),
 //            TrapezoidProfile.State(pos(), movingAverage.average)
@@ -150,7 +153,21 @@ object Arm : SubsystemBase() {
 
     }
     fun setGoal(newPos: ArmConstants.ArmHeights) {
-        setGoal(newPos.position)
+        if (newPos.position !in LOWER_SOFT_STOP..UPPER_SOFT_STOP) return
+//        currentGoal = newPos
+        setpoint = newPos.position
+        targetState = newPos
+//        profile = TrapezoidProfile(constraints,
+//            TrapezoidProfile.State(newPos, 0.0),
+//            TrapezoidProfile.State(pos(), movingAverage.average)
+//        )
+        profile?.calculate(profileTimer.get(),
+            TrapezoidProfile.State(pos(), movingAverage.average),
+            TrapezoidProfile.State(newPos.position, 0.0)
+        )
+        profileTimer.reset()
+        profileTimer.start()
+
     }
 
     fun stop() {

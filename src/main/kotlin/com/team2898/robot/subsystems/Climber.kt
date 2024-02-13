@@ -8,7 +8,6 @@ import com.team2898.robot.RobotMap.ClimberId
 import edu.wpi.first.wpilibj.event.BooleanEvent
 import edu.wpi.first.wpilibj.event.EventLoop
 import edu.wpi.first.wpilibj2.command.SubsystemBase
-import java.util.function.BooleanSupplier
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -20,31 +19,31 @@ object Climber : SubsystemBase() {
         private set
     var targetState: ClimberConstants.ClimbHeights = ClimberConstants.ClimbHeights.STOWED
         private set
-    private var onceArrived: ((value: Unit) -> Unit)? = null
-    private var onceCancelled: ((error: Exception) -> Unit)? = null
+    private val waiting = mutableMapOf<ClimberConstants.ClimbHeights, MutableSet<Promise.Companion.ResolversObject<Unit>>>()
     private var setSpeed = 1.0 // speed control
     val distanceToGo get() = targetState.position - climberCoder.position
     val absDistanceToGo get() = abs(distanceToGo)
-    fun finished(loop: EventLoop): BooleanEvent {
-        return BooleanEvent(loop, ArrivedSignal)
-    }
+    fun finished(loop: EventLoop) = BooleanEvent(loop) { arrived() }
     fun arrived() = currentState == targetState
-    object ArrivedSignal : BooleanSupplier {
-        override fun getAsBoolean(): Boolean {
-            return arrived()
-        }
-    }
     fun setState(newState: ClimberConstants.ClimbHeights) {
         targetState = newState
         currentState = null
     }
     fun go(newState: ClimberConstants.ClimbHeights): Promise<Unit> {
-        onceCancelled?.invoke(Exception("Climber movement cancelled"))
+        waiting.forEach { (t, u) ->
+            if (t != newState) {
+                u.forEach { it.reject(Exception("Arm movement cancelled")) }
+                waiting.remove(t)
+            }
+        }
         targetState = newState
         currentState = null
         val r = Promise.withResolvers<Unit>()
-        onceArrived = r.resolve
-        onceCancelled = r.reject
+        try {
+            waiting[newState]!!.add(r)
+        } catch (_: NullPointerException) { // EAFP: Easier to Ask for Forgiveness than Permission
+            waiting[newState] = mutableSetOf(r)
+        }
         return r.promise
     }
 
@@ -57,7 +56,8 @@ object Climber : SubsystemBase() {
         } else {
             climberMotor.set(0.0)
             currentState = targetState
-            onceArrived?.invoke(Unit)
+            waiting[targetState]?.forEach { it.resolve(Unit) }
+            waiting.remove(targetState)
         }
     }
 }

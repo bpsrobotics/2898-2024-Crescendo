@@ -111,11 +111,18 @@ object OI : SubsystemBase() {
     val grabTote get() = operatorController.getRawButton(9)//TODO change button
     val grabToteToggle get() = operatorController.getRawButtonPressed(9)//TODO change button
 
-    val climbReach: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_REACH, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
-    val climbLift: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_LIFT, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
+    val climbAdvance: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_ADVANCE, loop).rising()
+    val climbRetract: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_RETRACT, loop).rising()
 
-    val armSelectUp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_UP, loop)
-    val armSelectDown: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DOWN, loop)
+    val armSelectUp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_UP, loop).rising()
+    val armSelectDown: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DOWN, loop).rising()
+
+    val armDirectSelect: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SELECT, loop).rising()
+    val armDirectGround: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_GROUND, loop).rising()
+    val armDirectStowed: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_STOWED, loop).rising()
+    val armDirectAmp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_AMP, loop).rising()
+    val armDirectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER1, loop).rising()
+    val armDirectShooter2: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER2, loop).rising()
 
     val runIntake: BooleanEvent = BooleanEvent(loop) { alignmentPad == Direction.DOWN }
 

@@ -91,42 +91,34 @@ class TeleOp : Command() {
 //            resetGyroTimer.stop()
 //        }
     }
-    val armCD = Timer()
+    var armDirectChoosing = false
+    val armDirectChoose = Timer()
     fun peripheralControls() {
-        OI.loop.poll()
-        if (armCD.hasElapsed(0.3)) {
-            if (OI.armSelectUp.asBoolean) {
-                Arm.setGoal(Constants.ArmConstants.ArmHeights.entries.toTypedArray().find { it.position == Arm.setpoint }?.up()?.position ?: Arm.setpoint)
-                armCD.reset()
-                armCD.start()
-            }
-            if (OI.armSelectDown.asBoolean) {
-                Arm.setGoal(Constants.ArmConstants.ArmHeights.entries.toTypedArray().find { it.position == Arm.setpoint }?.down()?.position ?: Arm.setpoint)
-                armCD.reset()
-                armCD.start()
-            }
+        if (OI.armSelectUp.asBoolean) {
+            Arm.setGoal(Arm.targetState.up())
         }
-        if (OI.climbReach.asBoolean) {
-            when (Climber.currentState) {
-                Constants.ClimberConstants.ClimbHeights.STOWED -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
-                }
-                Constants.ClimberConstants.ClimbHeights.REACH -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.STOWED)
-                }
-                else -> {}
-            }
+        if (OI.armSelectDown.asBoolean) {
+            Arm.setGoal(Arm.targetState.down())
         }
-        if (OI.climbLift.asBoolean) {
-            when (Climber.currentState) {
-                Constants.ClimberConstants.ClimbHeights.REACH -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.LIFTOFF)
-                }
-                Constants.ClimberConstants.ClimbHeights.LIFTOFF -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
-                }
-                else -> {}
+        if (armDirectChoosing && !armDirectChoose.hasElapsed(Constants.ButtonConstants.ARM_DIRECT_CHOOSE_DURATION)) {
+            when {
+                OI.armDirectGround.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.GROUND)
+                OI.armDirectStowed.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.STOWED)
+                OI.armDirectAmp.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.AMP)
+                OI.armDirectShooter1.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER1)
+                OI.armDirectShooter2.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER2)
             }
+            armDirectChoosing = false
+        } else if (OI.armDirectSelect.asBoolean) {
+            armDirectChoosing = true
+            armDirectChoose.reset()
+            armDirectChoose.start()
+        }
+        if (OI.climbAdvance.asBoolean) {
+            Climber.setState(Climber.targetState.advance())
+        }
+        if (OI.climbRetract.asBoolean) {
+            Climber.setState(Climber.targetState.retract())
         }
         if (Arm.currentPosition != null) {
             if (OI.operatorTrigger.asBoolean) {
@@ -144,8 +136,9 @@ class TeleOp : Command() {
         }
     }
     override fun execute() {
+        OI.loop.poll()
         handleResetGyro()
-////        peripheralControls()
+        peripheralControls()
         Drivetrain.drive(
             -OI.translationX,
             -OI.translationY,
