@@ -7,8 +7,8 @@ import com.revrobotics.CANSparkMax
 import com.team2898.robot.RobotMap.IntakeId
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 
-class Intake : SubsystemBase() {
-    private val intakeMotor = CANSparkMax(IntakeId, CANSparkLowLevel.MotorType.kBrushless)
+object Intake : SubsystemBase() {
+    private val intakeMotor = CANSparkMax(IntakeId, CANSparkLowLevel.MotorType.kBrushed)
 
     init {
         intakeMotor.restoreFactoryDefaults()

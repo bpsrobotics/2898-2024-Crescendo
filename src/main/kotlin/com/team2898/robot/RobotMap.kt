@@ -23,4 +23,6 @@ object RobotMap {
     const val FrontRightCANCoderID = 11
     const val RearRightCANCoderID = 22
     const val RearLeftCANCoderID = 33
+
+    const val ArmDigitalInput = 1
 }
