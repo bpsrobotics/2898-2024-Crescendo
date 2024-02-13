@@ -170,7 +170,7 @@ object Arm : SubsystemBase() {
 
     }
 
-    fun stop() {
+    fun release() {
         profile = null
     }
 

@@ -206,7 +206,7 @@ class Constants {
         const val ARM_DIRECT_AMP = 10
         const val ARM_DIRECT_SHOOTER1 = 11
         const val ARM_DIRECT_SHOOTER2 = 12
-        const val ARM_DIRECT_CHOOSE_DURATION = 0.5
+        const val ARM_DIRECT_CHOOSE_DURATION = 5.0
 
         const val PRESS_ACTIVATE_DURATION = 0.1
         const val INPUT_BUFFER_DURATION = 0.2

@@ -184,13 +184,5 @@ object OI : SubsystemBase() {
         Rumble.update()
     }
 
-//    init {
-//        Trigger { operatorController.pov != 0 }.toggleOnTrue(
-//            Commands.startEnd(
-//                Drivetrain::brakeMode,
-//                Drivetrain::coastMode
-//            )
-//        )
-//
-//    }
+
 }

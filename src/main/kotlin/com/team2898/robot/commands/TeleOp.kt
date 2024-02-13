@@ -95,21 +95,47 @@ class TeleOp : Command() {
     val armDirectChoose = Timer()
     fun peripheralControls() {
         if (OI.armSelectUp.asBoolean) {
+            println("arm up")
             Arm.setGoal(Arm.targetState.up())
         }
         if (OI.armSelectDown.asBoolean) {
+            println("arm down")
             Arm.setGoal(Arm.targetState.down())
         }
         if (armDirectChoosing && !armDirectChoose.hasElapsed(Constants.ButtonConstants.ARM_DIRECT_CHOOSE_DURATION)) {
             when {
-                OI.armDirectGround.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.GROUND)
-                OI.armDirectStowed.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.STOWED)
-                OI.armDirectAmp.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.AMP)
-                OI.armDirectShooter1.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER1)
-                OI.armDirectShooter2.asBoolean -> Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER2)
+                OI.armDirectGround.asBoolean -> {
+                    Arm.setGoal(Constants.ArmConstants.ArmHeights.GROUND)
+                    println("arm ground")
+                    armDirectChoosing = false
+                }
+                OI.armDirectStowed.asBoolean -> {
+                    Arm.setGoal(Constants.ArmConstants.ArmHeights.STOWED)
+                    println("arm stowed")
+                    armDirectChoosing = false
+                }
+                OI.armDirectAmp.asBoolean -> {
+                    Arm.setGoal(Constants.ArmConstants.ArmHeights.AMP)
+                    println("arm amp")
+                    armDirectChoosing = false
+                }
+                OI.armDirectShooter1.asBoolean -> {
+                    Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER1)
+                    println("arm shooter1")
+                    armDirectChoosing = false
+                }
+                OI.armDirectShooter2.asBoolean -> {
+                    Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER2)
+                    println("arm shooter2")
+                    armDirectChoosing = false
+                }
+                OI.armDirectSelect.asBoolean -> {
+                    println("arm choose cancel")
+                    armDirectChoosing = false
+                }
             }
-            armDirectChoosing = false
         } else if (OI.armDirectSelect.asBoolean) {
+            println("arm choose")
             armDirectChoosing = true
             armDirectChoose.reset()
             armDirectChoose.start()
@@ -130,6 +156,7 @@ class TeleOp : Command() {
             }
         }
         if (Arm.currentPosition == Constants.ArmConstants.ArmHeights.GROUND && OI.runIntake.asBoolean) {
+            println("run intake")
             Intake.runIntake(Constants.IntakeConstants.INTAKE_SPEED)
         } else {
             Intake.stopIntake()
