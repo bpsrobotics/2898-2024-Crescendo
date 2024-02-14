@@ -133,8 +133,8 @@ class TeleOp : Command() {
         handleResetGyro()
 ////        peripheralControls()
         Drivetrain.drive(
-            OI.translationX,
-            OI.translationY,
+            -OI.translationX,
+            -OI.translationY,
             getTurnSpeed(),
             fieldRelative = true,
             rateLimit = true,

@@ -55,7 +55,7 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
         // them. This is useful in case a SPARK MAX is swapped out.
         drivingSparkMax.restoreFactoryDefaults()
         turningSparkMax.restoreFactoryDefaults()
-//        drivingSparkMax.inverted
+        drivingSparkMax.inverted
 //        m_turningSparkMax.inverted
         drivingSparkMax.setSmartCurrentLimit(DrivingMotorCurrentLimit)
 
