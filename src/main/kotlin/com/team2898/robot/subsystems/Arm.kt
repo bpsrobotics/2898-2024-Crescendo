@@ -9,13 +9,15 @@ import com.team2898.engine.utils.MovingAverage
 import com.team2898.robot.Constants.ArmConstants
 import com.team2898.robot.Constants.ArmConstants.ArmMaxSpeed
 import com.team2898.robot.Constants.ArmConstants.Arm_MaxAccel
+import com.team2898.robot.RobotMap.ArmDigitalInput
 
-import com.team2898.robot.RobotMap
 import com.team2898.robot.RobotMap.Arm_left
 import com.team2898.robot.RobotMap.Arm_right
 import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.util.sendable.SendableBuilder
+import edu.wpi.first.wpilibj.DigitalInput
+import edu.wpi.first.wpilibj.DutyCycleEncoder
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 
@@ -29,21 +31,21 @@ object Arm : SubsystemBase() {
 
     private val armMotor = CANSparkMax(Arm_left, CANSparkLowLevel.MotorType.kBrushless)
     private val armMotorSecondary = CANSparkMax(Arm_right, CANSparkLowLevel.MotorType.kBrushless)
-    private val encoder = CANcoder(RobotMap.ArmCANCoder)
+    private val encoder = DutyCycleEncoder(ArmDigitalInput)
 
     var setpoint = pos()
     var targetState = ArmConstants.ArmHeights.STOWED
     private const val UPPER_SOFT_STOP = 0.0
     val LOWER_SOFT_STOP = 0.0 //TODO() Set Stop Positions
+    private var stopped = false
     var ksin = 0.0
     var ks = 0.0
     var kv = 0.0
     var currentPosition: ArmConstants.ArmHeights? = null
 
     fun pos(): Double {
-        val p = encoder.absolutePosition.valueAsDouble * 2 * PI
+        val p = encoder.absolutePosition * 2 * PI
         return p
-    //TODO() DO the offset stuff for these positions
     }
 
     val movingAverage = MovingAverage(15)
@@ -74,6 +76,7 @@ object Arm : SubsystemBase() {
         SmartDashboard.putNumber("arm ks", ks)
         SmartDashboard.putNumber("arm ksin", ksin)
         SmartDashboard.putNumber("arm kv", kv)
+        SmartDashboard.putNumber("position", pos())
 
     }
 
@@ -103,9 +106,15 @@ object Arm : SubsystemBase() {
 
         integral.add((rate - armMotor.encoder.velocity).absoluteValue)
 
+        if (stopped) {
+            println("STOPPED")
+            armMotor.set(0.0)
+            return
+        }
+
         pid.p = SmartDashboard.getNumber("arm kp", 0.0)
         pid.d = SmartDashboard.getNumber("arm kd", 0.0)
-        if (setpoint == 0.0 || setpoint !in LOWER_SOFT_STOP..UPPER_SOFT_STOP || ((p - setpoint).absoluteValue < 0.05 && rate.absoluteValue < 0.1) || profileTimer.get() > (profile?.totalTime() ?: 0.0)) {
+        if (setpoint == 0.0 || setpoint !in LOWER_SOFT_STOP..UPPER_SOFT_STOP) {
             profile = null
             currentPosition = ArmConstants.ArmHeights.entries.toTypedArray().find { (it.position - p).absoluteValue < 0.05 }
         }
@@ -136,14 +145,10 @@ object Arm : SubsystemBase() {
 
     fun setGoal(newPos: Double) {
         if (newPos !in LOWER_SOFT_STOP..UPPER_SOFT_STOP) return
-//        currentGoal = newPos
         setpoint = newPos
         ArmConstants.ArmHeights.entries.toTypedArray().find { (it.position - newPos).absoluteValue < 0.05 }
             ?.also { targetState = it }
-//        profile = TrapezoidProfile(constraints,
-//            TrapezoidProfile.State(newPos, 0.0),
-//            TrapezoidProfile.State(pos(), movingAverage.average)
-//        )
+        profile = TrapezoidProfile(constraints)
         profile?.calculate(profileTimer.get(),
             TrapezoidProfile.State(pos(), movingAverage.average),
             TrapezoidProfile.State(newPos, 0.0)
@@ -170,7 +175,7 @@ object Arm : SubsystemBase() {
 
     }
 
-    fun release() {
+    fun stop() {
         profile = null
     }
 
@@ -179,7 +184,7 @@ object Arm : SubsystemBase() {
     }
     override fun initSendable(builder: SendableBuilder) {
         builder.addDoubleProperty("position", { pos() }) {}
-        builder.addDoubleProperty("raw position", { encoder.absolutePosition.valueAsDouble }) {}
+        builder.addDoubleProperty("raw position", { encoder.absolutePosition }) {}
         builder.addDoubleProperty("arm motor rate", { armMotor.encoder.velocity }) {}
         builder.addDoubleProperty("rate", { movingAverage.average }) {}
         builder.addDoubleProperty("rate2", { movingAverage2.average }) {}
