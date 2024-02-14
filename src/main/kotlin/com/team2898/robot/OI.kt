@@ -99,6 +99,13 @@ object OI : SubsystemBase() {
     val resetGyroEnd
         get() = driverController.rightBumperReleased
 
+    val alignButton
+        get() = driverController.yButton
+    val alignButtonRelease
+        get() = driverController.yButtonReleased
+    val alignButtonPressed
+        get() = driverController.yButtonPressed
+
     val highHat get() = operatorController.pov
     val moving get() = operatorController.getRawButton(7)
 

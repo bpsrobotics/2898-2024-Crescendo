@@ -3,7 +3,6 @@ package com.team2898.robot.subsystems
 
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
-import com.revrobotics.CANSparkMaxLowLevel
 import com.team2898.robot.Constants
 import com.team2898.robot.Constants.DriveConstants.kFeddderCanId
 import com.team2898.robot.Constants.DriveConstants.kFlywheelCanId
@@ -26,13 +25,13 @@ object Shooter : SubsystemBase() {
         flywheelController.setSmartCurrentLimit(Constants.ShooterConstants.kFlywheelCurrent)
     }
     private fun HandleFlywheel(){
-        println(OI.operatorThrottle)
+//        println(OI.operatorThrottle)
         when {
             OI.operatorThrottle > 0.1 -> {
                 val throttle = (OI.operatorThrottle - 0.1) * (1 / 0.9)
                 val maxThrottle = kMaxFlywheelVoltage - kBaseFlywheelVoltage
                 flywheelController.setVoltage(kBaseFlywheelVoltage + (throttle * maxThrottle))
-                println(kBaseFlywheelVoltage + (throttle * maxThrottle))
+//                println(kBaseFlywheelVoltage + (throttle * maxThrottle))
             }
 
             OI.operatorThrottle < -0.1 -> {

@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.*
 import org.photonvision.EstimatedRobotPose
 import org.photonvision.PhotonCamera
 import org.photonvision.PhotonPoseEstimator
+import org.photonvision.targeting.PhotonTrackedTarget
 import java.util.*
 
 val aprilTags1: MutableList<AprilTag> = mutableListOf(
@@ -35,7 +36,15 @@ class Vision (
         Rotation3d(0.0, 0.0, 0.0)
     )
     val aprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile)
-
+    fun hasTargets() : Boolean{
+        val result = cam.latestResult
+        return result.hasTargets()
+    }
+    fun getCameraData() : PhotonTrackedTarget {
+        var result = cam.getLatestResult();
+        val targets: PhotonTrackedTarget = result.getBestTarget()
+        return targets
+    }
 
     val PoseEstimator = PhotonPoseEstimator(
         testLayout1,
@@ -43,13 +52,9 @@ class Vision (
         cam,
         robotToCam
     )
-    fun hasTargets() : Boolean{
-        val result = cam.latestResult
-        return result.hasTargets()
-    }
+
     fun getEstimatedPose(prevEstimatedRobotPose: Pose2d?): Optional<EstimatedRobotPose>? {
-        if(prevEstimatedRobotPose != null) PoseEstimator.setReferencePose(prevEstimatedRobotPose)
-        val pose = PoseEstimator.update() ?: return null
-        return pose
+        if (prevEstimatedRobotPose != null) PoseEstimator.setReferencePose(prevEstimatedRobotPose)
+        return PoseEstimator.update()
     }
 }
