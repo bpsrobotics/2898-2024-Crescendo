@@ -65,7 +65,6 @@ object Arm : SubsystemBase() {
         armMotorSecondary.restoreFactoryDefaults()
         armMotorSecondary.setSmartCurrentLimit(40)
         armMotorSecondary.idleMode = CANSparkBase.IdleMode.kBrake
-        armMotorSecondary.follow(armMotor)
 
         SmartDashboard.putNumber("arm kp", 0.0)
         SmartDashboard.putNumber("arm kd", 0.0)
@@ -126,6 +125,7 @@ object Arm : SubsystemBase() {
             println("LOWER SOFT STOP")
         }
         armMotor.set(output)
+        armMotorSecondary.set(output)
 
 
 
