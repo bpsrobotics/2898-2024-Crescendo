@@ -15,6 +15,8 @@ import com.team2898.robot.RobotMap.Arm_right
 import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.util.sendable.SendableBuilder
+import edu.wpi.first.wpilibj.DigitalInput
+import edu.wpi.first.wpilibj.DutyCycleEncoder
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 
@@ -28,19 +30,21 @@ object Arm : SubsystemBase() {
 
     private val armMotor = CANSparkMax(Arm_left, CANSparkLowLevel.MotorType.kBrushless)
     private val armMotorSecondary = CANSparkMax(Arm_right, CANSparkLowLevel.MotorType.kBrushless)
-    private val encoder = CANcoder(ArmDigitalInput)
+    private val dIO = DigitalInput(ArmDigitalInput)
+    private val encoder = DutyCycleEncoder(dIO)
+
 
     var setpoint = pos()
     private const val UPPER_SOFT_STOP = 0.0
     val LOWER_SOFT_STOP = 0.0 //TODO() Set Stop Positions
+    private var stopped = false
     var ksin = 0.0
     var ks = 0.0
     var kv = 0.0
 
     fun pos(): Double {
-        val p = encoder.absolutePosition.valueAsDouble * 2 * PI
+        val p = encoder.absolutePosition * 2 * PI
         return p
-    //TODO() DO the offset stuff for these positions
     }
 
     val movingAverage = MovingAverage(15)
@@ -78,6 +82,7 @@ object Arm : SubsystemBase() {
     val timer = Timer()
 
     override fun periodic() {
+        SmartDashboard.putNumber("arm position ", pos())
         SmartDashboard.putNumber("quotient", armMotor.encoder.velocity / movingAverage.average)
         SmartDashboard.putNumber("arm current", armMotor.outputCurrent)
         SmartDashboard.putNumber("arm duty cycle", armMotor.appliedOutput)
@@ -133,12 +138,9 @@ object Arm : SubsystemBase() {
 
     fun setGoal(newPos: Double) {
         if (newPos !in LOWER_SOFT_STOP..UPPER_SOFT_STOP) return
-//        currentGoal = newPos
         setpoint = newPos
-//        profile = TrapezoidProfile(constraints,
-//            TrapezoidProfile.State(newPos, 0.0),
-//            TrapezoidProfile.State(pos(), movingAverage.average)
-//        )
+
+        profile = TrapezoidProfile(constraints)
         profile?.calculate(profileTimer.get(),
             TrapezoidProfile.State(pos(), movingAverage.average),
             TrapezoidProfile.State(newPos, 0.0)
@@ -157,7 +159,7 @@ object Arm : SubsystemBase() {
     }
     override fun initSendable(builder: SendableBuilder) {
         builder.addDoubleProperty("position", { pos() }) {}
-        builder.addDoubleProperty("raw position", { encoder.absolutePosition.valueAsDouble }) {}
+        builder.addDoubleProperty("raw position", { encoder.absolutePosition }) {}
         builder.addDoubleProperty("arm motor rate", { armMotor.encoder.velocity }) {}
         builder.addDoubleProperty("rate", { movingAverage.average }) {}
         builder.addDoubleProperty("rate2", { movingAverage2.average }) {}

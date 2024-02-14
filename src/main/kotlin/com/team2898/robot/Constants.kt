@@ -139,7 +139,7 @@ class Constants {
     }
 
     object ArmConstants {
-        const val ArmDigitalInput = 1 //TODO() get number 4 dis
+        const val ArmDigitalInput = 1
         const val ArmMaxSpeed = 1.0
         const val Arm_MaxAccel = 1.5
         enum class ArmHeights(val position: Double) {
