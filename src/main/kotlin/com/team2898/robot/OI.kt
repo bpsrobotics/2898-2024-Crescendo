@@ -1,6 +1,7 @@
 package com.team2898.robot
 
 import com.team2898.engine.utils.Vector
+import com.team2898.engine.utils.async.Promise
 import edu.wpi.first.math.MathUtil
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Joystick
@@ -106,10 +107,6 @@ object OI : SubsystemBase() {
         270 -> Vector(-1,0)
         else -> Vector.zero
     }
-    val moving get() = operatorController.getRawButton(7)
-
-    val grabTote get() = operatorController.getRawButton(9)//TODO change button
-    val grabToteToggle get() = operatorController.getRawButtonPressed(9)//TODO change button
 
     val climbAdvance: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_ADVANCE, loop).rising()
     val climbRetract: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_RETRACT, loop).rising()
@@ -158,7 +155,6 @@ object OI : SubsystemBase() {
         315  -> Direction.UPLEFT
         else -> Direction.INACTIVE
     }
-    val operatorThrottle get() = -operatorController.getRawAxis(1)
 
     val operatorTrigger: BooleanEvent = operatorController.button(1, loop)
     val operatorTriggerReleased: BooleanEvent = operatorTrigger.falling()
@@ -168,15 +164,24 @@ object OI : SubsystemBase() {
         private val rumblePower = 0.0
         private val rumbleSide = GenericHID.RumbleType.kRightRumble
         private val rumbleTimer = Timer()
+        private val waiting = mutableSetOf<Promise<Unit>>()
         fun set(time: Double, power: Double, side: GenericHID.RumbleType = GenericHID.RumbleType.kBothRumble){
             rumbleTimer.reset()
             rumbleTime = time
             driverController.setRumble(side, power)
             rumbleTimer.start()
         }
+        fun until(promise: Promise<Unit>, power: Double = 1.0, side: GenericHID.RumbleType = GenericHID.RumbleType.kBothRumble) {
+            driverController.setRumble(side, power)
+            waiting.add(promise)
+            promise.then { update(); Promise.resolve(Unit) }
+        }
         fun update(){
-            if(rumbleTimer.hasElapsed(rumbleTime)){
+            if(rumbleTimer.hasElapsed(rumbleTime) && !waiting.map { it.hasFulfilled }.reduce { acc, b -> acc or b }) {
                 driverController.setRumble(GenericHID.RumbleType.kBothRumble, 0.0)
+            }
+            waiting.forEach {
+                if (it.hasFulfilled) waiting.remove(it)
             }
         }
     }

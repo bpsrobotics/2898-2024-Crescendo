@@ -7,7 +7,8 @@ import edu.wpi.first.wpilibj.event.EventLoop
 class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: Throwable) -> Unit) -> Unit) : Thenable<T> {
     private var resolvedWith: T? = null
     private var rejectedWith: Throwable? = null
-    private var currentState: PromiseState = PromiseState.NOT_RUN
+    var hasFulfilled: Boolean = false
+    var currentState: PromiseState = PromiseState.NOT_RUN
     private var listenerApplied = false
     private val onResolved = EventTarget<T>()
     private val onRejected = EventTarget<Throwable>()
@@ -26,59 +27,109 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
         if (currentState != PromiseState.WAITING) return
         currentState = PromiseState.RESOLVED
         resolvedWith = value
+        hasFulfilled = true
         onResolved.dispatch(value)
     }
     private fun reject(error: Throwable) {
         if (currentState != PromiseState.WAITING) return
         currentState = PromiseState.REJECTED
         rejectedWith = error
+        hasFulfilled = true
         onRejected.dispatch(error)
     }
     override fun<N> then(success: (value: T) -> Promise<N>)
         = Promise { rs, rj ->
-            onResolved.addListener { value ->
+            if (hasFulfilled) {
                 try {
-                    val x = success(value)
+                    val x = success(resolvedWith ?: throw rejectedWith ?: Throwable("nothing exception: if found, tell Grant to debug Promise code"))
                     x.onResolved.addListener { value2 -> rs(value2) }
                     x.onRejected.addListener(rj)
                 } catch (e: Throwable) {
                     rj(e)
                 }
+            } else {
+                onResolved.addListener { value ->
+                    try {
+                        val x = success(value)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
+                }
+                onRejected.addListener { error -> rj(error) }
             }
-            onRejected.addListener { error -> rj(error) }
         }
     override fun <N> then(
         success: (value: T) -> Promise<N>,
         failure: (error: Throwable) -> Promise<N>
     ): Promise<N> {
         return Promise { rs, rj ->
-            onResolved.addListener { value ->
-                try {
-                    val x = success(value)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener(rj)
-                } catch (e: Throwable) {rj(e)}
-            }
-            onRejected.addListener { error ->
-                try {
-                    val x = failure(error)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener(rj)
-                } catch (e: Throwable) {rj(e)}
+            if (hasFulfilled) {
+                if (resolvedWith != null) {
+                    try {
+                        val x = success(resolvedWith!!)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
+                } else if (rejectedWith != null) {
+                    try {
+                        val x = failure(rejectedWith!!)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
+                } else rj(Throwable("nothing exception: if found, tell Grant to debug Promise code"))
+            } else {
+                onResolved.addListener { value ->
+                    try {
+                        val x = success(value)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
+                }
+                onRejected.addListener { error ->
+                    try {
+                        val x = failure(error)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
+                }
             }
         }
     }
 
     override fun catch(failure: (error: Throwable) -> Promise<T>): Promise<T> {
         return Promise { rs, rj ->
-            onResolved.addListener { value -> rs(value) }
-            onRejected.addListener { error ->
-                try {
-                    val x = failure(error)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener(rj)
-                } catch (e: Throwable) {
-                    rj(e)
+            if (hasFulfilled) {
+                if (resolvedWith != null) {
+                    rs(resolvedWith!!)
+                } else if (rejectedWith != null) {
+                    try {
+                        val x = failure(rejectedWith!!)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
+                }
+            } else {
+                onResolved.addListener { value -> rs(value) }
+                onRejected.addListener { error ->
+                    try {
+                        val x = failure(error)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
                 }
             }
         }

@@ -141,15 +141,19 @@ class TeleOp : Command() {
             armDirectChoose.start()
         }
         if (OI.climbAdvance.asBoolean) {
+            println("climber advance")
             Climber.setState(Climber.targetState.advance())
         }
         if (OI.climbRetract.asBoolean) {
+            println("climber retract")
             Climber.setState(Climber.targetState.retract())
         }
         if (Arm.currentPosition != null) {
             if (OI.operatorTrigger.asBoolean) {
+                println("shooter velocity ${Arm.currentPosition!!.velocity}")
                 Shooter.setFlywheelSpeed(Arm.currentPosition!!.velocity)
             } else if (OI.operatorTriggerReleased.asBoolean) {
+                println("shooter shoot")
                 Shooter.shoot()
             } else {
                 Shooter.setFlywheelSpeed(0.0)
