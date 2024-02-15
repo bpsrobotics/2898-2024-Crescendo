@@ -33,7 +33,7 @@ class Constants {
     object DriveConstants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
-        const val MaxSpeedMetersPerSecond = 4.0
+        const val MaxSpeedMetersPerSecond = 4.5
         const val MaxAngularSpeed = 2 * Math.PI // radians per second (2*PI)
         const val DirectionSlewRate = 2.0 // radians per second
         const val MagnitudeSlewRate = 1.8 // percent per second (1 = 100%)
@@ -95,6 +95,7 @@ class Constants {
         const val DrivingFF = 1 / DriveWheelFreeSpeedRps
         const val DrivingKs = 0.0
         const val DrivingKv = 0.0
+        const val DrivingKa = 0.0
         const val DrivingMinOutput = -1.0
         const val DrivingMaxOutput = 1.0
         var TurningP = 0.75
@@ -142,10 +143,10 @@ class Constants {
         const val Arm_MaxAccel = 1.5
         enum class ArmHeights(val position: Double) {
             GROUND(Arm.LOWER_SOFT_STOP),
-            STOWED(0.0), //TODO Set these to real values
-            AMP(0.1),
-            SHOOTER1(0.2),
-            SHOOTER2(0.3)
+            STOWED(0.79),
+            AMP(0.41),
+            SHOOTER1(2.0),
+            SHOOTER2(1.9)
 
         }
     }
