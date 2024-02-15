@@ -6,7 +6,6 @@
 package com.team2898.robot
 
 import com.revrobotics.CANSparkBase
-import com.team2898.engine.utils.units.MetersPerSecond
 import com.team2898.robot.subsystems.Arm
 import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics
@@ -34,7 +33,7 @@ class Constants {
     object DriveConstants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
-        const val MaxSpeedMetersPerSecond = 4.0
+        const val MaxSpeedMetersPerSecond = 4.5
         const val MaxAngularSpeed = 2 * Math.PI // radians per second (2*PI)
         const val DirectionSlewRate = 2.0 // radians per second
         const val MagnitudeSlewRate = 1.8 // percent per second (1 = 100%)
@@ -96,6 +95,7 @@ class Constants {
         const val DrivingFF = 1 / DriveWheelFreeSpeedRps
         const val DrivingKs = 0.0
         const val DrivingKv = 0.0
+        const val DrivingKa = 0.0
         const val DrivingMinOutput = -1.0
         const val DrivingMaxOutput = 1.0
         var TurningP = 0.75
@@ -141,12 +141,12 @@ class Constants {
     object ArmConstants {
         const val ArmMaxSpeed = 1.0
         const val Arm_MaxAccel = 1.5
-        enum class ArmHeights(val position: Double, val velocity: MetersPerSecond) {
-            GROUND(Arm.LOWER_SOFT_STOP, 0.0.mps),
-            SHOOTER2(0.5, 5.mps),
-            SHOOTER1(0.7, 5.mps),
-            STOWED(0.5 * PI, 0.0.mps),
-            AMP(1.8, 1.mps);
+        enum class ArmHeights(val position: Double) {
+            GROUND(Arm.LOWER_SOFT_STOP),
+            STOWED(0.79),
+            AMP(0.41),
+            SHOOTER1(2.0),
+            SHOOTER2(1.9)
             fun up() = when (this) {
                 GROUND -> SHOOTER2
                 SHOOTER2 -> SHOOTER1

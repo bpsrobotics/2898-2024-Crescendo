@@ -15,8 +15,9 @@ object RobotMap {
     const val Arm_left = 9
     const val Arm_right = 10
     const val IntakeId = 14
-    const val ShooterId = 12
-    const val ClimberId = 13
+    const val ShooterTopId = 12
+    const val ShooterBottomId = 13
+    const val ClimberId = 14
 
     // CANcoder IDs
     const val FrontLeftCANCoderID = 44
