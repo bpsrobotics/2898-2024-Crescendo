@@ -174,28 +174,12 @@ class Constants {
     object ClimberConstants{
         const val ClimberMaxSpeed = 1.0
         const val ClimberAcceleration = 1.0
-        enum class ClimbHeights(val position: Double) {
-            STOWED(0.0), //TODO guess what more real values needed
-            REACH(1.0),
-            LIFTOFF(0.6);
-
-            fun advance() = when (this) {
-                STOWED -> REACH
-                REACH -> LIFTOFF
-                LIFTOFF -> LIFTOFF
-            }
-            fun retract() = when (this) {
-                STOWED -> STOWED
-                REACH -> STOWED
-                LIFTOFF -> REACH
-            }
-        }
     }
 
     // set to operator/driver's preferences
     object ButtonConstants {
-        const val CLIMBER_ADVANCE = 6
-        const val CLIMBER_RETRACT = 4
+        const val CLIMBER_UP = 2 // very hard to press accidentally
+        const val CLIMBER_WAIT_DURATION = 0.5
 
         const val ARM_UP = 5
         const val ARM_DOWN = 3

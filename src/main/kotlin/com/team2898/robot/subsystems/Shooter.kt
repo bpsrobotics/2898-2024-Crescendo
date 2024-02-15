@@ -41,5 +41,4 @@ object Shooter : SubsystemBase() {
         pid.setpoint = (1.rot * (speed / ShooterConstants.FLYWHEEL_CIRCUMFERENCE.toMeters())).value
     }
 
-    fun setFlywheelSpeed(speed: Double) = setFlywheelSpeed(speed.mps)
 }

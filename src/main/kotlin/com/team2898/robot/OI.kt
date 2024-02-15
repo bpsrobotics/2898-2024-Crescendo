@@ -108,8 +108,7 @@ object OI : SubsystemBase() {
         else -> Vector.zero
     }
 
-    val climbAdvance: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_ADVANCE, loop).rising()
-    val climbRetract: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_RETRACT, loop).rising()
+    val climb: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_UP, loop).debounce(Constants.ButtonConstants.CLIMBER_WAIT_DURATION)
 
     val armSelectUp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_UP, loop).rising()
     val armSelectDown: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DOWN, loop).rising()
