@@ -114,6 +114,7 @@ object Odometry : SubsystemBase(), PoseProvider {
         SmartDashboard.putNumber("Odometry/FieldX", pose.x.toDouble())
         SmartDashboard.putNumber("Odometry/FieldY", pose.y.toDouble())
         SmartDashboard.putNumberArray("Odometry/velocity", arrayOf(velocity.x,velocity.y))
+        SmartDashboard.putNumber("Odometry/Rotation", pose.rotation.degrees)
         SmartDashboard.putNumber("Odometry/test", timer.get())
         SmartDashboard.putBoolean("Odometry/HasTarget", vision.hasTargets())
         timer.reset()

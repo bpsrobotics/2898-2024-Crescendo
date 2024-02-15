@@ -113,9 +113,7 @@ class TeleOp : Command() {
             var currentPose = Odometry.supplyPose()
             val pose = vision.getCameraData()
             if (OI.alignButtonPressed && !alignMode) {
-                    xDist = pose.bestCameraToTarget.x
-                    yDist = pose.bestCameraToTarget.y
-
+                targetRotation = currentPose.rotation.degrees - pose.yaw
                 alignMode = true
             }
             if (OI.alignButtonRelease) {
@@ -128,25 +126,21 @@ class TeleOp : Command() {
                 println(yDist)
                 println("current rotation" + currentPose.rotation.degrees)
                 println("alignMode" + alignMode)
-                targetRotation = atan2(xDist, yDist).radiansToDegrees() + (0.5 * PI).radiansToDegrees()
-                val targetRotationNegativeError = targetRotation - 30.0
-                val targetRotationPositiveError = targetRotation + 30.0
-                println("targetRotationNegativeError"+targetRotationNegativeError)
-                println("targetRotationPositiveError"+targetRotationPositiveError)
-                if (abs(currentPose.rotation.degrees) >= abs(targetRotationNegativeError) && abs(currentPose.rotation.degrees) <= abs(targetRotationPositiveError)) {
+
+                val targetRotationNegativeError = targetRotation - 3.0
+                val targetRotationPositiveError = targetRotation + 3.0
+                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
                     alignMode = false
                 }
 
-                val rotationSpeed = if (yDist < 0) {
-                    0.1
+                val rotationSpeed = if (pose.yaw > 0) {
+                    0.15
                 } else{
-                    -0.1
+                    -0.15
                 }
 //                val rotationSpeed = -turnController.calculate(pose.yaw.degreesToRadians() , targetRotation + (1 * PI))
                 Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true)
-                println("targetRotation:"+targetRotation)
                 println("Pose.yaw:"+pose.yaw.degreesToRadians())
-                println("rotationSpeed:"+rotationSpeed)
 
                 // Use our forward/turn speeds to control the drivetrain
 
