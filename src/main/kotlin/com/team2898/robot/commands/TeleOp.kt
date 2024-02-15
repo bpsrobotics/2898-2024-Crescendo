@@ -9,11 +9,13 @@ package com.team2898.robot.commands
 
 import com.team2898.engine.utils.Sugar.degreesToRadians
 import com.team2898.engine.utils.Sugar.eqEpsilon
+import com.team2898.engine.utils.Sugar.radiansToDegrees
 import com.team2898.engine.utils.TurningPID
 import com.team2898.robot.Constants
 import com.team2898.robot.OI
 import com.team2898.robot.subsystems.*
 import com.team2898.engine.utils.odometry.Vision
+import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.geometry.Translation2d
@@ -53,6 +55,8 @@ class TeleOp : Command() {
     var resetGyroTimer = Timer()
     private val vision = Vision("Camera_Module_v1")
     var alignMode = false
+    var xDist = 0.0
+    var yDist = 0.0
     // Called every time the scheduler runs while the command is scheduled.
     fun turnSpeedNormal():Double {
         return -OI.turnX
@@ -132,33 +136,54 @@ class TeleOp : Command() {
         Shooter.setFlywheelSpeed(OI.shooterFlywheel)
     }
 
+    var targetRotation = Odometry.supplyPose().rotation.degrees
+    val ANGULAR_P = 0.2
+    val ANGULAR_D = 0.0
+    val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
     fun alignRobot() {
-        var currentPose = Odometry.supplyPose()
-        var targetRotation = currentPose.rotation.degrees
-        val pose = vision.getCameraData()
+        if (vision.hasTargets()) {
+            var currentPose = Odometry.supplyPose()
+            val pose = vision.getCameraData()
+            if (OI.alignButtonPressed && !alignMode) {
+                xDist = pose.bestCameraToTarget.x
+                yDist = pose.bestCameraToTarget.y
 
-        if (OI.alignButton || vision.hasTargets()) {
-            alignMode = true
-        }
-
-        if (alignMode) {
-            val xDist = pose.x
-            val yDist = pose.y
-            targetRotation = atan2(xDist, yDist)
-
-        }
-        val targetRotationNegativeError = targetRotation - 10.0
-        val targetRotationPositiveError = targetRotation + 10.0
-
-        if (currentPose.rotation.degrees <= targetRotationPositiveError || currentPose.rotation.degrees >= targetRotationNegativeError) {
-            alignMode = false
-        } else {
-            val rotationSpeed = if (targetRotation - currentPose.rotation.degrees > 0) {
-                0.1
-            } else{
-                -0.1
+                alignMode = true
             }
-            Drivetrain.drive(0.0,0.0,rotationSpeed,true,true,true)
+            if (OI.alignButtonRelease) {
+                alignMode = false
+            }
+            if (alignMode) {
+                println("target rotation" + targetRotation)
+                println("Turning")
+                println(xDist)
+                println(yDist)
+                println("current rotation" + currentPose.rotation.degrees)
+                println("alignMode" + alignMode)
+                targetRotation = atan2(xDist, yDist).radiansToDegrees() + (0.5 * PI).radiansToDegrees()
+                val targetRotationNegativeError = targetRotation - 30.0
+                val targetRotationPositiveError = targetRotation + 30.0
+                println("targetRotationNegativeError"+targetRotationNegativeError)
+                println("targetRotationPositiveError"+targetRotationPositiveError)
+                if (abs(currentPose.rotation.degrees) >= abs(targetRotationNegativeError) && abs(currentPose.rotation.degrees) <= abs(targetRotationPositiveError)) {
+                    alignMode = false
+                }
+
+                val rotationSpeed = if (yDist < 0) {
+                    0.1
+                } else{
+                    -0.1
+                }
+//                val rotationSpeed = -turnController.calculate(pose.yaw.degreesToRadians() , targetRotation + (1 * PI))
+                Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
+                println("targetRotation:"+targetRotation)
+                println("Pose.yaw:"+pose.yaw.degreesToRadians())
+                println("rotationSpeed:"+rotationSpeed)
+
+                // Use our forward/turn speeds to control the drivetrain
+
+                // Use our forward/turn speeds to control the drivetrain
+            }
         }
     }
     override fun execute() {

@@ -45,11 +45,10 @@ class Vision (
         cam,
         robotToCam
     )
-    fun getCameraData() : Transform3d {
+    fun getCameraData() : PhotonTrackedTarget {
         var result = cam.getLatestResult();
         val targets: PhotonTrackedTarget = result.getBestTarget()
-        val pose: Transform3d = targets.bestCameraToTarget
-        return pose
+        return targets
     }
     fun hasTargets() : Boolean{
         val result = cam.latestResult
