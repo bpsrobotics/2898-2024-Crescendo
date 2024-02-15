@@ -13,7 +13,6 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.math.util.Units
 import edu.wpi.first.wpilibj2.command.Command
 import com.team2898.engine.utils.units.*
-import kotlin.math.PI
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -141,12 +140,14 @@ class Constants {
     object ArmConstants {
         const val ArmMaxSpeed = 1.0
         const val Arm_MaxAccel = 1.5
+
         enum class ArmHeights(val position: Double) {
             GROUND(Arm.LOWER_SOFT_STOP),
             STOWED(0.79),
             AMP(0.41),
             SHOOTER1(2.0),
-            SHOOTER2(1.9)
+            SHOOTER2(1.9);
+
             fun up() = when (this) {
                 GROUND -> SHOOTER2
                 SHOOTER2 -> SHOOTER1
@@ -154,6 +155,7 @@ class Constants {
                 STOWED -> AMP
                 AMP -> AMP
             }
+
             fun down() = when (this) {
                 GROUND -> GROUND
                 SHOOTER2 -> GROUND
