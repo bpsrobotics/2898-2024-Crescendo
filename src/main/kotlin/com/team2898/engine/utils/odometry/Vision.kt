@@ -45,10 +45,16 @@ class Vision (
         cam,
         robotToCam
     )
-    fun getCameraData() : PhotonTrackedTarget {
+    fun getCameraYaw() : Double {
+        var Yaw = 0.0
         var result = cam.getLatestResult();
-        val targets: PhotonTrackedTarget = result.getBestTarget()
-        return targets
+        val targets = result.getTargets() ?: return 0.0
+        for (i in targets) {
+            if (i.fiducialId == 4) {
+                return i.yaw
+            }
+        }
+        return Yaw
     }
     fun hasTargets() : Boolean{
         val result = cam.latestResult

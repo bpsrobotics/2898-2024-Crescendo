@@ -141,49 +141,51 @@ class TeleOp : Command() {
     val ANGULAR_D = 0.0
     val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
     fun alignRobot() {
-        if (vision.hasTargets()) {
-            var currentPose = Odometry.supplyPose()
-            val pose = vision.getCameraData()
-            if (OI.alignButtonPressed && !alignMode) {
-                xDist = pose.bestCameraToTarget.x
-                yDist = pose.bestCameraToTarget.y
+        var currentPose = Odometry.supplyPose()
+        val pose = vision.getCameraYaw()
+        var rotationSpeed : Double
+        if (OI.alignButtonPressed && !alignMode) {
 
                 alignMode = true
+        }
+        if (OI.alignButtonRelease) {
+            alignMode = false
+        }
+        if (alignMode) {
+            if (!vision.hasTargets()) {
+                if (currentPose.rotation.degrees > 0) {
+                    rotationSpeed = 0.15
+                } else {
+                    rotationSpeed = -0.15
+                }
             }
-            if (OI.alignButtonRelease) {
-                alignMode = false
-            }
-            if (alignMode) {
+            if (vision.hasTargets()) {
                 println("target rotation" + targetRotation)
                 println("Turning")
                 println(xDist)
                 println(yDist)
                 println("current rotation" + currentPose.rotation.degrees)
                 println("alignMode" + alignMode)
-                targetRotation = atan2(xDist, yDist).radiansToDegrees() + (0.5 * PI).radiansToDegrees()
-                val targetRotationNegativeError = targetRotation - 30.0
-                val targetRotationPositiveError = targetRotation + 30.0
-                println("targetRotationNegativeError"+targetRotationNegativeError)
-                println("targetRotationPositiveError"+targetRotationPositiveError)
-                if (abs(currentPose.rotation.degrees) >= abs(targetRotationNegativeError) && abs(currentPose.rotation.degrees) <= abs(targetRotationPositiveError)) {
+
+                targetRotation = currentPose.rotation.degrees - pose
+                val targetRotationNegativeError = targetRotation - 3.0
+                val targetRotationPositiveError = targetRotation + 3.0
+                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
                     alignMode = false
                 }
 
-                val rotationSpeed = if (yDist < 0) {
-                    0.1
-                } else{
-                    -0.1
+                rotationSpeed = if (pose > 0) {
+                    0.15
+                } else {
+                    -0.15
                 }
 //                val rotationSpeed = -turnController.calculate(pose.yaw.degreesToRadians() , targetRotation + (1 * PI))
                 Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
-                println("targetRotation:"+targetRotation)
-                println("Pose.yaw:"+pose.yaw.degreesToRadians())
-                println("rotationSpeed:"+rotationSpeed)
+                println("Pose.yaw:" + pose.degreesToRadians())
 
                 // Use our forward/turn speeds to control the drivetrain
 
-                // Use our forward/turn speeds to control the drivetrain
-            }
+            }    // Use our forward/turn speeds to control the drivetrain
         }
     }
     override fun execute() {
