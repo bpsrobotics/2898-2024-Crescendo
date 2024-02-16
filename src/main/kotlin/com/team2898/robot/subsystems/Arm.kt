@@ -30,13 +30,11 @@ object Arm : SubsystemBase() {
 
     private val armMotor = CANSparkMax(Arm_left, CANSparkLowLevel.MotorType.kBrushless)
     private val armMotorSecondary = CANSparkMax(Arm_right, CANSparkLowLevel.MotorType.kBrushless)
-    private val dIO = DigitalInput(ArmDigitalInput)
-    private val encoder = DutyCycleEncoder(dIO)
-
+    private val encoder = DutyCycleEncoder(ArmDigitalInput)
 
     var setpoint = pos()
-    private const val UPPER_SOFT_STOP = 0.0
-    val LOWER_SOFT_STOP = 0.0 //TODO() Set Stop Positions
+    private const val UPPER_SOFT_STOP = 0.39
+    val LOWER_SOFT_STOP = 2.31
     private var stopped = false
     var ksin = 0.0
     var ks = 0.0
@@ -75,6 +73,7 @@ object Arm : SubsystemBase() {
         SmartDashboard.putNumber("arm ks", ks)
         SmartDashboard.putNumber("arm ksin", ksin)
         SmartDashboard.putNumber("arm kv", kv)
+        SmartDashboard.putNumber("position", pos())
 
     }
 
@@ -105,9 +104,15 @@ object Arm : SubsystemBase() {
 
         integral.add((rate - armMotor.encoder.velocity).absoluteValue)
 
+        if (stopped) {
+            println("STOPPED")
+            armMotor.set(0.0)
+            return
+        }
+
         pid.p = SmartDashboard.getNumber("arm kp", 0.0)
         pid.d = SmartDashboard.getNumber("arm kd", 0.0)
-        if (setpoint == 0.0 || setpoint !in LOWER_SOFT_STOP..UPPER_SOFT_STOP || ((p - setpoint).absoluteValue < 0.05 && rate.absoluteValue < 0.1) || profileTimer.get() > (profile?.totalTime() ?: 0.0)) {
+        if (setpoint == 0.0 || setpoint !in UPPER_SOFT_STOP..LOWER_SOFT_STOP) {
             profile = null
         }
 //        val targetSpeed = profile?.calculate(profileTimer.get())?.velocity ?: 0.0
@@ -122,12 +127,14 @@ object Arm : SubsystemBase() {
         output += kv * targetSpeed
         output += ks + sin(p) * ksin
 
-        if (p > UPPER_SOFT_STOP) {
-            output = output.coerceAtMost(0.0)
+        if (p < UPPER_SOFT_STOP) {
+            output = output.coerceAtLeast(UPPER_SOFT_STOP + 0.01)
             println("UPPER SOFT STOP")
-        } else if (p < LOWER_SOFT_STOP || currentTick) {
-            output = output.coerceAtLeast(0.0)
+        } else if (p > LOWER_SOFT_STOP || currentTick) {
+            output = output.coerceAtMost(LOWER_SOFT_STOP - 0.01)
             println("LOWER SOFT STOP")
+        } else {
+            println("ur good bro")
         }
         armMotor.set(output)
         armMotorSecondary.set(output)

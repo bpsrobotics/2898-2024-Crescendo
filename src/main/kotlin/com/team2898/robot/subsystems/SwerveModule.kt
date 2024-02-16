@@ -176,6 +176,6 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
         println("voltage " + voltage + "module id: " + moduleID)
     }
     fun getVoltage(): Double {
-        return -drivingSparkMax.busVoltage
+        return drivingSparkMax.busVoltage
     }
 }
