@@ -147,8 +147,8 @@ class TeleOp : Command() {
         Climber.setState(OI.climb.asBoolean)
         if (Arm.currentPosition != null) {
             if (OI.operatorTrigger.asBoolean) {
-                println("shooter velocity ${Arm.currentPosition?.velocity}")
-                Shooter.setFlywheelSpeed(Arm.currentPosition?.velocity ?: 0.0.mps)
+                println("shooter velocity ${Arm.currentPosition?.shooterVelocity}")
+                Shooter.setFlywheelSpeed(Arm.currentPosition?.shooterVelocity ?: 0.0.mps)
             } else if (OI.operatorTriggerReleased.asBoolean) {
                 println("shooter shoot")
                 Shooter.shoot()

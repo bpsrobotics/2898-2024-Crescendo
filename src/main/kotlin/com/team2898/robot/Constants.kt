@@ -141,12 +141,36 @@ class Constants {
         const val ArmMaxSpeed = 1.0
         const val Arm_MaxAccel = 1.5
 
-        enum class ArmHeights(val position: Double) {
-            GROUND(Arm.LOWER_SOFT_STOP),
-            STOWED(0.79),
-            AMP(0.41),
-            SHOOTER1(2.0),
-            SHOOTER2(1.9);
+        enum class ArmHeights(
+            val position: Double,
+            val shooterVelocity: MetersPerSecond,
+            val allowIntake: Boolean
+        ) {
+            GROUND(
+                position = Arm.LOWER_SOFT_STOP,
+                shooterVelocity = 0.0.mps,
+                allowIntake = true
+            ),
+            STOWED(
+                position = 0.79,
+                shooterVelocity = 0.0.mps,
+                allowIntake = false
+            ),
+            AMP(
+                position = 0.41,
+                shooterVelocity = 1.5.mps,
+                allowIntake = false
+            ),
+            SHOOTER1(
+                position = 2.0,
+                shooterVelocity = 4.mps,
+                allowIntake = false
+            ),
+            SHOOTER2(
+                position = 1.9,
+                shooterVelocity = 5.mps,
+                allowIntake = false
+            );
 
             fun up() = when (this) {
                 GROUND -> SHOOTER2
