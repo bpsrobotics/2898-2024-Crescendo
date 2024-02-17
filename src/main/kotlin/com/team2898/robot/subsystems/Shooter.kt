@@ -26,8 +26,6 @@ object Shooter : SubsystemBase() {
     val kA = 0.0
     val ff = SimpleMotorFeedforward(kS, kV, kA)
 
-    val botAverage = LinearFilter.movingAverage(5)
-    val topAverage = LinearFilter.movingAverage(5)
     init{
         shooterMotorTop.restoreFactoryDefaults()
         shooterMotorTop.setSmartCurrentLimit(40)
@@ -54,9 +52,11 @@ object Shooter : SubsystemBase() {
 
     fun setVoltage(voltage: Double){
         shooterMotorTop.setVoltage(voltage)
+        shooterMotorBot.setVoltage(voltage)
     }
     fun stop(){
         shooterMotorTop.stopMotor()
+        shooterMotorBot.stopMotor()
     }
 
 

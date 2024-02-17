@@ -11,6 +11,7 @@ import com.revrobotics.RelativeEncoder
 import com.team2898.robot.Constants.ModuleConstants
 import com.team2898.robot.Constants.ModuleConstants.DrivingD
 import com.team2898.robot.Constants.ModuleConstants.DrivingI
+import com.team2898.robot.Constants.ModuleConstants.DrivingKa
 import com.team2898.robot.Constants.ModuleConstants.DrivingKs
 import com.team2898.robot.Constants.ModuleConstants.DrivingKv
 import com.team2898.robot.Constants.ModuleConstants.DrivingMotorCurrentLimit
@@ -57,6 +58,7 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
         drivingSparkMax.inverted
 //        m_turningSparkMax.inverted
         drivingSparkMax.setSmartCurrentLimit(DrivingMotorCurrentLimit)
+
         turningSparkMax.setSmartCurrentLimit(TurningMotorCurrentLimit)
 
         // Setup encoders and PID controllers for the driving and turning SPARKS MAX.
@@ -67,7 +69,8 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
             DrivingP, DrivingI, DrivingD)
         drivingFeedForward = SimpleMotorFeedforward(
             DrivingKs,
-            DrivingKv
+            DrivingKv,
+            DrivingKa
         )
 
         turningPIDController = PIDController(
@@ -77,9 +80,6 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
 
         drivingSparkMax.idleMode = ModuleConstants.DrivingMotorIdleMode
         turningSparkMax.idleMode = ModuleConstants.TurningMotorIdleMode
-
-        drivingSparkMax.setSmartCurrentLimit(DrivingMotorCurrentLimit)
-        turningSparkMax.setSmartCurrentLimit(TurningMotorCurrentLimit)
 
 
         drivingEncoder.positionConversionFactor = ModuleConstants.DrivingEncoderPositionFactor
@@ -116,9 +116,9 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
         state = SwerveModuleState(drivingEncoder.velocity, encAngle)
         position = SwerveModulePosition(drivingEncoder.position, encAngle)
         SmartDashboard.putNumber("driving pos " + moduleID, drivingEncoder.position)
-        SmartDashboard.putNumber("Module State " + moduleID, state.angle.radians)
-//        SmartDashboard.putNumber("Module Position " + moduleID, position.distanceMeters)
-        SmartDashboard.putNumber("Raw Enc " + moduleID, turningEncoder.absolutePosition.valueAsDouble)
+//        SmartDashboard.putNumber("Module State " + moduleID, state.angle.radians)
+        SmartDashboard.putNumber("Module Position " + moduleID, position.distanceMeters)
+//        SmartDashboard.putNumber("Raw Enc " + moduleID, turningEncoder.absolutePosition.valueAsDouble)
 
     }
 
@@ -146,16 +146,16 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
         val optimizedDesiredState = SwerveModuleState.optimize(desiredState,
             state.angle)
 
-        SmartDashboard.putNumber("desired state angle" + moduleID, optimizedDesiredState.angle.radians)
-        SmartDashboard.putNumber("angle dif" + moduleID, optimizedDesiredState.angle.degrees - state.angle.degrees)
+//        SmartDashboard.putNumber("desired state angle" + moduleID, optimizedDesiredState.angle.radians)
+//        SmartDashboard.putNumber("angle dif" + moduleID, optimizedDesiredState.angle.degrees - state.angle.degrees)
 
         val drivePid = drivingPIDController.calculate(state.speedMetersPerSecond, optimizedDesiredState.speedMetersPerSecond)
         val feedforward = drivingFeedForward.calculate(optimizedDesiredState.speedMetersPerSecond)
-        SmartDashboard.putNumber("drivePid " + moduleID, drivePid)
-        SmartDashboard.putNumber("FeedForward " + moduleID, feedforward)
+//        SmartDashboard.putNumber("drivePid " + moduleID, drivePid)
+//        SmartDashboard.putNumber("FeedForward " + moduleID, feedforward)
         drivingSparkMax.set(feedforward + drivePid)
         turningSparkMax.set(turningPIDController.calculate(state.angle.radians, optimizedDesiredState.angle.radians))
-        SmartDashboard.putNumber("turn voltage " + moduleID, turningPIDController.calculate(state.angle.radians, optimizedDesiredState.angle.radians))
+//        SmartDashboard.putNumber("turn voltage " + moduleID, turningPIDController.calculate(state.angle.radians, optimizedDesiredState.angle.radians))
 
         m_desiredState = desiredState
 
@@ -169,5 +169,13 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
     fun stop(){
         drivingSparkMax.set(0.0)
         turningSparkMax.set(0.0)
+    }
+    fun voltageDrive(voltage: Double){
+        drivingSparkMax.setVoltage(voltage)
+        turningSparkMax.set(turningPIDController.calculate(state.angle.radians, 0.0))
+        println("voltage " + voltage + "module id: " + moduleID)
+    }
+    fun getVoltage(): Double {
+        return drivingSparkMax.busVoltage
     }
 }

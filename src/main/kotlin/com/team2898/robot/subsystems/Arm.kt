@@ -6,6 +6,8 @@ import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.team2898.engine.utils.MovingAverage
+import com.team2898.engine.utils.Sugar.degreesToRadians
+import com.team2898.engine.utils.Sugar.radiansToDegrees
 import com.team2898.robot.Constants.ArmConstants.ArmMaxSpeed
 import com.team2898.robot.Constants.ArmConstants.Arm_MaxAccel
 import com.team2898.robot.RobotMap.ArmDigitalInput
@@ -39,6 +41,7 @@ object Arm : SubsystemBase() {
     var ksin = 0.0
     var ks = 0.0
     var kv = 0.0
+    var voltageApplied = 0.0
 
     fun pos(): Double {
         val p = encoder.absolutePosition * 2 * PI
@@ -62,11 +65,13 @@ object Arm : SubsystemBase() {
         armMotor.restoreFactoryDefaults()
         armMotor.setSmartCurrentLimit(40)
         armMotor.idleMode = CANSparkBase.IdleMode.kBrake
-        armMotor.inverted
+        armMotor.inverted = true
+        armMotor.burnFlash()
 
         armMotorSecondary.restoreFactoryDefaults()
         armMotorSecondary.setSmartCurrentLimit(40)
         armMotorSecondary.idleMode = CANSparkBase.IdleMode.kBrake
+        armMotor.burnFlash()
 
         SmartDashboard.putNumber("arm kp", 0.0)
         SmartDashboard.putNumber("arm kd", 0.0)
@@ -74,21 +79,22 @@ object Arm : SubsystemBase() {
         SmartDashboard.putNumber("arm ksin", ksin)
         SmartDashboard.putNumber("arm kv", kv)
         SmartDashboard.putNumber("position", pos())
-
+        SmartDashboard.putNumber("voltage applied", voltageApplied)
+        SmartDashboard.putNumber("angle deg", encoder.absolutePosition * 360)
+        SmartDashboard.putNumber("angle from lower deg", LOWER_SOFT_STOP.radiansToDegrees() - pos().radiansToDegrees())
     }
 
     var last = pos()
     val timer = Timer()
 
     override fun periodic() {
-        SmartDashboard.putNumber("arm position ", pos())
         SmartDashboard.putNumber("quotient", armMotor.encoder.velocity / movingAverage.average)
         SmartDashboard.putNumber("arm current", armMotor.outputCurrent)
         SmartDashboard.putNumber("arm duty cycle", armMotor.appliedOutput)
         ks = SmartDashboard.getNumber("arm ks", ks)
         ksin = SmartDashboard.getNumber("arm ksin", ksin)
         kv = SmartDashboard.getNumber("arm kv", kv)
-
+        voltageApplied = SmartDashboard.getNumber("voltage applied", voltageApplied)
         val currentTick = false
 
         val p = pos()
@@ -112,7 +118,7 @@ object Arm : SubsystemBase() {
 
         pid.p = SmartDashboard.getNumber("arm kp", 0.0)
         pid.d = SmartDashboard.getNumber("arm kd", 0.0)
-        if (setpoint == 0.0 || setpoint !in UPPER_SOFT_STOP..LOWER_SOFT_STOP) {
+        if (setpoint == 0.0 || setpoint !in LOWER_SOFT_STOP..UPPER_SOFT_STOP || ((p - setpoint).absoluteValue < 0.05 && rate.absoluteValue < 0.1) || profileTimer.get() > (profile?.totalTime() ?: 0.0)) {
             profile = null
         }
 //        val targetSpeed = profile?.calculate(profileTimer.get())?.velocity ?: 0.0
@@ -127,17 +133,14 @@ object Arm : SubsystemBase() {
         output += kv * targetSpeed
         output += ks + sin(p) * ksin
 
-        if (p < UPPER_SOFT_STOP) {
-            output = output.coerceAtLeast(UPPER_SOFT_STOP + 0.01)
+        if (p > UPPER_SOFT_STOP) {
+            output = output.coerceAtMost(0.0)
             println("UPPER SOFT STOP")
-        } else if (p > LOWER_SOFT_STOP || currentTick) {
-            output = output.coerceAtMost(LOWER_SOFT_STOP - 0.01)
+        } else if (p < LOWER_SOFT_STOP || currentTick) {
+            output = output.coerceAtLeast(0.0)
             println("LOWER SOFT STOP")
-        } else {
-            println("ur good bro")
         }
         armMotor.set(output)
-        armMotorSecondary.set(output)
 
 
 
@@ -145,9 +148,12 @@ object Arm : SubsystemBase() {
 
     fun setGoal(newPos: Double) {
         if (newPos !in LOWER_SOFT_STOP..UPPER_SOFT_STOP) return
+//        currentGoal = newPos
         setpoint = newPos
-
-        profile = TrapezoidProfile(constraints)
+//        profile = TrapezoidProfile(constraints,
+//            TrapezoidProfile.State(newPos, 0.0),
+//            TrapezoidProfile.State(pos(), movingAverage.average)
+//        )
         profile?.calculate(profileTimer.get(),
             TrapezoidProfile.State(pos(), movingAverage.average),
             TrapezoidProfile.State(newPos, 0.0)
@@ -163,6 +169,10 @@ object Arm : SubsystemBase() {
 
     fun isMoving(): Boolean {
         return profile != null
+    }
+    fun voltMove(volts: Double){
+        armMotor.setVoltage(volts)
+        armMotorSecondary.setVoltage(volts)
     }
     override fun initSendable(builder: SendableBuilder) {
         builder.addDoubleProperty("position", { pos() }) {}

@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -53,6 +54,7 @@ class TeleOp : Command() {
     fun turnSpeedNormal():Double {
         return -OI.turnX
     }
+
     fun turnSpeedDefense():Double {
         angle += OI.turnX.pow(2).degreesToRadians() * -5 * OI.turnX.sign
         SmartDashboard.putNumber("angle", angle)
@@ -138,9 +140,9 @@ class TeleOp : Command() {
             rateLimit = true,
             secondOrder = true
         )
+        Arm.voltMove(Arm.voltageApplied)
 
-
-    }
+        }
 
     // Called once the command ends or is interrupted.
     override fun end(interrupted: Boolean) {

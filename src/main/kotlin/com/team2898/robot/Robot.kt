@@ -6,6 +6,7 @@ package com.team2898.robot
 import com.team2898.robot.commands.TeleOp
 import com.team2898.robot.subsystems.Arm
 import com.team2898.robot.subsystems.Drivetrain
+import com.team2898.robot.subsystems.Intake
 import com.team2898.robot.subsystems.Shooter
 import edu.wpi.first.wpilibj.TimedRobot
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
@@ -76,10 +77,27 @@ class Robot : TimedRobot() {
             m_autonomousCommand!!.cancel()
         }
         TeleOp().schedule()
+
     }
 
     /** This function is called periodically during operator control.  */
-    override fun teleopPeriodic() {}
+    override fun teleopPeriodic() {
+//        if (OI.driverX && OI.alignmentPad == OI.Direction.UP) {
+//            Drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward).schedule()
+//            println("quasi forward")
+//        } else if (OI.driverX && OI.alignmentPad == OI.Direction.DOWN) {
+//            Drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse).schedule()
+//            println("quasi reverse")
+//        } else if (OI.driverY && OI.alignmentPad == OI.Direction.UP){
+//            Drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward).schedule()
+//            println("dynamic forward")
+//        } else if (OI.driverY && OI.alignmentPad == OI.Direction.DOWN){
+//            Drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse).schedule()
+//            print("dynamic reverse")
+//        } else {
+//            println("not doing")
+//        }
+    }
     override fun testInit() {
         // Cancels all running commands at the start of test mode.
         CommandScheduler.getInstance().cancelAll()

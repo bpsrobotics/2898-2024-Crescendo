@@ -90,9 +90,9 @@ object OI : SubsystemBase() {
         get() = driverController.leftTriggerAxis
     val rightTrigger
         get() = driverController.rightTriggerAxis
-    val defenseModeButton
+    val driverY
         get() = driverController.yButton
-    val normalModeButton
+    val driverX
         get() = driverController.xButton
     val resetGyroStart
         get() = driverController.rightBumperPressed
@@ -100,6 +100,7 @@ object OI : SubsystemBase() {
         get() = driverController.rightBumper
     val resetGyroEnd
         get() = driverController.rightBumperReleased
+
 
     val highHat get() = operatorController.pov
     val moving get() = operatorController.getRawButton(7)
