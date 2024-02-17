@@ -175,7 +175,7 @@ object OI : SubsystemBase() {
             promise.then { update(); Promise.resolve(Unit) }
         }
         fun update(){
-            if(rumbleTimer.hasElapsed(rumbleTime) && !waiting.map { it.hasFulfilled }.reduce { acc, b -> acc or b }) {
+            if(rumbleTimer.hasElapsed(rumbleTime) && !(try {waiting.map { it.hasFulfilled }.reduce { acc, b -> acc or b }} catch (_:Throwable) {false})) {
                 driverController.setRumble(GenericHID.RumbleType.kBothRumble, 0.0)
             }
             waiting.forEach {
