@@ -10,6 +10,7 @@ import com.team2898.robot.Constants.ShooterConstants
 import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.controller.SimpleMotorFeedforward
 import edu.wpi.first.math.filter.LinearFilter
+import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 
 object Shooter : SubsystemBase() {
@@ -28,8 +29,8 @@ object Shooter : SubsystemBase() {
     val kA = 0.0
     val ff = SimpleMotorFeedforward(kS, kV, kA)
 
-    val botAverage = LinearFilter.movingAverage(5)
-    val topAverage = LinearFilter.movingAverage(5)
+    val botAverage: LinearFilter = LinearFilter.movingAverage(5)
+    val topAverage: LinearFilter = LinearFilter.movingAverage(5)
     init{
         shooterMotorTop.restoreFactoryDefaults()
         shooterMotorTop.setSmartCurrentLimit(40)
@@ -43,11 +44,16 @@ object Shooter : SubsystemBase() {
 
     }
 
+    val shootingTimer = Timer()
+    var shooting = false
     fun shoot(){
 //        botAverage
 //        val pidCalc = pid.calculate()
 //        val ffCalc = ff.calculate()
 //        shooterMotorTop.set(pidCalc + ffCalc)
+        shooting = true
+        shootingTimer.reset()
+        shootingTimer.start()
     }
 
     fun setFlywheelSpeed(speed: MetersPerSecond) {
@@ -61,5 +67,8 @@ object Shooter : SubsystemBase() {
         shooterMotorTop.stopMotor()
     }
 
+    override fun periodic() {
+        if (shooting && shootingTimer.hasElapsed(ShooterConstants.INTAKE_DURATION)) shooting = false
+    }
 
 }

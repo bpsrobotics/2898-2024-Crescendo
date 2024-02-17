@@ -92,8 +92,6 @@ class TeleOp : Command() {
 //            resetGyroTimer.stop()
 //        }
     }
-    var armDirectChoosing = false
-    val armDirectChoose = Timer()
     fun peripheralControls() {
         if (OI.armSelectUp.asBoolean) {
             println("arm up")
@@ -103,43 +101,27 @@ class TeleOp : Command() {
             println("arm down")
             Arm.setGoal(Arm.targetState.down())
         }
-        if (armDirectChoosing && !armDirectChoose.hasElapsed(Constants.ButtonConstants.ARM_DIRECT_CHOOSE_DURATION)) {
-            when {
-                OI.armDirectGround.asBoolean -> {
-                    Arm.setGoal(Constants.ArmConstants.ArmHeights.GROUND)
-                    println("arm ground")
-                    armDirectChoosing = false
-                }
-                OI.armDirectStowed.asBoolean -> {
-                    Arm.setGoal(Constants.ArmConstants.ArmHeights.STOWED)
-                    println("arm stowed")
-                    armDirectChoosing = false
-                }
-                OI.armDirectAmp.asBoolean -> {
-                    Arm.setGoal(Constants.ArmConstants.ArmHeights.AMP)
-                    println("arm amp")
-                    armDirectChoosing = false
-                }
-                OI.armDirectShooter1.asBoolean -> {
-                    Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER1)
-                    println("arm shooter1")
-                    armDirectChoosing = false
-                }
-                OI.armDirectShooter2.asBoolean -> {
-                    Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER2)
-                    println("arm shooter2")
-                    armDirectChoosing = false
-                }
-                OI.armDirectSelect.asBoolean -> {
-                    println("arm choose cancel")
-                    armDirectChoosing = false
-                }
+        when {
+            OI.armDirectGround.asBoolean -> {
+                Arm.setGoal(Constants.ArmConstants.ArmHeights.GROUND)
+                println("arm ground")
             }
-        } else if (OI.armDirectSelect.asBoolean) {
-            println("arm choose")
-            armDirectChoosing = true
-            armDirectChoose.reset()
-            armDirectChoose.start()
+            OI.armDirectStowed.asBoolean -> {
+                Arm.setGoal(Constants.ArmConstants.ArmHeights.STOWED)
+                println("arm stowed")
+            }
+            OI.armDirectAmp.asBoolean -> {
+                Arm.setGoal(Constants.ArmConstants.ArmHeights.AMP)
+                println("arm amp")
+            }
+            OI.armDirectShooter1.asBoolean -> {
+                Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER1)
+                println("arm shooter1")
+            }
+            OI.armDirectShooter2.asBoolean -> {
+                Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER2)
+                println("arm shooter2")
+            }
         }
         if (OI.climb.asBoolean) {
             println("climbing!!!")
@@ -147,7 +129,7 @@ class TeleOp : Command() {
         Climber.setState(OI.climb.asBoolean)
         if (Arm.currentPosition != null) {
             if (OI.operatorTrigger.asBoolean) {
-                println("shooter velocity ${Arm.currentPosition?.shooterVelocity}")
+                println("shooter velocity ${Arm.currentPosition?.shooterVelocity ?: 0.0}")
                 Shooter.setFlywheelSpeed(Arm.currentPosition?.shooterVelocity ?: 0.0.mps)
             } else if (OI.operatorTriggerReleased.asBoolean) {
                 println("shooter shoot")
@@ -159,6 +141,8 @@ class TeleOp : Command() {
         if (Arm.currentPosition == Constants.ArmConstants.ArmHeights.GROUND && OI.runIntake.asBoolean) {
             println("run intake")
             Intake.runIntake(Constants.IntakeConstants.INTAKE_SPEED)
+        } else if (Shooter.shooting && !Shooter.shootingTimer.hasElapsed(Constants.ShooterConstants.INTAKE_DURATION)) {
+            Intake.runIntake(Constants.ShooterConstants.INTAKE_SPEED)
         } else {
             Intake.stopIntake()
         }
