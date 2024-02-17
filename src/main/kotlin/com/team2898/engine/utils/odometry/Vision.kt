@@ -38,12 +38,27 @@ class Vision (
     val aprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile)
     fun hasTargets() : Boolean{
         val result = cam.latestResult
-        return result.hasTargets()
+        if (result.hasTargets()) {
+            var result = cam.getLatestResult();
+            val targets = result.getTargets()
+            for (i in targets) {
+                if (i.fiducialId == 4) {
+                    return true
+                }
+            }
+        }
+        return false
     }
-    fun getCameraData() : PhotonTrackedTarget {
+    fun getCameraYaw() : Double {
+        var Yaw = 0.0
         var result = cam.getLatestResult();
-        val targets: PhotonTrackedTarget = result.getBestTarget()
-        return targets
+        val targets = result.getTargets() ?: return 0.0
+        for (i in targets) {
+            if (i.fiducialId == 4) {
+                return i.yaw
+            }
+        }
+        return Yaw
     }
 
     val PoseEstimator = PhotonPoseEstimator(
