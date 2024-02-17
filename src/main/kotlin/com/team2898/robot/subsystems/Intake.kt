@@ -9,6 +9,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase
 
 object Intake : SubsystemBase() {
     private val intakeMotor = CANSparkMax(IntakeId, CANSparkLowLevel.MotorType.kBrushless)
+    var hasNote: Boolean = false
+        private set
 
     init {
         intakeMotor.restoreFactoryDefaults()
@@ -24,7 +26,7 @@ object Intake : SubsystemBase() {
         intakeMotor.set(speed)
     }
 
-    fun stopIntake(speed: Double){
+    fun stopIntake(){
         intakeMotor.stopMotor()
     }
 

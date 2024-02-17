@@ -6,12 +6,14 @@
 package com.team2898.robot
 
 import com.revrobotics.CANSparkBase
+import com.team2898.engine.utils.units.MetersPerSecond
 import com.team2898.robot.subsystems.Arm
 import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics
 import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.math.util.Units
 import edu.wpi.first.wpilibj2.command.Command
+import com.team2898.engine.utils.units.*
 import kotlin.math.PI
 
 
@@ -95,7 +97,6 @@ class Constants {
         const val DrivingFF = 1 / DriveWheelFreeSpeedRps
         const val DrivingKs = 0.0
         const val DrivingKv = 0.0
-        const val DrivingKa = 0.0
         const val DrivingMinOutput = -1.0
         const val DrivingMaxOutput = 1.0
         var TurningP = 0.75
@@ -152,9 +153,10 @@ class Constants {
     }
 
     object IntakeConstants{
+        const val INTAKE_SPEED = 1.0
     }
     object ShooterConstants{
-
+        val FLYWHEEL_CIRCUMFERENCE = 4.inches
     }
 
     object ClimberConstants{
@@ -163,15 +165,36 @@ class Constants {
         enum class ClimbHeights(val position: Double) {
             STOWED(0.0), //TODO guess what more real values needed
             REACH(1.0),
-            LIFTOFF(0.6)
+            LIFTOFF(0.6);
+
+            fun advance() = when (this) {
+                STOWED -> REACH
+                REACH -> LIFTOFF
+                LIFTOFF -> LIFTOFF
+            }
+            fun retract() = when (this) {
+                STOWED -> STOWED
+                REACH -> STOWED
+                LIFTOFF -> REACH
+            }
         }
     }
 
     // set to operator/driver's preferences
     object ButtonConstants {
-        const val CLIMBER_REACH = 7
-        const val CLIMBER_LIFT = 8
-        const val CLIMBER_RELEASE = 9
+        const val CLIMBER_ADVANCE = 6
+        const val CLIMBER_RETRACT = 4
+
+        const val ARM_UP = 5
+        const val ARM_DOWN = 3
+
+        const val ARM_DIRECT_SELECT = 7
+        const val ARM_DIRECT_GROUND = 8
+        const val ARM_DIRECT_STOWED = 9
+        const val ARM_DIRECT_AMP = 10
+        const val ARM_DIRECT_SHOOTER1 = 11
+        const val ARM_DIRECT_SHOOTER2 = 12
+        const val ARM_DIRECT_CHOOSE_DURATION = 5.0
 
         const val PRESS_ACTIVATE_DURATION = 0.1
         const val INPUT_BUFFER_DURATION = 0.2

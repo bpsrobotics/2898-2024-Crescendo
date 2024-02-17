@@ -22,10 +22,7 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sign
-enum class DriveMode {
-    Normal,
-    Defense
-}
+
 /**
     Called when the Tele-Operated stage of the game begins.
  */
@@ -44,12 +41,12 @@ class TeleOp : Command() {
 
     var angle = 0.0
 
-    val PID = TurningPID(3.5,0.05)
+    val pid = TurningPID(3.5,0.05)
     val kS = 0.1
     val breakTimer = Timer()
     var breakTimerGoal = 0.0
     var drivemode = DriveMode.Normal
-    var resetGyroTimer = Timer()
+//    var resetGyroTimer = Timer()
     // Called every time the scheduler runs while the command is scheduled.
     fun turnSpeedNormal():Double {
         return -OI.turnX
@@ -59,8 +56,8 @@ class TeleOp : Command() {
         angle += OI.turnX.pow(2).degreesToRadians() * -5 * OI.turnX.sign
         SmartDashboard.putNumber("angle", angle)
 
-        PID.setPoint = angle
-        var turnSpeed = PID.turnspeedOutputNoNormalize(-NavX.totalRotation.degreesToRadians())
+        pid.setPoint = angle
+        var turnSpeed = pid.turnspeedOutputNoNormalize(-NavX.totalRotation.degreesToRadians())
         if (!turnSpeed.eqEpsilon(0, 0.04)) turnSpeed += kS * turnSpeed.sign
         return turnSpeed
     }
@@ -69,8 +66,8 @@ class TeleOp : Command() {
         angle = atan2(OI.turnY,OI.turnX)
         SmartDashboard.putNumber("angle", angle)
 
-        PID.setPoint = angle
-        var turnSpeed = PID.turnspeedOutputNoNormalize(NavX.getInvertedAngle().degreesToRadians())
+        pid.setPoint = angle
+        var turnSpeed = pid.turnspeedOutputNoNormalize(NavX.getInvertedAngle().degreesToRadians())
         if (!turnSpeed.eqEpsilon(0, 0.04)) turnSpeed += kS * turnSpeed.sign
         return turnSpeed
     }
@@ -82,56 +79,99 @@ class TeleOp : Command() {
         }
     }
     fun handleResetGyro(){
-        if(OI.resetGyroStart){
-            resetGyroTimer.reset()
-            resetGyroTimer.start()
-        }
-        if(OI.resetGyro){
-            if(resetGyroTimer.hasElapsed(0.5)){
+//        if(OI.resetGyroStart){
+//            resetGyroTimer.reset()
+//            resetGyroTimer.start()
+//        }
+        if(OI.resetGyro.asBoolean) {
+//            if(resetGyroTimer.hasElapsed(0.5)){
                 NavX.reset()
                 OI.Rumble.set(0.25,1.0, GenericHID.RumbleType.kRightRumble)
-            }
+//            }
         }
-        if(OI.resetGyroEnd){
-            resetGyroTimer.stop()
-        }
+//        if(OI.resetGyroEnd){
+//            resetGyroTimer.stop()
+//        }
     }
-    val climbReachInputBuffer = Timer()
-    val climbLiftInputBuffer = Timer()
+    var armDirectChoosing = false
+    val armDirectChoose = Timer()
     fun peripheralControls() {
-        if (OI.climbReach.asBoolean || !climbReachInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
-            when (Climber.currentState) {
-                Constants.ClimberConstants.ClimbHeights.STOWED -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+        if (OI.armSelectUp.asBoolean) {
+            println("arm up")
+            Arm.setGoal(Arm.targetState.up())
+        }
+        if (OI.armSelectDown.asBoolean) {
+            println("arm down")
+            Arm.setGoal(Arm.targetState.down())
+        }
+        if (armDirectChoosing && !armDirectChoose.hasElapsed(Constants.ButtonConstants.ARM_DIRECT_CHOOSE_DURATION)) {
+            when {
+                OI.armDirectGround.asBoolean -> {
+                    Arm.setGoal(Constants.ArmConstants.ArmHeights.GROUND)
+                    println("arm ground")
+                    armDirectChoosing = false
                 }
-                Constants.ClimberConstants.ClimbHeights.REACH -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.STOWED)
+                OI.armDirectStowed.asBoolean -> {
+                    Arm.setGoal(Constants.ArmConstants.ArmHeights.STOWED)
+                    println("arm stowed")
+                    armDirectChoosing = false
                 }
-                else -> {
-                    climbReachInputBuffer.reset()
-                    climbReachInputBuffer.start()
+                OI.armDirectAmp.asBoolean -> {
+                    Arm.setGoal(Constants.ArmConstants.ArmHeights.AMP)
+                    println("arm amp")
+                    armDirectChoosing = false
+                }
+                OI.armDirectShooter1.asBoolean -> {
+                    Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER1)
+                    println("arm shooter1")
+                    armDirectChoosing = false
+                }
+                OI.armDirectShooter2.asBoolean -> {
+                    Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER2)
+                    println("arm shooter2")
+                    armDirectChoosing = false
+                }
+                OI.armDirectSelect.asBoolean -> {
+                    println("arm choose cancel")
+                    armDirectChoosing = false
                 }
             }
+        } else if (OI.armDirectSelect.asBoolean) {
+            println("arm choose")
+            armDirectChoosing = true
+            armDirectChoose.reset()
+            armDirectChoose.start()
         }
-        if (OI.climbLift.asBoolean || !climbLiftInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
-            when (Climber.currentState) {
-                Constants.ClimberConstants.ClimbHeights.REACH -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.LIFTOFF)
-                }
-                Constants.ClimberConstants.ClimbHeights.LIFTOFF -> {
-                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
-                }
-                else -> {
-                    climbLiftInputBuffer.reset()
-                    climbLiftInputBuffer.start()
-                }
+        if (OI.climbAdvance.asBoolean) {
+            println("climber advance")
+            Climber.setState(Climber.targetState.advance())
+        }
+        if (OI.climbRetract.asBoolean) {
+            println("climber retract")
+            Climber.setState(Climber.targetState.retract())
+        }
+        if (Arm.currentPosition != null) {
+            if (OI.operatorTrigger.asBoolean) {
+                println("shooter velocity ${Arm.currentPosition!!.velocity}")
+                Shooter.setFlywheelSpeed(Arm.currentPosition!!.velocity)
+            } else if (OI.operatorTriggerReleased.asBoolean) {
+                println("shooter shoot")
+                Shooter.shoot()
+            } else {
+                Shooter.setFlywheelSpeed(0.0)
             }
         }
-        Shooter.setFlywheelSpeed(OI.shooterFlywheel)
+        if (Arm.currentPosition == Constants.ArmConstants.ArmHeights.GROUND && OI.runIntake.asBoolean) {
+            println("run intake")
+            Intake.runIntake(Constants.IntakeConstants.INTAKE_SPEED)
+        } else {
+            Intake.stopIntake()
+        }
     }
     override fun execute() {
+        OI.loop.poll()
         handleResetGyro()
-////        peripheralControls()
+        peripheralControls()
         Drivetrain.drive(
             -OI.translationX,
             -OI.translationY,
@@ -152,5 +192,12 @@ class TeleOp : Command() {
     // Returns true when the command should end.
     override fun isFinished(): Boolean {
         return false
+    }
+
+    companion object {
+        enum class DriveMode {
+            Normal,
+            Defense
+        }
     }
 }

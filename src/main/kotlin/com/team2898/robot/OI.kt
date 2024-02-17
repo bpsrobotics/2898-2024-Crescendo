@@ -1,5 +1,7 @@
 package com.team2898.robot
 
+import com.team2898.engine.utils.Vector
+import com.team2898.engine.utils.async.Promise
 import edu.wpi.first.math.MathUtil
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Joystick
@@ -28,6 +30,7 @@ object OI : SubsystemBase() {
      */
     private const val DEADZONE_THRESHOLD = 0.1
 
+    val loop = EventLoop()
     /**
      * Utility function for controller axis, optional deadzone and square/cube for extra fine-grain control
      */
@@ -94,75 +97,98 @@ object OI : SubsystemBase() {
         get() = driverController.yButton
     val driverX
         get() = driverController.xButton
-    val resetGyroStart
-        get() = driverController.rightBumperPressed
-    val resetGyro
-        get() = driverController.rightBumper
-    val resetGyroEnd
-        get() = driverController.rightBumperReleased
+    val resetGyro: BooleanEvent = driverController.rightBumper(loop).debounce(0.5).rising()
 
 
     val highHat get() = operatorController.pov
-    val moving get() = operatorController.getRawButton(7)
+    val hatVector get() = when (operatorController.pov) {
+        0 -> Vector(0,1)
+        90 -> Vector(1,0)
+        180 -> Vector(0,-1)
+        270 -> Vector(-1,0)
+        else -> Vector.zero
+    }
 
-    val grabTote get() = operatorController.getRawButton(9)//TODO change button
-    val grabToteToggle get() = operatorController.getRawButtonPressed(9)//TODO change button
+    val climbAdvance: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_ADVANCE, loop).rising()
+    val climbRetract: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_RETRACT, loop).rising()
 
-    val loop = EventLoop()
-    val climbReach: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_REACH, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
-    val climbLift: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_LIFT, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
-    val shooterFlywheel get() = -operatorController.getRawAxis(1) // negate so that positive = forward
+    val armSelectUp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_UP, loop).rising()
+    val armSelectDown: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DOWN, loop).rising()
+
+    val armDirectSelect: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SELECT, loop).rising()
+    val armDirectGround: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_GROUND, loop).rising()
+    val armDirectStowed: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_STOWED, loop).rising()
+    val armDirectAmp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_AMP, loop).rising()
+    val armDirectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER1, loop).rising()
+    val armDirectShooter2: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER2, loop).rising()
+
+    val runIntake: BooleanEvent = BooleanEvent(loop) { alignmentPad == Direction.DOWN }
 
     enum class Direction {
-        LEFT, RIGHT, UP, DOWN, INACTIVE;
+        LEFT, RIGHT, UP, DOWN, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, INACTIVE;
 
         fun mirrored() = when (this) {
             LEFT  -> RIGHT
             RIGHT -> LEFT
             else  -> this
         }
+        fun toVector() = when (this) {
+            LEFT -> Vector(-1,0)
+            RIGHT -> Vector(1,0)
+            UP -> Vector(0,1)
+            DOWN -> Vector(0,-1)
+            INACTIVE -> Vector.zero
+            UPLEFT -> Vector(-1,1)
+            UPRIGHT -> Vector(1, 1)
+            DOWNLEFT -> Vector(-1, -1)
+            DOWNRIGHT -> Vector(1, -1)
+        }
     }
 
     val alignmentPad get() = when(driverController.pov) {
         0    -> Direction.UP
+        45   -> Direction.UPRIGHT
         90   -> Direction.RIGHT
+        135  -> Direction.DOWNRIGHT
         180  -> Direction.DOWN
+        225  -> Direction.DOWNLEFT
         270  -> Direction.LEFT
+        315  -> Direction.UPLEFT
         else -> Direction.INACTIVE
     }
-    val operatorThrottle get() = -operatorController.getRawAxis(1)
 
-    val operatorTrigger get() = operatorController.trigger
+    val operatorTrigger: BooleanEvent = operatorController.button(1, loop)
+    val operatorTriggerReleased: BooleanEvent = operatorTrigger.falling()
     object Rumble {
         private var isRumbling  = false
         private var rumbleTime  = 0.0
         private val rumblePower = 0.0
         private val rumbleSide = GenericHID.RumbleType.kRightRumble
         private val rumbleTimer = Timer()
+        private val waiting = mutableSetOf<Promise<Unit>>()
         fun set(time: Double, power: Double, side: GenericHID.RumbleType = GenericHID.RumbleType.kBothRumble){
             rumbleTimer.reset()
             rumbleTime = time
             driverController.setRumble(side, power)
             rumbleTimer.start()
         }
+        fun until(promise: Promise<Unit>, power: Double = 1.0, side: GenericHID.RumbleType = GenericHID.RumbleType.kBothRumble) {
+            driverController.setRumble(side, power)
+            waiting.add(promise)
+            promise.then { update(); Promise.resolve(Unit) }
+        }
         fun update(){
-            if(rumbleTimer.hasElapsed(rumbleTime)){
+            if(rumbleTimer.hasElapsed(rumbleTime) && !waiting.map { it.hasFulfilled }.reduce { acc, b -> acc or b }) {
                 driverController.setRumble(GenericHID.RumbleType.kBothRumble, 0.0)
+            }
+            waiting.forEach {
+                if (it.hasFulfilled) waiting.remove(it)
             }
         }
     }
     override fun periodic(){
         Rumble.update()
-        loop.poll()
     }
 
-//    init {
-//        Trigger { operatorController.pov != 0 }.toggleOnTrue(
-//            Commands.startEnd(
-//                Drivetrain::brakeMode,
-//                Drivetrain::coastMode
-//            )
-//        )
-//
-//    }
+
 }

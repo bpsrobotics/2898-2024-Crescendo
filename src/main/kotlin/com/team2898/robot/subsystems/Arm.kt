@@ -106,7 +106,7 @@ object Arm : SubsystemBase() {
         movingAverage.add(dp / dt)
         movingAverage2.add(dp / dt)
         val rate = movingAverage.average
-        val averagedRate = movingAverage2.average
+//        val averagedRate = movingAverage2.average
 
         integral.add((rate - armMotor.encoder.velocity).absoluteValue)
 
@@ -163,7 +163,7 @@ object Arm : SubsystemBase() {
 
     }
 
-    fun stop() {
+    fun release() {
         profile = null
     }
 

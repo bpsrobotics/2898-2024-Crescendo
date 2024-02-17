@@ -3,7 +3,6 @@ package com.team2898.robot.commands
 import com.team2898.robot.Constants
 import com.team2898.robot.subsystems.Arm
 import edu.wpi.first.wpilibj2.command.Command
-import edu.wpi.first.wpilibj2.command.CommandBase
 
 /**
  * Moves arm to given height
