@@ -12,13 +12,12 @@ import com.team2898.engine.utils.Sugar.eqEpsilon
 import com.team2898.engine.utils.TurningPID
 import com.team2898.robot.Constants
 import com.team2898.robot.OI
-import com.team2898.robot.subsystems.Drivetrain
-import com.team2898.robot.subsystems.NavX
-import com.team2898.robot.subsystems.Odometry
+import com.team2898.robot.subsystems.*
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
-import edu.wpi.first.wpilibj2.command.CommandBase
+import edu.wpi.first.wpilibj2.command.Command
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -30,7 +29,7 @@ enum class DriveMode {
 /**
     Called when the Tele-Operated stage of the game begins.
  */
-class TeleOp : CommandBase() {
+class TeleOp : Command() {
     init {
         addRequirements(Drivetrain)
     }
@@ -55,6 +54,7 @@ class TeleOp : CommandBase() {
     fun turnSpeedNormal():Double {
         return -OI.turnX
     }
+
     fun turnSpeedDefense():Double {
         angle += OI.turnX.pow(2).degreesToRadians() * -5 * OI.turnX.sign
         SmartDashboard.putNumber("angle", angle)
@@ -96,38 +96,53 @@ class TeleOp : CommandBase() {
             resetGyroTimer.stop()
         }
     }
-    override fun execute() {
-        var speedMultiplier = Constants.OIConstants.kSpeedMultiplierMin
-        handleResetGyro()
-        val SpeedDif = Constants.OIConstants.kSpeedMultiplierMax - Constants.OIConstants.kSpeedMultiplierMin
-        if(OI.rightTrigger > 0.2) speedMultiplier += SpeedDif* OI.rightTrigger
-        val turnSpeed = getTurnSpeed() * speedMultiplier
-
-        /*if(OI.defenseModeButton) drivemode = DriveMode.Defense
-        if(OI.normalModeButton) drivemode = DriveMode.Normal
-
-        val turnSpeed = getTurnSpeed() * speedMultiplier
-
-        if(drivemode == DriveMode.Defense) {
-            if (OI.translationX == 0.0 && OI.translationY == 0.0 && turnSpeed.eqEpsilon(0, 0.04)) {
-                if (breakTimer.hasElapsed(breakTimerGoal)) Drivetrain.lock()
-                else Drivetrain.drive(0.0, 0.0, 0.0, fieldRelative = true, rateLimit = true)
-                return
-            } else {
-                breakTimer.reset()
-                breakTimerGoal = (Odometry.velocity.norm + turnSpeed / 2) / 3
+    val climbReachInputBuffer = Timer()
+    val climbLiftInputBuffer = Timer()
+    fun peripheralControls() {
+        if (OI.climbReach.asBoolean || !climbReachInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
+            when (Climber.currentState) {
+                Constants.ClimberConstants.ClimbHeights.STOWED -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+                }
+                Constants.ClimberConstants.ClimbHeights.REACH -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.STOWED)
+                }
+                else -> {
+                    climbReachInputBuffer.reset()
+                    climbReachInputBuffer.start()
+                }
             }
-        }*/
-        Drivetrain.drive(
-            -(OI.translationY)*speedMultiplier, //* OI.translationY.sign,
-            -(OI.translationX)*speedMultiplier, //* OI.translationX.sign,
-            turnSpeed,
-            fieldRelative = true,
-            rateLimit = true
-
-        )
-
+        }
+        if (OI.climbLift.asBoolean || !climbLiftInputBuffer.hasElapsed(Constants.ButtonConstants.INPUT_BUFFER_DURATION)) {
+            when (Climber.currentState) {
+                Constants.ClimberConstants.ClimbHeights.REACH -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.LIFTOFF)
+                }
+                Constants.ClimberConstants.ClimbHeights.LIFTOFF -> {
+                    Climber.setState(Constants.ClimberConstants.ClimbHeights.REACH)
+                }
+                else -> {
+                    climbLiftInputBuffer.reset()
+                    climbLiftInputBuffer.start()
+                }
+            }
+        }
+        Shooter.setFlywheelSpeed(OI.shooterFlywheel)
     }
+    override fun execute() {
+        handleResetGyro()
+////        peripheralControls()
+        Drivetrain.drive(
+            -OI.translationX,
+            -OI.translationY,
+            getTurnSpeed(),
+            fieldRelative = true,
+            rateLimit = true,
+            secondOrder = true
+        )
+        Arm.voltMove(Arm.voltageApplied)
+
+        }
 
     // Called once the command ends or is interrupted.
     override fun end(interrupted: Boolean) {

@@ -5,6 +5,8 @@ package com.team2898.robot
 
 //import com.team2898.robot.Constants.OperatorConstants
 
+import com.pathplanner.lib.auto.AutoBuilder
+import com.pathplanner.lib.path.PathPlannerPath
 import com.team2898.robot.Constants.AutoConstants.commandMap
 import com.team2898.robot.commands.autos.TestAuto
 import com.team2898.robot.commands.autos.TestAuto2
@@ -63,27 +65,27 @@ class RobotContainer {
         // cancelling on release.
         //m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand())
         // guard for bot-on-board
-        commandMap.put(
-            "start",
-            SequentialCommandGroup(PrintCommand("***Path Start"),
-            InstantCommand({ println("path start") })
-            )
-        )
-        commandMap.put(
-            "middle",
-            SequentialCommandGroup(PrintCommand("***Path Middle"))
-        )
-        commandMap.put(
-            "end", SequentialCommandGroup(
-                PrintCommand("***Path End"),
-                InstantCommand({drive(0.0,0.0,0.0,false,false)})
-            )
-        )
-        commandMap.put(
-            "score", SequentialCommandGroup(
-                PrintCommand("***Path score"),
-            )
-        )
+//        commandMap.put(
+//            "start",
+//            SequentialCommandGroup(PrintCommand("***Path Start"),
+//            InstantCommand({ println("path start") })
+//            )
+//        )
+//        commandMap.put(
+//            "middle",
+//            SequentialCommandGroup(PrintCommand("***Path Middle"))
+//        )
+//        commandMap.put(
+//            "end", SequentialCommandGroup(
+//                PrintCommand("***Path End"),
+//                InstantCommand({drive(0.0,0.0,0.0,false,false)})
+//            )
+//        )
+//        commandMap.put(
+//            "score", SequentialCommandGroup(
+//                PrintCommand("***Path score"),
+//            )
+//        )
     }
 
      /**

@@ -5,6 +5,8 @@ import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Joystick
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.XboxController
+import edu.wpi.first.wpilibj.event.BooleanEvent
+import edu.wpi.first.wpilibj.event.EventLoop
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 import kotlin.math.pow
 import kotlin.math.sign
@@ -72,25 +74,25 @@ object OI : SubsystemBase() {
     // Squared for better control on turn, cubed on throttle
     /** Driver controller's throttle on the left joystick for the X Axis, from -1 (left) to 1 (right) */
     val translationX
-        get() = -process(driverController.leftX, deadzone = true, square = false)
+        get() = process(driverController.leftX, deadzone = true, square = false)
 
     /** Driver controller's throttle on the left joystick for the Y Axis, from -1 (down) to 1 (up) */
     val translationY
-        get() = process(-driverController.leftY, deadzone = true, square = false)
+        get() = process(driverController.leftY, deadzone = true, square = false)
 
     /** Driver controller's throttle on the right joystick for the X Axis, from -1 (left) to 1 (right) */
     val turnX
-        get() = -process(driverController.rightX, deadzone = true, square = false)
+        get() = process(-driverController.rightX, deadzone = true, square = false)
     /** Driver controller's throttle on the right joystick for the Y Axis, from -1 (down) to 1 (up) */
     val turnY
-        get() = -process(driverController.rightY, deadzone = true, square = false)
+        get() = process(driverController.rightY, deadzone = true, square = false)
     val leftTrigger
         get() = driverController.leftTriggerAxis
     val rightTrigger
         get() = driverController.rightTriggerAxis
-    val defenseModeButton
+    val driverY
         get() = driverController.yButton
-    val normalModeButton
+    val driverX
         get() = driverController.xButton
     val resetGyroStart
         get() = driverController.rightBumperPressed
@@ -99,12 +101,17 @@ object OI : SubsystemBase() {
     val resetGyroEnd
         get() = driverController.rightBumperReleased
 
+
     val highHat get() = operatorController.pov
     val moving get() = operatorController.getRawButton(7)
 
     val grabTote get() = operatorController.getRawButton(9)//TODO change button
     val grabToteToggle get() = operatorController.getRawButtonPressed(9)//TODO change button
 
+    val loop = EventLoop()
+    val climbReach: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_REACH, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
+    val climbLift: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_LIFT, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
+    val shooterFlywheel get() = -operatorController.getRawAxis(1) // negate so that positive = forward
 
     enum class Direction {
         LEFT, RIGHT, UP, DOWN, INACTIVE;
@@ -136,13 +143,13 @@ object OI : SubsystemBase() {
         private val rumblePower = 0.0
         private val rumbleSide = GenericHID.RumbleType.kRightRumble
         private val rumbleTimer = Timer()
-        public fun set(time: Double, power: Double, side: GenericHID.RumbleType = GenericHID.RumbleType.kBothRumble){
+        fun set(time: Double, power: Double, side: GenericHID.RumbleType = GenericHID.RumbleType.kBothRumble){
             rumbleTimer.reset()
             rumbleTime = time
             driverController.setRumble(side, power)
             rumbleTimer.start()
         }
-        public fun update(){
+        fun update(){
             if(rumbleTimer.hasElapsed(rumbleTime)){
                 driverController.setRumble(GenericHID.RumbleType.kBothRumble, 0.0)
             }
@@ -150,6 +157,7 @@ object OI : SubsystemBase() {
     }
     override fun periodic(){
         Rumble.update()
+        loop.poll()
     }
 
 //    init {

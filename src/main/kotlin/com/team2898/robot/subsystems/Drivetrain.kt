@@ -5,7 +5,7 @@ package com.team2898.robot.subsystems
 
 
 
-import com.bpsrobotics.engine.utils.Inches
+
 import com.pathplanner.lib.auto.AutoBuilder
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig
 import com.pathplanner.lib.util.PIDConstants
@@ -13,6 +13,20 @@ import com.pathplanner.lib.util.ReplanningConfig
 import com.team2898.engine.utils.SwerveUtils
 import com.team2898.robot.Constants
 import com.team2898.robot.Constants.DriveConstants
+import com.team2898.robot.Constants.DriveConstants.DriveKinematics
+import com.team2898.robot.Constants.DriveConstants.MaxSpeedMetersPerSecond
+import com.team2898.robot.RobotMap.FrontLeftCANCoderID
+import com.team2898.robot.RobotMap.FrontLeftDrivingCanId
+import com.team2898.robot.RobotMap.FrontLeftTurningCanId
+import com.team2898.robot.RobotMap.FrontRightCANCoderID
+import com.team2898.robot.RobotMap.FrontRightDrivingCanId
+import com.team2898.robot.RobotMap.FrontRightTurningCanId
+import com.team2898.robot.RobotMap.RearLeftCANCoderID
+import com.team2898.robot.RobotMap.RearLeftDrivingCanId
+import com.team2898.robot.RobotMap.RearLeftTurningCanId
+import com.team2898.robot.RobotMap.RearRightCANCoderID
+import com.team2898.robot.RobotMap.RearRightDrivingCanId
+import com.team2898.robot.RobotMap.RearRightTurningCanId
 import edu.wpi.first.math.filter.SlewRateLimiter
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
@@ -21,11 +35,18 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry
 import edu.wpi.first.math.kinematics.SwerveModuleState
 import edu.wpi.first.networktables.NetworkTableInstance
+import edu.wpi.first.units.*
+import edu.wpi.first.units.MutableMeasure.mutable
+import edu.wpi.first.units.Units.*
 import edu.wpi.first.util.WPIUtilJNI
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.DriverStation.Alliance
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
+import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog
+import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.SubsystemBase
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction
 import java.util.function.BooleanSupplier
 
 
@@ -33,77 +54,95 @@ object Drivetrain
     : SubsystemBase() {
 
     // Create MAXSwerveModules
-    val m_frontLeft: SDSSwerveModule = SDSSwerveModule(
-            DriveConstants.kFrontLeftDrivingCanId,
-            DriveConstants.kFrontLeftTurningCanId,
-            DriveConstants.kFrontLeftChassisAngularOffset,
-            DriveConstants.kRearRightCANCoderID,
-        "FrontLeft")
-    val m_frontRight: SDSSwerveModule = SDSSwerveModule(
-            DriveConstants.kFrontRightDrivingCanId,
-            DriveConstants.kFrontRightTurningCanId,
-            DriveConstants.kFrontRightChassisAngularOffset,
-            DriveConstants.kRearRightCANCoderID,
-        "FrontRight")
-    val m_rearLeft: SDSSwerveModule = SDSSwerveModule(
-            DriveConstants.kRearLeftDrivingCanId,
-            DriveConstants.kRearLeftTurningCanId,
-            DriveConstants.kBackLeftChassisAngularOffset,
-            DriveConstants.kRearRightCANCoderID,
-        "RearLeft")
-    val m_rearRight: SDSSwerveModule = SDSSwerveModule(
-            DriveConstants.kRearRightDrivingCanId,
-            DriveConstants.kRearRightTurningCanId,
-            DriveConstants.kBackRightChassisAngularOffset,
-            DriveConstants.kRearRightCANCoderID,
-        "RearRight")
+    val frontLeft: SwerveModule = SwerveModule(
+            FrontLeftDrivingCanId,
+            FrontLeftTurningCanId,
+            DriveConstants.FrontLeftChassisAngularOffset,
+            FrontLeftCANCoderID,
+        "FrontLeft",
+        true
+    )
+    val frontRight: SwerveModule = SwerveModule(
+            FrontRightDrivingCanId,
+            FrontRightTurningCanId,
+            DriveConstants.FrontRightChassisAngularOffset,
+            FrontRightCANCoderID,
+        "FrontRight",
+        true
+    )
+    val rearLeft: SwerveModule = SwerveModule(
+            RearLeftDrivingCanId,
+            RearLeftTurningCanId,
+            DriveConstants.BackLeftChassisAngularOffset,
+            RearLeftCANCoderID,
+        "RearLeft",
+            true
+    )
+    val rearRight: SwerveModule = SwerveModule(
+            RearRightDrivingCanId,
+            RearRightTurningCanId,
+            DriveConstants.BackRightChassisAngularOffset,
+            RearRightCANCoderID,
+        "RearRight",
+        true
+    )
 
-    val states = arrayOf(m_frontLeft.state, m_frontRight.state, m_rearLeft.state, m_rearRight.state)
+    val states = arrayOf(frontLeft.state, frontRight.state, rearLeft.state, rearRight.state)
     var publisher = NetworkTableInstance.getDefault()
         .getStructArrayTopic("MyStates", SwerveModuleState.struct).publish()
+
+    val modules = arrayOf(frontLeft, frontRight, rearLeft, rearRight)
     init {
-        SmartDashboard.putNumber("TurningKs", Constants.ModuleConstants.Ks)
-        SmartDashboard.putNumber("TurningKP", Constants.ModuleConstants.kTurningP)
-        SmartDashboard.putNumber("TurningKI", Constants.ModuleConstants.kTurningI)
-        SmartDashboard.putNumber("TurningKD", Constants.ModuleConstants.kTurningD)
+//        SmartDashboard.putNumber("TurningKs", Constants.ModuleConstants.Ks)
+        SmartDashboard.putNumber("TurningKP", Constants.ModuleConstants.TurningP)
+        SmartDashboard.putNumber("TurningKI", Constants.ModuleConstants.TurningI)
+        SmartDashboard.putNumber("TurningKD", Constants.ModuleConstants.TurningD)
+
+        SmartDashboard.putNumber("DrivingKP", Constants.ModuleConstants.DrivingP)
+        SmartDashboard.putNumber("DrivingKI", Constants.ModuleConstants.DrivingI)
+        SmartDashboard.putNumber("DrivingKD", Constants.ModuleConstants.DrivingD)
+
         configureAuto()
     }
 
 
     // Slew rate filter variables for controlling lateral acceleration
-    private var m_currentRotation = 0.0
-    private var m_currentTranslationDir = 0.0
-    private var m_currentTranslationMag = 0.0
-    private val m_magLimiter = SlewRateLimiter(DriveConstants.kMagnitudeSlewRate)
-    private val m_rotLimiter = SlewRateLimiter(DriveConstants.kRotationalSlewRate)
-    private var m_prevTime = WPIUtilJNI.now() * 1e-6
+    private var currentRotation = 0.0
+    private var currentTranslationDir = 0.0
+    private var currentTranslationMag = 0.0
+    private val magLimiter = SlewRateLimiter(DriveConstants.MagnitudeSlewRate)
+    private val rotLimiter = SlewRateLimiter(DriveConstants.RotationalSlewRate)
+    private var prevTime = WPIUtilJNI.now() * 1e-6
 
     // Odometry class for tracking robot pose
     var m_odometry = SwerveDriveOdometry(
-            DriveConstants.kDriveKinematics,
-            Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
-            m_frontLeft.position,
-            m_frontRight.position,
-            m_rearLeft.position,
-            m_rearRight.position
+            DriveConstants.DriveKinematics,
+            Rotation2d.fromDegrees(NavX.getAngle()), arrayOf(
+            frontLeft.position,
+            frontRight.position,
+            rearLeft.position,
+            rearRight.position
     ))
 
     override fun periodic() {
         publisher.set(states)
         // Update the odometry in the periodic block
 
-        Constants.ModuleConstants.Ks = SmartDashboard.getNumber("TurningKs", Constants.ModuleConstants.Ks)
-        Constants.ModuleConstants.kTurningP = SmartDashboard.getNumber("TurningKP", Constants.ModuleConstants.kTurningP)
-        Constants.ModuleConstants.kTurningI = SmartDashboard.getNumber("TurningKI", Constants.ModuleConstants.kTurningI)
-        Constants.ModuleConstants.kTurningD = SmartDashboard.getNumber("TurningKD", Constants.ModuleConstants.kTurningD)
+//        Constants.ModuleConstants.Ks = SmartDashboard.getNumber("TurningKs", Constants.ModuleConstants.Ks)
+        Constants.ModuleConstants.TurningP = SmartDashboard.getNumber("TurningKP", Constants.ModuleConstants.TurningP)
+        Constants.ModuleConstants.TurningI = SmartDashboard.getNumber("TurningKI", Constants.ModuleConstants.TurningI)
+        Constants.ModuleConstants.TurningD = SmartDashboard.getNumber("TurningKD", Constants.ModuleConstants.TurningD)
+
+        Constants.ModuleConstants.DrivingP = SmartDashboard.getNumber("DrivingKP", Constants.ModuleConstants.DrivingP)
+        Constants.ModuleConstants.DrivingI = SmartDashboard.getNumber("DrivingKI", Constants.ModuleConstants.DrivingI)
+        Constants.ModuleConstants.DrivingD = SmartDashboard.getNumber("DrivingKD", Constants.ModuleConstants.DrivingD)
 
 
-//        SmartDashboard.putNumber("Encoders/FL_Turning_Encoder", m_frontLeft.readEnc())
-//        SmartDashboard.putNumber("Encoders/FR_Turning_Encoder", m_frontRight.readEnc())
-//        SmartDashboard.putNumber("Encoders/BR_Turning_Encoder", m_rearRight.readEnc())
-//        SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
-//        SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
-//        SmartDashboard.putNumber("Encoders/BL_Turning_Encoder", m_rearLeft.readEnc())
+
+        for (module in modules){
+            module.update()
+        }
+
 
     }
 
@@ -112,7 +151,12 @@ object Drivetrain
         get() = Odometry.SwerveOdometry.poseMeters
 
 
-
+    fun sysIdDynamic(direction: Direction): Command{
+        return sysIdRoutine.dynamic(direction)
+    }
+    fun sysIdQuasistatic(direction: Direction): Command {
+        return sysIdRoutine.quasistatic(direction)
+    }
 
     /**
      * Resets the odometry to the specified pose.
@@ -123,6 +167,43 @@ object Drivetrain
         Odometry.resetOdometry(pose)
     }
 
+    // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
+    private val d_appliedVoltage: MutableMeasure<Voltage> = mutable(Volts.of(0.0))
+
+    // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
+    private val d_distance: MutableMeasure<Distance> = mutable(Meters.of(0.0))
+
+    // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
+    private val d_velocity: MutableMeasure<Velocity<Distance>> = mutable(MetersPerSecond.of(0.0))
+    // Create a new SysId routine for characterizing the drive.
+    val sysIdRoutine = SysIdRoutine(
+        // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
+        SysIdRoutine.Config(),
+        SysIdRoutine.Mechanism(
+            // Tell SysId how to plumb the driving voltage to the motors.
+            { volts: Measure<Voltage> ->
+                for (module in modules){
+                        module.voltageDrive(volts.`in`(Volts))
+//                        println("module number${module.moduleID} + position" + module.position.distanceMeters)
+//                        println(volts.`in`(Volts))
+                    }
+            },
+            { log: SysIdRoutineLog ->
+                for (module in modules){
+                    log.motor("drive" + module.moduleID)
+                        .voltage(d_appliedVoltage.mut_replace(
+                            module.getVoltage(), Volts
+                        ))
+                        .linearPosition(d_distance.mut_replace(module.position.distanceMeters, Meters))
+                        .linearVelocity(d_velocity.mut_replace(
+                            module.drivingEncoder.velocity, MetersPerSecond
+                        ))
+                }
+
+            },
+            this
+        )
+    )
 
 
     /**
@@ -134,8 +215,9 @@ object Drivetrain
      * @param fieldRelative Whether the provided x and y speeds are relative to the
      * field.
      * @param rateLimit     Whether to enable rate limiting for smoother control.
+     * @param secondOrder Whether to apply second order kinematics
      */
-    fun drive(xSpeed: Double, ySpeed: Double, rot: Double, fieldRelative: Boolean, rateLimit: Boolean) {
+    fun drive(xSpeed: Double, ySpeed: Double, rot: Double, fieldRelative: Boolean, rateLimit: Boolean, secondOrder: Boolean) {
         val xSpeedCommanded: Double
         val ySpeedCommanded: Double
         if (rateLimit) {
@@ -145,54 +227,63 @@ object Drivetrain
 
             // Calculate the direction slew rate based on an estimate of the lateral acceleration
             val directionSlewRate: Double
-            if (m_currentTranslationMag != 0.0) {
-                directionSlewRate = Math.abs(DriveConstants.kDirectionSlewRate / m_currentTranslationMag)
+            if (currentTranslationMag != 0.0) {
+                directionSlewRate = Math.abs(DriveConstants.DirectionSlewRate / currentTranslationMag)
             } else {
                 directionSlewRate = 500.0 //some high number that means the slew rate is effectively instantaneous
             }
             val currentTime = WPIUtilJNI.now() * 1e-6
-            val elapsedTime = currentTime - m_prevTime
-            val angleDif: Double = SwerveUtils.AngleDifference(inputTranslationDir, m_currentTranslationDir)
+            val elapsedTime = currentTime - prevTime
+            val angleDif: Double = SwerveUtils.AngleDifference(inputTranslationDir, currentTranslationDir)
             if (angleDif < 0.45 * Math.PI) {
-                m_currentTranslationDir = SwerveUtils.StepTowardsCircular(m_currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime)
-                m_currentTranslationMag = m_magLimiter.calculate(inputTranslationMag)
+                currentTranslationDir = SwerveUtils.StepTowardsCircular(currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime)
+                currentTranslationMag = magLimiter.calculate(inputTranslationMag)
             } else if (angleDif > 0.85 * Math.PI) {
-                if (m_currentTranslationMag > 1e-4) { //some small number to avoid floating-point errors with equality checking
+                if (currentTranslationMag > 1e-4) { //some small number to avoid floating-point errors with equality checking
                     // keep currentTranslationDir unchanged
-                    m_currentTranslationMag = m_magLimiter.calculate(0.0)
+                    currentTranslationMag = magLimiter.calculate(0.0)
                 } else {
-                    m_currentTranslationDir = SwerveUtils.WrapAngle(m_currentTranslationDir + Math.PI)
-                    m_currentTranslationMag = m_magLimiter.calculate(inputTranslationMag)
+                    currentTranslationDir = SwerveUtils.WrapAngle(currentTranslationDir + Math.PI)
+                    currentTranslationMag = magLimiter.calculate(inputTranslationMag)
                 }
             } else {
-                m_currentTranslationDir = SwerveUtils.StepTowardsCircular(m_currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime)
-                m_currentTranslationMag = m_magLimiter.calculate(0.0)
+                currentTranslationDir = SwerveUtils.StepTowardsCircular(currentTranslationDir, inputTranslationDir, directionSlewRate * elapsedTime)
+                currentTranslationMag = magLimiter.calculate(0.0)
             }
-            m_prevTime = currentTime
-            xSpeedCommanded = m_currentTranslationMag * Math.cos(m_currentTranslationDir)
-            ySpeedCommanded = m_currentTranslationMag * Math.sin(m_currentTranslationDir)
-            m_currentRotation = m_rotLimiter.calculate(rot)
+            prevTime = currentTime
+            xSpeedCommanded = currentTranslationMag * Math.cos(currentTranslationDir)
+            ySpeedCommanded = currentTranslationMag * Math.sin(currentTranslationDir)
+            currentRotation = rotLimiter.calculate(rot)
         } else {
             xSpeedCommanded = xSpeed
             ySpeedCommanded = ySpeed
-            m_currentRotation = rot
+            currentRotation = rot
         }
 
         // Convert the commanded speeds into the correct units for the drivetrain
 
-        val xSpeedDelivered: Double = xSpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond
-        val ySpeedDelivered: Double = ySpeedCommanded * DriveConstants.kMaxSpeedMetersPerSecond
-        val rotDelivered: Double = m_currentRotation * DriveConstants.kMaxAngularSpeed
-        val swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
-                if (fieldRelative) ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(NavX.getInvertedAngle())) else ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered))
+        val xSpeedDelivered: Double = xSpeedCommanded * DriveConstants.MaxSpeedMetersPerSecond
+        val ySpeedDelivered: Double = ySpeedCommanded * DriveConstants.MaxSpeedMetersPerSecond
+        val rotDelivered: Double = currentRotation * DriveConstants.MaxAngularSpeed
+
+        val speed = if (fieldRelative) ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(NavX.getAngle())) else ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
+        val secondOrderSpeeds = ChassisSpeeds.discretize(speed, 0.01)
+        val swerveModuleStates = DriveConstants.DriveKinematics.toSwerveModuleStates(if (secondOrder) secondOrderSpeeds else speed)
         SwerveDriveKinematics.desaturateWheelSpeeds(
-                swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond)
-        m_frontLeft.setDesiredState(swerveModuleStates.get(0))
-        m_frontRight.setDesiredState(swerveModuleStates.get(1))
-        m_rearLeft.setDesiredState(swerveModuleStates.get(2))
-        m_rearRight.setDesiredState(swerveModuleStates.get(3))
+                swerveModuleStates, DriveConstants.MaxSpeedMetersPerSecond)
+        frontLeft.setDesiredState(swerveModuleStates.get(0))
+        frontRight.setDesiredState(swerveModuleStates.get(1))
+        rearLeft.setDesiredState(swerveModuleStates.get(2))
+        rearRight.setDesiredState(swerveModuleStates.get(3))
+//        chassisDrive(if (secondOrder) secondOrderSpeeds else speed)
+
     }
-    val driveConsumer = { x: ChassisSpeeds -> drive(x.vxMetersPerSecond, x.vyMetersPerSecond, x.omegaRadiansPerSecond, false, true) }
+
+    val chassisDrive = {
+            speeds: ChassisSpeeds ->
+        val wantedStates = DriveKinematics.toSwerveModuleStates(speeds)
+        setModuleStates(wantedStates)
+    }
 
 
 
@@ -200,10 +291,10 @@ object Drivetrain
      * Sets the wheels into an X formation to prevent movement.
      */
     fun lock() {
-        m_frontLeft.setDesiredState(SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)))
-        m_frontRight.setDesiredState(SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)))
-        m_rearLeft.setDesiredState(SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)))
-        m_rearRight.setDesiredState(SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)))
+        frontLeft.setDesiredState(SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)))
+        frontRight.setDesiredState(SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)))
+        rearLeft.setDesiredState(SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)))
+        rearRight.setDesiredState(SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)))
     }
 
     /**
@@ -213,19 +304,19 @@ object Drivetrain
      */
     fun setModuleStates(desiredStates: Array<SwerveModuleState>) {
         SwerveDriveKinematics.desaturateWheelSpeeds(
-                desiredStates, DriveConstants.kMaxSpeedMetersPerSecond)
-        m_frontLeft.setDesiredState(desiredStates[0])
-        m_frontRight.setDesiredState(desiredStates[1])
-        m_rearLeft.setDesiredState(desiredStates[2])
-        m_rearRight.setDesiredState(desiredStates[3])
+                desiredStates, DriveConstants.MaxSpeedMetersPerSecond)
+        frontLeft.setDesiredState(desiredStates[0])
+        frontRight.setDesiredState(desiredStates[1])
+        rearLeft.setDesiredState(desiredStates[2])
+        rearRight.setDesiredState(desiredStates[3])
     }
 
     /** Resets the drive encoders to currently read a position of 0.  */
     fun resetEncoders() {
-        m_frontLeft.resetEncoders()
-        m_rearLeft.resetEncoders()
-        m_frontRight.resetEncoders()
-        m_rearRight.resetEncoders()
+        frontLeft.resetEncoders()
+        rearLeft.resetEncoders()
+        frontRight.resetEncoders()
+        rearRight.resetEncoders()
     }
 
 
@@ -235,29 +326,24 @@ object Drivetrain
     }
     /** The robot's heading in degrees, from -180 to 180 */
     val heading: Double
-        get() = Rotation2d.fromDegrees(NavX.getInvertedAngle()).degrees
+        get() = Rotation2d.fromDegrees(NavX.getAngle()).degrees
     /** The turn rate of the robot, in degrees per second */
     val turnRate: Double
-        get() = NavX.navx.rate * if (DriveConstants.kGyroReversed) -1.0 else 1.0
+        get() = NavX.navx.rate * if (DriveConstants.GyroReversed) -1.0 else 1.0
 
-    val stateConsumer = { x: Array<SwerveModuleState> -> arrayOf(m_frontLeft.state, m_frontRight.state, m_rearLeft.state, m_rearRight.state) }
+    val stateConsumer = { x: Array<SwerveModuleState> -> arrayOf(frontLeft.state, frontRight.state, rearLeft.state, rearRight.state) }
 
     fun configureAuto() {
-
-        // All other subsystem initialization
-        // ...
-
-        // Configure AutoBuilder last
         AutoBuilder.configureHolonomic(
-            Odometry.poseSupplier,  // Robot pose supplier
-            Odometry.zero,  // Method to reset odometry (will be called if your auto has a starting pose)
-            Odometry.chassisSpeedsSupplier,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            driveConsumer,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+            Odometry::supplyPose,  // Robot pose supplier
+            Odometry::resetOdometry,  // Method to reset odometry (will be called if your auto has a starting pose)
+            Odometry::chassisSpeeds,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            chassisDrive,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                PIDConstants(Constants.ModuleConstants.kDrivingP, Constants.ModuleConstants.kDrivingI, Constants.ModuleConstants.kDrivingD),  // Translation PID constants
-                PIDConstants(Constants.ModuleConstants.kTurningP, Constants.ModuleConstants.kTurningI, Constants.ModuleConstants.kTurningD),  // Rotation PID constants
-                5.0,  // Max module speed, in m/s
-                Inches(28.0).meterValue(),  // Drive base radius in meters. Distance from robot center to furthest module.
+                PIDConstants(Constants.ModuleConstants.DrivingP, Constants.ModuleConstants.DrivingI, Constants.ModuleConstants.DrivingD),  // Translation PID constants
+                PIDConstants(Constants.ModuleConstants.TurningP, Constants.ModuleConstants.TurningI, Constants.ModuleConstants.TurningD),  // Rotation PID constants
+                MaxSpeedMetersPerSecond,  // Max module speed, in m/s
+                0.7112,  // Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() // Default path replanning config. See the API for the options here
             ),
             BooleanSupplier {
