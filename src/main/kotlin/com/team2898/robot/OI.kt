@@ -18,7 +18,7 @@ import kotlin.math.sign
  *  to another object.  Then, whenever you read the property, it asks the
  *  object the property is delegated to for the value.
  */
-@Suppress("unused")
+@Suppress("unused") 
 object OI : SubsystemBase() {
     /**
      * Threshold below which [process] will return 0.
