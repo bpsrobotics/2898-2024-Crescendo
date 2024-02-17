@@ -16,7 +16,6 @@ import edu.wpi.first.wpilibj2.command.Command
 import com.team2898.engine.utils.units.*
 import kotlin.math.PI
 
-
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
  * numerical or boolean
@@ -97,6 +96,7 @@ class Constants {
         const val DrivingFF = 1 / DriveWheelFreeSpeedRps
         const val DrivingKs = 0.0
         const val DrivingKv = 0.0
+        const val DrivingKa = 0.0
         const val DrivingMinOutput = -1.0
         const val DrivingMaxOutput = 1.0
         var TurningP = 0.75
@@ -121,7 +121,7 @@ class Constants {
     }
 
     object AutoConstants {
-        var commandMap: HashMap<String, Command> = HashMap<String, Command>()
+        var commandMap: HashMap<String, Command> = HashMap()
 
         const val MaxAccelerationMetersPerSecondSquared = 3.0
         const val MaxAngularSpeedRadiansPerSecond = Math.PI
@@ -182,8 +182,8 @@ class Constants {
 
     // set to operator/driver's preferences
     object ButtonConstants {
-        const val CLIMBER_ADVANCE = 6
-        const val CLIMBER_RETRACT = 4
+        const val CLIMBER_UP = 2 // very hard to press accidentally
+        const val CLIMBER_WAIT_DURATION = 0.5
 
         const val ARM_UP = 5
         const val ARM_DOWN = 3

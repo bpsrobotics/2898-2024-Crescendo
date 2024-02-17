@@ -15,21 +15,22 @@ import kotlin.math.min
 object Climber : SubsystemBase() {
     private val climberMotor = CANSparkMax(ClimberId, CANSparkLowLevel.MotorType.kBrushless)
     private val climberCoder = climberMotor.encoder
-    var currentState: ClimberConstants.ClimbHeights? = null
+    var currentState: Boolean? = null
         private set
-    var targetState: ClimberConstants.ClimbHeights = ClimberConstants.ClimbHeights.STOWED
+    var targetState: Boolean = false
         private set
-    private val waiting = mutableMapOf<ClimberConstants.ClimbHeights, MutableSet<Promise.Companion.ResolversObject<Unit>>>()
+    private val waiting = mutableMapOf<Boolean, MutableSet<Promise.Companion.ResolversObject<Unit>>>()
     private var setSpeed = 1.0 // speed control
-    val distanceToGo get() = targetState.position - climberCoder.position
+    fun Boolean.toDouble() = if (this) 1.0 else 0.0
+    val distanceToGo get() = targetState.toDouble() - climberCoder.position
     val absDistanceToGo get() = abs(distanceToGo)
     fun finished(loop: EventLoop) = BooleanEvent(loop) { arrived() }
-    fun arrived() = currentState == targetState
-    fun setState(newState: ClimberConstants.ClimbHeights) {
+    fun arrived() = currentState != null && currentState == targetState
+    fun setState(newState: Boolean) {
         targetState = newState
         currentState = null
     }
-    fun go(newState: ClimberConstants.ClimbHeights): Promise<Unit> {
+    fun go(newState: Boolean): Promise<Unit> {
         waiting.forEach { (t, u) ->
             if (t != newState) {
                 u.forEach { it.reject(Exception("Arm movement cancelled")) }
@@ -50,7 +51,7 @@ object Climber : SubsystemBase() {
     override fun periodic() {
         val position = climberCoder.position
         val velocity = climberCoder.velocity
-        if (abs(position - targetState.position) > 0.3) {
+        if (abs(position - targetState.toDouble()) > 0.3) {
             if (abs(velocity) > 0.01) setSpeed = max(0.0, min(1.0, abs(ClimberConstants.ClimberMaxSpeed / velocity)))
             climberMotor.set(setSpeed)
         } else {

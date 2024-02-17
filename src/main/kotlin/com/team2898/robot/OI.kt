@@ -2,6 +2,7 @@ package com.team2898.robot
 
 import com.team2898.engine.utils.Vector
 import com.team2898.engine.utils.async.Promise
+import com.team2898.robot.subsystems.Arm
 import edu.wpi.first.math.MathUtil
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Joystick
@@ -9,6 +10,7 @@ import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.XboxController
 import edu.wpi.first.wpilibj.event.BooleanEvent
 import edu.wpi.first.wpilibj.event.EventLoop
+import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 import kotlin.math.pow
 import kotlin.math.sign
@@ -109,8 +111,7 @@ object OI : SubsystemBase() {
         else -> Vector.zero
     }
 
-    val climbAdvance: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_ADVANCE, loop).rising()
-    val climbRetract: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_RETRACT, loop).rising()
+    val climb: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_UP, loop).debounce(Constants.ButtonConstants.CLIMBER_WAIT_DURATION)
 
     val armSelectUp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_UP, loop).rising()
     val armSelectDown: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DOWN, loop).rising()
@@ -189,6 +190,15 @@ object OI : SubsystemBase() {
     override fun periodic(){
         Rumble.update()
     }
+
+//    init {
+//        armUp.debounce(0.05).onTrue(InstantCommand({
+//            Arm.setGoal(Arm.setpoint + 0.1)
+//        }))
+//        armDown.debounce(0.05).onTrue(InstantCommand({
+//            Arm.setGoal(Arm.setpoint - 0.1)
+//        }))
+//    }
 
 
 }

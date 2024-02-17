@@ -11,12 +11,16 @@ import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.controller.SimpleMotorFeedforward
 import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.wpilibj2.command.SubsystemBase
+import java.lang.System.currentTimeMillis
+import kotlin.math.abs
 
 object Shooter : SubsystemBase() {
     private val shooterMotorTop = CANSparkMax(ShooterTopId, CANSparkLowLevel.MotorType.kBrushless)
     private val shooterEncoderTop = shooterMotorTop.encoder
+    val wheelSpeedTop = shooterEncoderTop.velocity
     private val shooterMotorBot = CANSparkMax(ShooterBottomId, CANSparkLowLevel.MotorType.kBrushless)
     private val shooterEncoderBot = shooterMotorBot.encoder
+    val wheelSpeedBot = shooterEncoderBot.velocity
     // PID Constants
     val kP = 0.0
     val kI = 0.0
@@ -28,24 +32,69 @@ object Shooter : SubsystemBase() {
     val kA = 0.0
     val ff = SimpleMotorFeedforward(kS, kV, kA)
 
+    val botAverage = LinearFilter.movingAverage(3)
+    var currentBotAverage = 0.0
+    val topAverage = LinearFilter.movingAverage(3)
+    var currentTopAverage = 0.0
+    private var prevTime = currentTimeMillis() / 1000.0
+    private var prevSpeedTop = 0.0
+    private var prevSpeedBot = 0.0
+
+
+    var motorStop = false
+
+
+    var topGoal = 0.0
+    var botGoal = 0.0
+    val topPID = pid.calculate(wheelSpeedTop, topGoal)
+    val topFF = ff.calculate(topGoal)
+    val botPID = pid.calculate(wheelSpeedBot, botGoal)
+    val botFF = ff.calculate(botGoal)
     init{
         shooterMotorTop.restoreFactoryDefaults()
         shooterMotorTop.setSmartCurrentLimit(40)
         shooterMotorTop.idleMode = CANSparkBase.IdleMode.kCoast
-        shooterMotorTop.enableVoltageCompensation(12.0)
+        shooterMotorTop.enableVoltageCompensation(1.0)
+        shooterMotorTop.burnFlash()
 
         shooterMotorBot.restoreFactoryDefaults()
         shooterMotorBot.setSmartCurrentLimit(40)
         shooterMotorBot.idleMode = CANSparkBase.IdleMode.kCoast
-        shooterMotorBot.enableVoltageCompensation(12.0)
+        shooterMotorBot.enableVoltageCompensation(1.0)
+        shooterMotorBot.inverted
+        shooterMotorBot.burnFlash()
 
     }
 
+    override fun periodic() {
+        val deltaTime = (currentTimeMillis() / 1000.0) - prevTime
+        val deltaSpeed = abs(prevSpeedTop - wheelSpeedTop)
+        val deltaSpeedBack = abs(prevSpeedBot - wheelSpeedBot)
+
+        currentTopAverage = topAverage.calculate(deltaSpeed / deltaTime)
+        currentBotAverage = botAverage.calculate(deltaSpeedBack / deltaTime)
+        prevTime = currentTimeMillis() / 1000.0
+
+        if(!motorStop){
+            shooterMotorTop.setVoltage(topFF + topPID)
+            shooterMotorBot.setVoltage(botFF + botPID)
+        }
+
+        prevSpeedTop = wheelSpeedTop
+        prevSpeedBot = wheelSpeedBot
+    }
+
     fun shoot(){
+
 //        botAverage
 //        val pidCalc = pid.calculate()
 //        val ffCalc = ff.calculate()
 //        shooterMotorTop.set(pidCalc + ffCalc)
+    }
+    fun setWheelSpeed(rpm: Double) {
+        topGoal = rpm
+        botGoal = rpm
+        motorStop = false
     }
 
     fun setFlywheelSpeed(speed: MetersPerSecond) {
@@ -59,6 +108,7 @@ object Shooter : SubsystemBase() {
     fun stop(){
         shooterMotorTop.stopMotor()
         shooterMotorBot.stopMotor()
+        motorStop = true
     }
 
 

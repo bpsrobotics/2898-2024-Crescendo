@@ -13,11 +13,14 @@ import com.team2898.engine.utils.TurningPID
 import com.team2898.robot.Constants
 import com.team2898.robot.OI
 import com.team2898.robot.subsystems.*
+import com.team2898.engine.utils.units.*
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
+import com.team2898.robot.Constants.*
+import edu.wpi.first.wpilibj2.command.InstantCommand
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -98,36 +101,42 @@ class TeleOp : Command() {
     fun peripheralControls() {
         if (OI.armSelectUp.asBoolean) {
             println("arm up")
-            Arm.setGoal(Arm.targetState.up())
+            InstantCommand({
+                Arm.setGoal(Arm.setpoint + 0.1)
+            })
+//            Arm.setGoal(Arm.targetState.up())
         }
         if (OI.armSelectDown.asBoolean) {
             println("arm down")
-            Arm.setGoal(Arm.targetState.down())
+            InstantCommand({
+                Arm.setGoal(Arm.setpoint - 0.1)
+            })
+//            Arm.setGoal(Arm.targetState.down())
         }
         if (armDirectChoosing && !armDirectChoose.hasElapsed(Constants.ButtonConstants.ARM_DIRECT_CHOOSE_DURATION)) {
             when {
                 OI.armDirectGround.asBoolean -> {
-                    Arm.setGoal(Constants.ArmConstants.ArmHeights.GROUND)
+                    ArmMove(ArmConstants.ArmHeights.GROUND)
                     println("arm ground")
                     armDirectChoosing = false
                 }
                 OI.armDirectStowed.asBoolean -> {
-                    Arm.setGoal(Constants.ArmConstants.ArmHeights.STOWED)
+                    ArmMove(Constants.ArmConstants.ArmHeights.STOWED)
                     println("arm stowed")
                     armDirectChoosing = false
                 }
                 OI.armDirectAmp.asBoolean -> {
-                    Arm.setGoal(Constants.ArmConstants.ArmHeights.AMP)
+                    ArmMove(ArmConstants.ArmHeights.AMP)
                     println("arm amp")
                     armDirectChoosing = false
                 }
                 OI.armDirectShooter1.asBoolean -> {
-                    Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER1)
+                    ArmMove(ArmConstants.ArmHeights.SHOOTER1)
                     println("arm shooter1")
                     armDirectChoosing = false
                 }
                 OI.armDirectShooter2.asBoolean -> {
-                    Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER2)
+                    ArmMove(ArmConstants.ArmHeights.SHOOTER2)
                     println("arm shooter2")
                     armDirectChoosing = false
                 }
@@ -142,23 +151,22 @@ class TeleOp : Command() {
             armDirectChoose.reset()
             armDirectChoose.start()
         }
-        if (OI.climbAdvance.asBoolean) {
-            println("climber advance")
-            Climber.setState(Climber.targetState.advance())
+        if (OI.climb.asBoolean) {
+            println("climbing!!!")
         }
-        if (OI.climbRetract.asBoolean) {
-            println("climber retract")
-            Climber.setState(Climber.targetState.retract())
-        }
+        Climber.setState(OI.climb.asBoolean)
         if (Arm.currentPosition != null) {
             if (OI.operatorTrigger.asBoolean) {
-                println("shooter velocity ${Arm.currentPosition!!.velocity}")
-                Shooter.setFlywheelSpeed(Arm.currentPosition!!.velocity)
+                Shooter.setWheelSpeed(10.0)
+//                println("shooter velocity ${Arm.currentPosition?.shooterVelocity}")
+//                Shooter.setFlywheelSpeed(Arm.currentPosition?.shooterVelocity ?: 0.0.mps)
+
             } else if (OI.operatorTriggerReleased.asBoolean) {
                 println("shooter shoot")
-                Shooter.shoot()
+                Intake.runIntake(0.5)
             } else {
-                Shooter.setFlywheelSpeed(0.0)
+                Shooter.stop()
+//                Shooter.setFlywheelSpeed(0.0.mps)
             }
         }
         if (Arm.currentPosition == Constants.ArmConstants.ArmHeights.GROUND && OI.runIntake.asBoolean) {
