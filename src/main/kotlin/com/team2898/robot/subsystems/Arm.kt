@@ -1,11 +1,14 @@
 package com.team2898.robot.subsystems
 
 
+import com.bpsrobotics.engine.utils.Volts
 import com.ctre.phoenix6.hardware.CANcoder
 import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.team2898.engine.utils.MovingAverage
+import com.team2898.engine.utils.Sugar.degreesToRadians
+import com.team2898.engine.utils.Sugar.radiansToDegrees
 import com.team2898.robot.Constants.ArmConstants.ArmDigitalInput
 import com.team2898.robot.Constants.ArmConstants.ArmMaxSpeed
 import com.team2898.robot.Constants.ArmConstants.Arm_MaxAccel
@@ -14,6 +17,7 @@ import com.team2898.robot.RobotMap.Arm_left
 import com.team2898.robot.RobotMap.Arm_right
 import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.trajectory.TrapezoidProfile
+import edu.wpi.first.units.*
 import edu.wpi.first.util.sendable.SendableBuilder
 import edu.wpi.first.wpilibj.DigitalInput
 import edu.wpi.first.wpilibj.DutyCycleEncoder
@@ -39,6 +43,7 @@ object Arm : SubsystemBase() {
     var ksin = 0.0
     var ks = 0.0
     var kv = 0.0
+    var voltageApplied = 0.0
 
     fun pos(): Double {
         val p = encoder.absolutePosition * 2 * PI
@@ -62,11 +67,13 @@ object Arm : SubsystemBase() {
         armMotor.restoreFactoryDefaults()
         armMotor.setSmartCurrentLimit(40)
         armMotor.idleMode = CANSparkBase.IdleMode.kBrake
-        armMotor.inverted
+        armMotor.inverted = true
+        armMotor.burnFlash()
 
         armMotorSecondary.restoreFactoryDefaults()
         armMotorSecondary.setSmartCurrentLimit(40)
         armMotorSecondary.idleMode = CANSparkBase.IdleMode.kBrake
+        armMotor.burnFlash()
 
         SmartDashboard.putNumber("arm kp", 0.0)
         SmartDashboard.putNumber("arm kd", 0.0)
@@ -74,7 +81,9 @@ object Arm : SubsystemBase() {
         SmartDashboard.putNumber("arm ksin", ksin)
         SmartDashboard.putNumber("arm kv", kv)
         SmartDashboard.putNumber("position", pos())
-
+        SmartDashboard.putNumber("voltage applied", voltageApplied)
+        SmartDashboard.putNumber("angle deg", encoder.absolutePosition * 360)
+        SmartDashboard.putNumber("angle from lower deg", LOWER_SOFT_STOP.radiansToDegrees() - pos().radiansToDegrees())
     }
 
     var last = pos()
@@ -88,7 +97,7 @@ object Arm : SubsystemBase() {
         ks = SmartDashboard.getNumber("arm ks", ks)
         ksin = SmartDashboard.getNumber("arm ksin", ksin)
         kv = SmartDashboard.getNumber("arm kv", kv)
-
+        voltageApplied = SmartDashboard.getNumber("voltage applied", voltageApplied)
         val currentTick = false
 
         val p = pos()
@@ -136,6 +145,7 @@ object Arm : SubsystemBase() {
         } else {
             println("ur good bro")
         }
+        println("voltage applied: $voltageApplied")
         armMotor.set(output)
         armMotorSecondary.set(output)
 
@@ -163,6 +173,10 @@ object Arm : SubsystemBase() {
 
     fun isMoving(): Boolean {
         return profile != null
+    }
+    fun voltMove(volts: Double){
+        armMotor.setVoltage(volts)
+        armMotorSecondary.setVoltage(volts)
     }
     override fun initSendable(builder: SendableBuilder) {
         builder.addDoubleProperty("position", { pos() }) {}

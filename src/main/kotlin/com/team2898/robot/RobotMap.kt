@@ -12,11 +12,12 @@ object RobotMap {
     const val FrontRightTurningCanId = 1
     const val RearRightTurningCanId = 3
 
-    const val Arm_left = 9
-    const val Arm_right = 10
-    const val IntakeId = 14
-    const val ShooterId = 12
-    const val ClimberId = 13
+    const val Arm_left = 10
+    const val Arm_right = 9
+    const val IntakeId = 13
+    const val ShooterTopId = 12
+    const val ShooterBottomId = 11
+    const val ClimberId = 14
 
     // CANcoder IDs
     const val FrontLeftCANCoderID = 44

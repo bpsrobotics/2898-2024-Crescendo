@@ -140,7 +140,7 @@ class TeleOp : Command() {
             rateLimit = true,
             secondOrder = true
         )
-
+        Arm.voltMove(Arm.voltageApplied)
 
         }
 

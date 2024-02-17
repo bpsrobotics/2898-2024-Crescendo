@@ -48,7 +48,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction
 import java.util.function.BooleanSupplier
-import kotlin.math.absoluteValue
 
 
 object Drivetrain
@@ -169,13 +168,13 @@ object Drivetrain
     }
 
     // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
-    private val m_appliedVoltage: MutableMeasure<Voltage> = mutable(Volts.of(0.0))
+    private val d_appliedVoltage: MutableMeasure<Voltage> = mutable(Volts.of(0.0))
 
     // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
-    private val m_distance: MutableMeasure<Distance> = mutable(Meters.of(0.0))
+    private val d_distance: MutableMeasure<Distance> = mutable(Meters.of(0.0))
 
     // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
-    private val m_velocity: MutableMeasure<Velocity<Distance>> = mutable(MetersPerSecond.of(0.0))
+    private val d_velocity: MutableMeasure<Velocity<Distance>> = mutable(MetersPerSecond.of(0.0))
     // Create a new SysId routine for characterizing the drive.
     val sysIdRoutine = SysIdRoutine(
         // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
@@ -192,11 +191,11 @@ object Drivetrain
             { log: SysIdRoutineLog ->
                 for (module in modules){
                     log.motor("drive" + module.moduleID)
-                        .voltage(m_appliedVoltage.mut_replace(
+                        .voltage(d_appliedVoltage.mut_replace(
                             module.getVoltage(), Volts
                         ))
-                        .linearPosition(m_distance.mut_replace(module.position.distanceMeters, Meters))
-                        .linearVelocity(m_velocity.mut_replace(
+                        .linearPosition(d_distance.mut_replace(module.position.distanceMeters, Meters))
+                        .linearVelocity(d_velocity.mut_replace(
                             module.drivingEncoder.velocity, MetersPerSecond
                         ))
                 }
