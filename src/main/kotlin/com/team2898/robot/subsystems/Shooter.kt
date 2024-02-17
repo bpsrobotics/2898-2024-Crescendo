@@ -85,7 +85,6 @@ object Shooter : SubsystemBase() {
     }
 
     fun shoot(){
-
 //        botAverage
 //        val pidCalc = pid.calculate()
 //        val ffCalc = ff.calculate()
@@ -112,5 +111,4 @@ object Shooter : SubsystemBase() {
     }
 
 
-    fun setFlywheelSpeed(speed: Double) = setFlywheelSpeed(speed.mps)
 }

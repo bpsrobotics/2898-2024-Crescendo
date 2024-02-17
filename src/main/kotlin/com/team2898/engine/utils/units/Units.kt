@@ -25,15 +25,14 @@ value class Meters(override val value: Double) : DistanceUnit {
     constructor(v: Int) : this(v.toDouble())
     override fun meterValue() = value
 
-    override fun toString(): String {
-        return "$value m"
-    }
+    override fun toString() = "$value m"
 }
 
 @JvmInline
 value class Kilometers(override val value: Double) : DistanceUnit {
     constructor(v: Int) : this(v.toDouble())
     override fun meterValue() = value * 1000
+    override fun toString() = "$value km"
 }
 
 @JvmInline
@@ -56,13 +55,40 @@ value class Inches(override val value: Double) : DistanceUnit {
     }
 }
 
+//@JvmInline
+//value class AstronomicalUnits(override val value: Double) : DistanceUnit {
+//    constructor(v: Int) : this(v.toDouble())
+//    override fun meterValue() = value * 149_597_870_700
+//    override fun toString() = "$value au"
+//}
+
 interface AreaUnit : Unit {
     fun metersSquaredValue(): Double
 }
 
 @JvmInline
 value class MetersSquared(override val value: Double) : AreaUnit {
+    constructor(v: Int) : this(v.toDouble())
     override fun metersSquaredValue() = value
+    override fun toString() = "$value m^2"
+}
+
+interface VolumeUnit : Unit {
+    fun metersCubedValue(): Double
+}
+
+@JvmInline
+value class MetersCubed(override val value: Double) : VolumeUnit {
+    constructor(v: Int) : this(v.toDouble())
+    override fun metersCubedValue() = value
+    override fun toString() = "$value m^3"
+}
+
+@JvmInline
+value class Liters(override val value: Double): VolumeUnit {
+    constructor(v: Int) : this(v.toDouble())
+    override fun metersCubedValue() = 1000 * value
+    override fun toString() = "$value L"
 }
 
 // Velocity
@@ -94,6 +120,7 @@ value class FeetPerSecond(override val value: Double) : VelocityUnit {
 value class KilometersPerHour(override val value: Double) : VelocityUnit {
     constructor(v: Int) : this(v.toDouble())
     override fun metersPerSecondValue() = value / 3.6
+    override fun toString() = "$value kph"
 }
 
 @JvmInline
@@ -130,12 +157,14 @@ interface AngularVelocityUnit : Unit {
 value class RPM(override val value: Double) : AngularVelocityUnit {
     constructor(v: Int) : this(v.toDouble())
     override fun rotationsPerMinute() = value
+    override fun toString() = "$value rpm"
 }
 
 @JvmInline
 value class RPS(override val value: Double) : AngularVelocityUnit {
     constructor(v: Int) : this(v.toDouble())
     override fun rotationsPerMinute() = value * 60
+    override fun toString() = "$value rps"
 }
 
 // Angles
@@ -205,7 +234,7 @@ value class Pounds(override val value: Double) : WeightUnit {
     override fun kilogramsWeightValue() = value * 0.453592
 
     override fun toString(): String {
-        return "$value lbs"
+        return "$value lb${if (value == 1.0) "" else "s"}"
     }
 }
 
@@ -228,12 +257,14 @@ value class Seconds(override val value: Double) : TimeUnit {
 value class Minutes(override val value: Double) : TimeUnit {
     constructor(v: Int) : this(v.toDouble())
     override fun secondsValue() = value * 60
+    override fun toString() = "$value min"
 }
 
 @JvmInline
 value class Hours(override val value: Double) : TimeUnit {
     constructor(v: Int) : this(v.toDouble())
     override fun secondsValue() = value * 3600
+    override fun toString() = "$value hr${if (value == 1.0) "" else "s"}"
 }
 
 @JvmInline
@@ -273,7 +304,7 @@ value class Hertz(override val value: Double) : FrequencyUnit {
 value class Volts(override val value: Double) : Unit {
     constructor(v: Int) : this(v.toDouble())
     override fun toString(): String {
-        return "$value v"
+        return "$value V"
     }
 }
 
@@ -281,8 +312,15 @@ value class Volts(override val value: Double) : Unit {
 value class Amps(override val value: Double) : Unit {
     constructor(v: Int) : this(v.toDouble())
     override fun toString(): String {
-        return "$value a"
+        return "$value A"
     }
+}
+
+@JvmInline
+value class Watts(override val value: Double) : Unit {
+    constructor(v: Int) : this(v.toDouble())
+
+    override fun toString() = "$value W"
 }
 
 // Typealiases for ease of use
@@ -308,14 +346,33 @@ fun DistanceUnit.toMeters() = Meters(meterValue())
 fun DistanceUnit.toKilometers() = Kilometers(meterValue() / Kilometers(1.0).meterValue())
 fun DistanceUnit.toFeet() = Feet(meterValue() / Feet(1.0).meterValue())
 fun DistanceUnit.toInches() = Inches(meterValue() / Inches(1.0).meterValue())
+val DistanceUnit.meters get() = toMeters()
+val DistanceUnit.m get() = toMeters()
+val DistanceUnit.kilometers get() = toKilometers()
+val DistanceUnit.km get() = toKilometers()
+val DistanceUnit.feet get() = toFeet()
+val DistanceUnit.ft get() = toFeet()
+val DistanceUnit.inches get() = toInches()
 
 fun VelocityUnit.toMetersPerSecond() = mps(metersPerSecondValue())
 fun VelocityUnit.toFeetPerSecond() = FeetPerSecond(metersPerSecondValue() / FeetPerSecond(1.0).metersPerSecondValue())
 fun VelocityUnit.toKilometersPerHour() = KilometersPerHour(metersPerSecondValue() / KilometersPerHour(1.0).metersPerSecondValue())
 fun VelocityUnit.toMilesPerHour() = MilesPerHour(metersPerSecondValue() / MilesPerHour(1.0).metersPerSecondValue())
+val VelocityUnit.metersPerSecond get() = toMetersPerSecond()
+val VelocityUnit.mps: MetersPerSecond get() = toMetersPerSecond()
+val VelocityUnit.feetPerSecond get() = toFeetPerSecond()
+val VelocityUnit.fps get() = toFeetPerSecond()
+val VelocityUnit.kilometersPerHour get() = toKilometersPerHour()
+val VelocityUnit.kph get() = toKilometersPerHour()
+val VelocityUnit.milesPerHour get() = toMilesPerHour()
+val VelocityUnit.mph get() = toMilesPerHour()
 
 fun AngularVelocityUnit.toRotationsPerMinute() = RPM(rotationsPerMinute())
 fun AngularVelocityUnit.toRotationsPerSecond() = RPS(rotationsPerMinute() / RPS(1.0).rotationsPerMinute())
+val AngularVelocityUnit.rotationsPerMinute get() = toRotationsPerMinute()
+val AngularVelocityUnit.rpm get() = toRotationsPerMinute()
+val AngularVelocityUnit.rotationsPerSecond get() = toRotationsPerSecond()
+val AngularVelocityUnit.rps get() = toRotationsPerSecond()
 
 fun AngleUnit.toRadians() = Radians(radiansValue())
 fun AngleUnit.toDegrees() = Degrees(radiansValue() / Degrees(1.0).radiansValue())
@@ -330,82 +387,127 @@ fun FrequencyUnit.toMillis() = Millis(1000 / hertzValue())
 
 val Double.meters get() = Meters(this)
 val Int.meters get() = Meters(this.toDouble())
+val Long.meters get() = Meters(this.toDouble())
 val Double.m get() = Meters(this)
 val Int.m get() = Meters(this.toDouble())
+val Long.m get() = Meters(this.toDouble())
+val Double.kilometers get() = Kilometers(this)
+val Int.kilometers get() = Kilometers(this.toDouble())
+val Long.kilometers get() = Kilometers(this.toDouble())
 val Double.km get() = Kilometers(this)
 val Int.km get() = Kilometers(this.toDouble())
+val Long.km get() = Kilometers(this.toDouble())
 val Double.feet get() = Feet(this)
 val Int.feet get() = Feet(this.toDouble())
+val Long.feet get() = Feet(this.toDouble())
 val Double.ft get() = Feet(this)
 val Int.ft get() = Feet(this.toDouble())
+val Long.ft get() = Feet(this.toDouble())
 val Double.inches get() = Inches(this)
 val Int.inches get() = Inches(this.toDouble())
+val Long.inches get() = Inches(this.toDouble())
 val Double.metersSquared get() = MetersSquared(this)
 val Int.metersSquared get() = MetersSquared(this.toDouble())
+val Long.metersSquared get() = MetersSquared(this.toDouble())
 val Double.m2 get() = MetersSquared(this)
 val Int.m2 get() = MetersSquared(this.toDouble())
+val Long.m2 get() = MetersSquared(this.toDouble())
 val Double.metersPerSecond get() = MetersPerSecond(this)
 val Int.metersPerSecond get() = MetersPerSecond(this.toDouble())
+val Long.metersPerSecond get() = MetersPerSecond(this.toDouble())
 val Double.mps get() = MetersPerSecond(this)
 val Int.mps get() = MetersPerSecond(this.toDouble())
+val Long.mps get() = MetersPerSecond(this.toDouble())
 val Double.feetPerSecond get() = FeetPerSecond(this)
 val Int.feetPerSecond get() = FeetPerSecond(this.toDouble())
+val Long.feetPerSecond get() = FeetPerSecond(this.toDouble())
 val Double.kilometersPerHour get() = KilometersPerHour(this)
 val Int.kilometersPerHour get() = KilometersPerHour(this.toDouble())
+val Long.kilometersPerHour get() = KilometersPerHour(this.toDouble())
 val Double.kph get() = KilometersPerHour(this)
 val Int.kph get() = KilometersPerHour(this.toDouble())
+val Long.kph get() = KilometersPerHour(this.toDouble())
 val Double.milesPerHour get() = MilesPerHour(this)
 val Int.milesPerHour get() = MilesPerHour(this.toDouble())
+val Long.milesPerHour get() = MilesPerHour(this.toDouble())
 val Double.mph get() = MilesPerHour(this)
 val Int.mph get() = MilesPerHour(this.toDouble())
+val Long.mph get() = MilesPerHour(this.toDouble())
 val Double.metersPerSecondSquared get() = MetersPerSecondSquared(this)
 val Int.metersPerSecondSquared get() = MetersPerSecondSquared(this.toDouble())
+val Long.metersPerSecondSquared get() = MetersPerSecondSquared(this.toDouble())
 val Double.rotationsPerMinute get() = RPM(this)
 val Int.rotationsPerMinute get() = RPM(this.toDouble())
+val Long.rotationsPerMinute get() = RPM(this.toDouble())
 val Double.rpm get() = RPM(this)
 val Int.rpm get() = RPM(this.toDouble())
+val Long.rpm get() = RPM(this.toDouble())
 val Double.rotationsPerSecond get() = RPS(this)
 val Int.rotationsPerSecond get() = RPS(this.toDouble())
+val Long.rotationsPerSecond get() = RPS(this.toDouble())
 val Double.rps get() = RPS(this)
 val Int.rps get() = RPS(this.toDouble())
+val Long.rps get() = RPS(this.toDouble())
 val Double.radians get() = Radians(this)
 val Int.radians get() = Radians(this.toDouble())
+val Long.radians get() = Radians(this.toDouble())
 val Double.rad get() = Radians(this)
 val Int.rad get() = Radians(this.toDouble())
+val Long.rad get() = Radians(this.toDouble())
 val Double.degrees get() = Degrees(this)
 val Int.degrees get() = Degrees(this.toDouble())
+val Long.degrees get() = Degrees(this.toDouble())
 val Double.deg get() = Degrees(this)
 val Int.deg get() = Degrees(this.toDouble())
+val Long.deg get() = Degrees(this.toDouble())
 val Double.rotations get() = Rotations(this)
 val Int.rotations get() = Rotations(this.toDouble())
+val Long.rotations get() = Rotations(this.toDouble())
 val Double.rot get() = Rotations(this)
 val Int.rot get() = Rotations(this.toDouble())
+val Long.rot get() = Rotations(this.toDouble())
 val Double.kilograms get() = Kilograms(this)
 val Int.kilograms get() = Kilograms(this.toDouble())
+val Long.kilograms get() = Kilograms(this.toDouble())
 val Double.kg get() = Kilograms(this)
 val Int.kg get() = Kilograms(this.toDouble())
+val Long.kg get() = Kilograms(this.toDouble())
 val Double.pounds get() = Pounds(this)
 val Int.pounds get() = Pounds(this.toDouble())
+val Long.pounds get() = Pounds(this.toDouble())
 val Double.lbs get() = Pounds(this)
 val Int.lbs get() = Pounds(this.toDouble())
+val Long.lbs get() = Pounds(this.toDouble())
 val Double.seconds get() = Seconds(this)
 val Int.seconds get() = Seconds(this.toDouble())
+val Long.seconds get() = Seconds(this.toDouble())
 val Double.minutes get() = Minutes(this)
 val Int.minutes get() = Minutes(this.toDouble())
+val Long.minutes get() = Minutes(this.toDouble())
 val Double.hours get() = Hours(this)
 val Int.hours get() = Hours(this.toDouble())
+val Long.hours get() = Hours(this.toDouble())
 val Double.milliseconds get() = Milliseconds(this)
 val Int.milliseconds get() = Milliseconds(this.toDouble())
+val Long.milliseconds get() = Milliseconds(this.toDouble())
 val Double.hertz get() = Hertz(this)
 val Int.hertz get() = Hertz(this.toDouble())
+val Long.hertz get() = Hertz(this.toDouble())
 val Double.hz get() = Hertz(this)
 val Int.hz get() = Hertz(this.toDouble())
+val Long.hz get() = Hertz(this.toDouble())
 val Double.ms get() = Milliseconds(this)
 val Int.ms get() = Milliseconds(this.toDouble())
+val Long.ms get() = Milliseconds(this.toDouble())
 val Double.volts get() = Volts(this)
 val Int.volts get() = Volts(this.toDouble())
+val Long.volts get() = Volts(this.toDouble())
 val Double.amps get() = Amps(this)
 val Int.amps get() = Amps(this.toDouble())
+val Long.amps get() = Amps(this.toDouble())
+val Double.watts get() = Watts(this)
+val Int.watts get() = Watts(this.toDouble())
+val Long.watts get() = Watts(this.toDouble())
 
 inline operator fun Meters.plus(other: Meters) = (value + other.value).meters
 inline operator fun Meters.unaryPlus() = value.meters
@@ -512,6 +614,14 @@ inline operator fun Amps.plus(other: Amps) = (value + other.value).amps
 inline operator fun Amps.unaryPlus() = value.amps
 inline operator fun Amps.minus(other: Amps) = (value - other.value).amps
 inline operator fun Amps.unaryMinus() = (-value).amps
+inline operator fun Volts.times(other: Amps) = (value * other.value).watts
+inline operator fun Amps.times(other: Volts) = (value * other.value).watts
+inline operator fun Watts.plus(other: Watts) = (value + other.value).watts
+inline operator fun Watts.unaryPlus() = value.watts
+inline operator fun Watts.minus(other: Watts) = (value - other.value).watts
+inline operator fun Watts.unaryMinus() = (-value).watts
+inline operator fun Watts.div(other: Amps) = (value / other.value).volts
+inline operator fun Watts.div(other: Volts) = (value / other.value).amps
 
 @JvmInline
 value class RGBA(val packed: UInt) {

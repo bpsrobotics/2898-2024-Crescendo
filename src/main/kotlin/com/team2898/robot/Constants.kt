@@ -157,6 +157,8 @@ class Constants {
     }
     object ShooterConstants{
         val FLYWHEEL_CIRCUMFERENCE = 4.inches
+        const val INTAKE_SPEED = 1.0
+        const val INTAKE_DURATION = 0.5
     }
 
     object ClimberConstants{
@@ -188,13 +190,12 @@ class Constants {
         const val ARM_UP = 5
         const val ARM_DOWN = 3
 
-        const val ARM_DIRECT_SELECT = 7
-        const val ARM_DIRECT_GROUND = 8
-        const val ARM_DIRECT_STOWED = 9
-        const val ARM_DIRECT_AMP = 10
-        const val ARM_DIRECT_SHOOTER1 = 11
-        const val ARM_DIRECT_SHOOTER2 = 12
-        const val ARM_DIRECT_CHOOSE_DURATION = 5.0
+        const val ARM_DIRECT_GROUND = 11
+        const val ARM_DIRECT_STOWED = 8
+        const val ARM_DIRECT_AMP = 7
+        const val ARM_DIRECT_SHOOTER1 = 9
+        const val ARM_DIRECT_SHOOTER2 = 10
+        const val ARM_DIRECT_WAIT_DURATION = 0.25
 
         const val PRESS_ACTIVATE_DURATION = 0.1
         const val INPUT_BUFFER_DURATION = 0.2

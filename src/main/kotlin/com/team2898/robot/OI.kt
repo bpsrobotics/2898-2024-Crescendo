@@ -116,12 +116,11 @@ object OI : SubsystemBase() {
     val armSelectUp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_UP, loop).rising()
     val armSelectDown: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DOWN, loop).rising()
 
-    val armDirectSelect: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SELECT, loop).rising()
-    val armDirectGround: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_GROUND, loop).rising()
-    val armDirectStowed: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_STOWED, loop).rising()
-    val armDirectAmp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_AMP, loop).rising()
-    val armDirectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER1, loop).rising()
-    val armDirectShooter2: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER2, loop).rising()
+    val armDirectGround: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_GROUND, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectStowed: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_STOWED, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectAmp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_AMP, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER1, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectShooter2: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER2, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
 
     val runIntake: BooleanEvent = BooleanEvent(loop) { alignmentPad == Direction.DOWN }
 
@@ -179,7 +178,7 @@ object OI : SubsystemBase() {
             promise.then { update(); Promise.resolve(Unit) }
         }
         fun update(){
-            if(rumbleTimer.hasElapsed(rumbleTime) && !waiting.map { it.hasFulfilled }.reduce { acc, b -> acc or b }) {
+            if(rumbleTimer.hasElapsed(rumbleTime) && !(try {waiting.map { it.hasFulfilled }.reduce { acc, b -> acc or b }} catch (_:Throwable) {false})) {
                 driverController.setRumble(GenericHID.RumbleType.kBothRumble, 0.0)
             }
             waiting.forEach {
