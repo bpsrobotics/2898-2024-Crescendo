@@ -112,33 +112,36 @@ class TeleOp : Command() {
         }
         when {
             OI.armDirectGround.asBoolean -> {
-                Arm.setGoal(Constants.ArmConstants.ArmHeights.GROUND)
+                ArmMove(ArmConstants.ArmHeights.GROUND)
                 println("arm ground")
             }
             OI.armDirectStowed.asBoolean -> {
-                Arm.setGoal(Constants.ArmConstants.ArmHeights.STOWED)
+                ArmMove(ArmConstants.ArmHeights.STOWED)
                 println("arm stowed")
             }
             OI.armDirectAmp.asBoolean -> {
-                Arm.setGoal(Constants.ArmConstants.ArmHeights.AMP)
+                ArmMove(ArmConstants.ArmHeights.AMP)
                 println("arm amp")
             }
             OI.armDirectShooter1.asBoolean -> {
-                Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER1)
+                ArmMove(ArmConstants.ArmHeights.SHOOTER1)
                 println("arm shooter1")
             }
             OI.armDirectShooter2.asBoolean -> {
-                Arm.setGoal(Constants.ArmConstants.ArmHeights.SHOOTER2)
+                ArmMove(ArmConstants.ArmHeights.SHOOTER2)
                 println("arm shooter2")
             }
         }
         if (OI.climb.asBoolean) {
             println("climbing!!!")
         }
-        Climber.setState(OI.climb.asBoolean)
+//        Climber.setState(OI.climb.asBoolean)
         if (Arm.currentPosition != null) {
             if (OI.operatorTrigger.asBoolean) {
-                Shooter.setWheelSpeed(10.0)
+                SmartDashboard.putNumber("shooter speed", 10.0)
+                val speed = SmartDashboard.getNumber("shooter speed", 10.0)
+                Shooter.setWheelSpeed(Shooter.speed)
+
 //                println("shooter velocity ${Arm.currentPosition?.shooterVelocity}")
 //                Shooter.setFlywheelSpeed(Arm.currentPosition?.shooterVelocity ?: 0.0.mps)
 
@@ -150,7 +153,7 @@ class TeleOp : Command() {
 //                Shooter.setFlywheelSpeed(0.0.mps)
             }
         }
-        if (Arm.currentPosition == Constants.ArmConstants.ArmHeights.GROUND && OI.runIntake.asBoolean) {
+        if (Arm.currentPosition == Constants.ArmConstants.ArmHeights.GROUND || OI.runIntake.asBoolean) {
             println("run intake")
             Intake.runIntake(Constants.IntakeConstants.INTAKE_SPEED)
         } else {

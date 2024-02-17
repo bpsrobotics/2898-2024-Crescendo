@@ -10,6 +10,7 @@ import com.team2898.robot.Constants.ShooterConstants
 import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.math.controller.SimpleMotorFeedforward
 import edu.wpi.first.math.filter.LinearFilter
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 import java.lang.System.currentTimeMillis
 import kotlin.math.abs
@@ -22,13 +23,13 @@ object Shooter : SubsystemBase() {
     private val shooterEncoderBot = shooterMotorBot.encoder
     val wheelSpeedBot = shooterEncoderBot.velocity
     // PID Constants
-    val kP = 0.0
+    val kP = 0.1
     val kI = 0.0
     val kD = 0.0
     private val pid = PIDController(kP, kI, kD)
     // Feed Forward Constants
-    val kS = 0.0
-    val kV = 0.0
+    val kS = 0.4
+    val kV = 0.1
     val kA = 0.0
     val ff = SimpleMotorFeedforward(kS, kV, kA)
 
@@ -42,7 +43,7 @@ object Shooter : SubsystemBase() {
 
 
     var motorStop = false
-
+    var speed = 0.0
 
     var topGoal = 0.0
     var botGoal = 0.0
@@ -51,6 +52,7 @@ object Shooter : SubsystemBase() {
     val botPID = pid.calculate(wheelSpeedBot, botGoal)
     val botFF = ff.calculate(botGoal)
     init{
+        SmartDashboard.putNumber("shooter speed", 10.0)
         shooterMotorTop.restoreFactoryDefaults()
         shooterMotorTop.setSmartCurrentLimit(40)
         shooterMotorTop.idleMode = CANSparkBase.IdleMode.kCoast
@@ -67,6 +69,7 @@ object Shooter : SubsystemBase() {
     }
 
     override fun periodic() {
+        speed = SmartDashboard.getNumber("shooter speed", speed)
         val deltaTime = (currentTimeMillis() / 1000.0) - prevTime
         val deltaSpeed = abs(prevSpeedTop - wheelSpeedTop)
         val deltaSpeedBack = abs(prevSpeedBot - wheelSpeedBot)
@@ -79,6 +82,8 @@ object Shooter : SubsystemBase() {
             shooterMotorTop.setVoltage(topFF + topPID)
             shooterMotorBot.setVoltage(botFF + botPID)
         }
+        println("voltage" + shooterMotorBot.busVoltage)
+
 
         prevSpeedTop = wheelSpeedTop
         prevSpeedBot = wheelSpeedBot

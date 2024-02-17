@@ -19,6 +19,8 @@ object Intake : SubsystemBase() {
         intakeMotor.restoreFactoryDefaults()
         intakeMotor.setSmartCurrentLimit(20)
         intakeMotor.idleMode = CANSparkBase.IdleMode.kCoast
+        intakeMotor.inverted = true
+        intakeMotor.burnFlash()
 
     }
 

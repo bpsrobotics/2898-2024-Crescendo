@@ -122,7 +122,7 @@ object OI : SubsystemBase() {
     val armDirectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER1, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
     val armDirectShooter2: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER2, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
 
-    val runIntake: BooleanEvent = BooleanEvent(loop) { alignmentPad == Direction.DOWN }
+    val runIntake: BooleanEvent = BooleanEvent(loop) { hatVector == Vector(0,-1) }
 
     enum class Direction {
         LEFT, RIGHT, UP, DOWN, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, INACTIVE;

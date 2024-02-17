@@ -39,8 +39,8 @@ object Arm : SubsystemBase() {
     private const val UPPER_SOFT_STOP = 0.39
     val LOWER_SOFT_STOP = 2.31
     private var stopped = false
-    var ksin = 0.3
-    var ks = 0.1
+    var ksin = 0.0
+    var ks = 0.0
     var kv = 0.0
     var voltageApplied = 0.0
     var currentPosition: Constants.ArmConstants.ArmHeights? = null
@@ -139,10 +139,10 @@ object Arm : SubsystemBase() {
 
         if (p < UPPER_SOFT_STOP) {
             output = output.coerceAtLeast(UPPER_SOFT_STOP + 0.01)
-            println("UPPER SOFT STOP")
+//            println("UPPER SOFT STOP")
         } else if (p > LOWER_SOFT_STOP || currentTick) {
             output = output.coerceAtMost(LOWER_SOFT_STOP - 0.01)
-            println("LOWER SOFT STOP")
+//            println("LOWER SOFT STOP")
         } else {
             println("ur good bro")
         }
