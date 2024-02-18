@@ -143,7 +143,7 @@ class TeleOp : Command() {
     fun alignRobot() {
         var currentPose = Odometry.supplyPose()
         val pose = vision.getCameraYaw()
-        var rotationSpeed : Double
+        var rotationSpeed = 0.0
         if (OI.alignButtonPressed && !alignMode) {
 
                 alignMode = true
@@ -152,13 +152,13 @@ class TeleOp : Command() {
             alignMode = false
         }
         if (alignMode) {
-            if (!vision.hasTargets()) {
-                if (currentPose.rotation.degrees > 0) {
-                    rotationSpeed = 0.15
-                } else {
-                    rotationSpeed = -0.15
-                }
-            }
+//            if (!vision.hasTargets()) {
+//                if (currentPose.rotation.degrees < 0) {
+//                    rotationSpeed = 0.15
+//                } else {
+//                    rotationSpeed = -0.15
+//                }
+//            }
             if (vision.hasTargets()) {
                 println("target rotation" + targetRotation)
                 println("Turning")
@@ -180,12 +180,13 @@ class TeleOp : Command() {
                     -0.15
                 }
 //                val rotationSpeed = -turnController.calculate(pose.yaw.degreesToRadians() , targetRotation + (1 * PI))
-                Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
+
                 println("Pose.yaw:" + pose.degreesToRadians())
 
                 // Use our forward/turn speeds to control the drivetrain
 
-            }    // Use our forward/turn speeds to control the drivetrain
+            }
+            Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)// Use our forward/turn speeds to control the drivetrain
         }
     }
     override fun execute() {

@@ -1,9 +1,11 @@
 package com.team2898.engine.utils.odometry
 
+import com.team2898.robot.subsystems.Drivetrain
 import edu.wpi.first.apriltag.AprilTag
 import edu.wpi.first.apriltag.AprilTagFieldLayout
 import edu.wpi.first.apriltag.AprilTagFields
 import edu.wpi.first.math.geometry.*
+import edu.wpi.first.wpilibj.DriverStation
 import org.photonvision.EstimatedRobotPose
 import org.photonvision.PhotonCamera
 import org.photonvision.PhotonPoseEstimator
@@ -57,8 +59,22 @@ class Vision (
         return Yaw
     }
     fun hasTargets() : Boolean{
+        val alliance = DriverStation.getAlliance()
+        var targetID = 7
+        if (alliance.get() == DriverStation.Alliance.Red){
+            targetID = 4
+        }
         val result = cam.latestResult
-        return result.hasTargets()
+        if (result.hasTargets()) {
+            var result = cam.getLatestResult();
+            val targets = result.getTargets()
+            for (i in targets) {
+                if (i.fiducialId == targetID) {
+                    return true
+                }
+            }
+        }
+        return false
     }
     fun getEstimatedPose(prevEstimatedRobotPose: Pose2d?): Optional<EstimatedRobotPose>? {
         if(prevEstimatedRobotPose != null) PoseEstimator.setReferencePose(prevEstimatedRobotPose)
