@@ -96,18 +96,23 @@ class TeleOp : Command() {
 //        }
     }
     fun peripheralControls() {
+
         if (OI.armSelectUp.asBoolean) {
             println("arm up")
-            InstantCommand({
-                Arm.setGoal(Arm.setpoint + 0.1)
-            })
+            Arm.voltageApplied = 3.0
+//            Arm.voltUp()
+//            InstantCommand({
+//                Arm.setGoal(Arm.setpoint + 0.1)
+//            })
 //            Arm.setGoal(Arm.targetState.up())
         }
         if (OI.armSelectDown.asBoolean) {
             println("arm down")
-            InstantCommand({
-                Arm.setGoal(Arm.setpoint - 0.1)
-            })
+            Arm.voltageApplied = -3.0
+//            Arm.voltDown()
+//            InstantCommand({
+//                Arm.setGoal(Arm.setpoint - 0.1)
+//            })
 //            Arm.setGoal(Arm.targetState.down())
         }
         when {
@@ -116,6 +121,7 @@ class TeleOp : Command() {
                 println("arm ground")
             }
             OI.armDirectStowed.asBoolean -> {
+                Arm.setGoal(ArmConstants.ArmHeights.STOWED.position)
                 ArmMove(ArmConstants.ArmHeights.STOWED)
                 println("arm stowed")
             }
@@ -136,27 +142,33 @@ class TeleOp : Command() {
             println("climbing!!!")
         }
 //        Climber.setState(OI.climb.asBoolean)
-        if (Arm.currentPosition != null) {
-            if (OI.operatorTrigger.asBoolean) {
-                SmartDashboard.putNumber("shooter speed", 10.0)
-                val speed = SmartDashboard.getNumber("shooter speed", 10.0)
-                Shooter.setWheelSpeed(Shooter.speed)
+//        if (Arm.currentPosition != null) {
+        if (OI.operatorTrigger.asBoolean) {
+            Shooter.setVoltage(6.0)
+//            Shooter.setWheelSpeed(Shooter.speed)
+
 
 //                println("shooter velocity ${Arm.currentPosition?.shooterVelocity}")
 //                Shooter.setFlywheelSpeed(Arm.currentPosition?.shooterVelocity ?: 0.0.mps)
 
-            } else if (OI.operatorTriggerReleased.asBoolean) {
-                println("shooter shoot")
-                Intake.runIntake(0.5)
-            } else {
-                Shooter.stop()
+        } else if (OI.operatorTriggerReleased.asBoolean) {
+            Shooter.setVoltage(6.0)
+//            Shooter.setWheelSpeed(Shooter.speed)
+            println("shooter shoot")
+            Intake.runIntake(1.0)
+        } else {
+            Shooter.stop()
 //                Shooter.setFlywheelSpeed(0.0.mps)
-            }
         }
+//        }
         if (Arm.currentPosition == Constants.ArmConstants.ArmHeights.GROUND || OI.runIntake.asBoolean) {
             println("run intake")
-            Intake.runIntake(Constants.IntakeConstants.INTAKE_SPEED)
-        } else {
+            Intake.runIntake(0.25)
+        } else if (OI.runIntake.asBoolean && OI.operatorTrigger.asBoolean){
+            Intake.runIntake(1.0)
+
+        }
+        else {
             Intake.stopIntake()
         }
     }
@@ -172,6 +184,7 @@ class TeleOp : Command() {
             rateLimit = true,
             secondOrder = true
         )
+        Arm.voltMove(Arm.voltageApplied)
 
 
     }
