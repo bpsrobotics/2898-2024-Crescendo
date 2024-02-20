@@ -144,10 +144,10 @@ class Constants {
         const val Arm_MaxAccel = 1.5
         enum class ArmHeights(val position: Double) {
             GROUND(Arm.LOWER_SOFT_STOP),
-            STOWED(0.79),
-            AMP(0.41),
-            SHOOTER1(2.0),
-            SHOOTER2(1.9)
+            STOWED(0.12),
+            AMP(-0.35),
+            SHOOTER1(1.57),
+            SHOOTER2(1.25)
 
         }
     }

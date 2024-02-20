@@ -136,28 +136,34 @@ class TeleOp : Command() {
             println("climbing!!!")
         }
 //        Climber.setState(OI.climb.asBoolean)
-        if (Arm.currentPosition != null) {
-            if (OI.operatorTrigger.asBoolean) {
-                SmartDashboard.putNumber("shooter speed", 10.0)
-                val speed = SmartDashboard.getNumber("shooter speed", 10.0)
-                Shooter.setWheelSpeed(Shooter.speed)
+//        if (Arm.currentPosition != null) {
+        if (OI.operatorTrigger.asBoolean) {
+            Shooter.setVoltage(5.0)
+//            SmartDashboard.putNumber("shooter speed", 10.0)
+//            val speed = SmartDashboard.getNumber("shooter speed", 10.0)
+//            Shooter.setWheelSpeed(Shooter.speed)
 
 //                println("shooter velocity ${Arm.currentPosition?.shooterVelocity}")
 //                Shooter.setFlywheelSpeed(Arm.currentPosition?.shooterVelocity ?: 0.0.mps)
 
-            } else if (OI.operatorTriggerReleased.asBoolean) {
-                println("shooter shoot")
-                Intake.runIntake(0.5)
-            } else {
-                Shooter.stop()
+        } else if (OI.operatorTriggerReleased.asBoolean) {
+            Shooter.setVoltage(5.0)
+//            println("shooter shoot")
+//            Intake.runIntake(0.5)
+        } else {
+            Shooter.stop()
 //                Shooter.setFlywheelSpeed(0.0.mps)
-            }
         }
+//        }
         if (Arm.currentPosition == Constants.ArmConstants.ArmHeights.GROUND || OI.runIntake.asBoolean) {
             println("run intake")
-            Intake.runIntake(Constants.IntakeConstants.INTAKE_SPEED)
+            Intake.runIntake(0.25)
         } else {
             Intake.stopIntake()
+        }
+        if (OI.shooterOutake.asBoolean){
+            Intake.runIntake(-0.25)
+            Shooter.setVoltage(-2.0)
         }
     }
     override fun execute() {
@@ -172,6 +178,7 @@ class TeleOp : Command() {
             rateLimit = true,
             secondOrder = true
         )
+        Arm.voltMove(Arm.voltageApplied)
 
 
     }

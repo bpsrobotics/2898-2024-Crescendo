@@ -48,28 +48,27 @@ object Shooter : SubsystemBase() {
     var topGoal = 0.0
     var botGoal = 0.0
     val topPID = pid.calculate(wheelSpeedTop, topGoal)
-    val topFF = ff.calculate(topGoal)
+    var topFF = ff.calculate(topGoal)
     val botPID = pid.calculate(wheelSpeedBot, botGoal)
-    val botFF = ff.calculate(botGoal)
+    var botFF = ff.calculate(botGoal)
     init{
-        SmartDashboard.putNumber("shooter speed", 10.0)
         shooterMotorTop.restoreFactoryDefaults()
-        shooterMotorTop.setSmartCurrentLimit(40)
+        shooterMotorTop.setSmartCurrentLimit(50)
         shooterMotorTop.idleMode = CANSparkBase.IdleMode.kCoast
-        shooterMotorTop.enableVoltageCompensation(1.0)
+        shooterMotorTop.inverted = true
         shooterMotorTop.burnFlash()
 
         shooterMotorBot.restoreFactoryDefaults()
-        shooterMotorBot.setSmartCurrentLimit(40)
+        shooterMotorBot.setSmartCurrentLimit(50)
         shooterMotorBot.idleMode = CANSparkBase.IdleMode.kCoast
-        shooterMotorBot.enableVoltageCompensation(1.0)
-        shooterMotorBot.inverted
+        shooterMotorBot.inverted = true
         shooterMotorBot.burnFlash()
+        SmartDashboard.putNumber("shooter speed", 2500.0)
 
     }
 
     override fun periodic() {
-        speed = SmartDashboard.getNumber("shooter speed", speed)
+        speed = SmartDashboard.getNumber("shooter speed", 2500.0)
         val deltaTime = (currentTimeMillis() / 1000.0) - prevTime
         val deltaSpeed = abs(prevSpeedTop - wheelSpeedTop)
         val deltaSpeedBack = abs(prevSpeedBot - wheelSpeedBot)
@@ -82,7 +81,6 @@ object Shooter : SubsystemBase() {
             shooterMotorTop.setVoltage(topFF + topPID)
             shooterMotorBot.setVoltage(botFF + botPID)
         }
-        println("voltage" + shooterMotorBot.busVoltage)
 
 
         prevSpeedTop = wheelSpeedTop
