@@ -1,12 +1,10 @@
 package com.team2898.robot.subsystems
 
 
-import com.ctre.phoenix6.hardware.CANcoder
 import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.team2898.engine.utils.MovingAverage
-import com.team2898.engine.utils.Sugar.degreesToRadians
 import com.team2898.engine.utils.Sugar.radiansToDegrees
 import com.team2898.robot.Constants
 import com.team2898.robot.Constants.ArmConstants.ArmMaxSpeed
@@ -17,10 +15,8 @@ import com.team2898.robot.RobotMap.Arm_left
 import com.team2898.robot.RobotMap.Arm_right
 import edu.wpi.first.math.MathUtil.angleModulus
 import edu.wpi.first.math.controller.PIDController
-import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.util.sendable.SendableBuilder
-import edu.wpi.first.wpilibj.DigitalInput
 import edu.wpi.first.wpilibj.DutyCycleEncoder
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
@@ -43,7 +39,8 @@ object Arm : SubsystemBase() {
     private var stopped = false
     var ksin = 0.614274
     var ks = -0.114699
-    var kv = 0.0
+//    var kv = -3.85556
+    var kv = -5.0
     var voltageApplied = 0.0
     var currentPosition: Constants.ArmConstants.ArmHeights? = null
 
@@ -56,7 +53,7 @@ object Arm : SubsystemBase() {
         return angleModulus(p)
     }
 
-    val movingAverage = MovingAverage(15)
+    val movingAverage = MovingAverage(3)
     val movingAverage2 = MovingAverage(25)
 
     val profileTimer = Timer()
@@ -106,16 +103,14 @@ object Arm : SubsystemBase() {
         ksin = SmartDashboard.getNumber("arm ksin", ksin)
         kv = SmartDashboard.getNumber("arm kv", kv)
         voltageApplied = SmartDashboard.getNumber("voltage applied", voltageApplied)
-        println(voltageApplied)
+//        println(voltageApplied)
         val currentTick = false
 
         val p = pos()
         val dp = p - last
-        last = p
         val dt = timer.get()
         timer.start()
-        timer.reset()
-        movingAverage.add(dp / dt)
+        movingAverage.add(vel)
         movingAverage2.add(dp / dt)
         val rate = movingAverage.average
 //        val averagedRate = movingAverage2.average
@@ -128,39 +123,41 @@ object Arm : SubsystemBase() {
             return
         }
 
-        pid.p = SmartDashboard.getNumber("arm kp", 0.0)
-        pid.d = SmartDashboard.getNumber("arm kd", 0.0)
-        if (setpoint !in LOWER_SOFT_STOP..UPPER_SOFT_STOP) {
-            profile = null
-            currentPosition = Constants.ArmConstants.ArmHeights.entries.toTypedArray().find { (it.position - p).absoluteValue < 0.05 }
-        }
+        pid.p = SmartDashboard.getNumber("arm kp", pid.p)
+        pid.d = SmartDashboard.getNumber("arm kd", pid.d)
+
 //        val targetSpeed = profile?.calculate(profileTimer.get())?.velocity ?: 0.0
 //        val targetSpeed = profile.calculate(profileTimer.get(), )
-        val targetSpeed = profile?.calculate(profileTimer.get(),
-            TrapezoidProfile.State(pos(), movingAverage.average),
-            TrapezoidProfile.State(setpoint, 0.0)
-        )?.velocity?: 0.0
-
+        targetSpeed = profile.calculate(profileTimer.get(),
+            initState,
+            goalState
+        ).velocity
+        println("timer" + profileTimer.get())
         SmartDashboard.putNumber("arm target speed", targetSpeed)
-        var output = pid.calculate(rate, targetSpeed)
+//        if (setpoint !in LOWER_SOFT_STOP..UPPER_SOFT_STOP) {
+////            profile = null
+//            targetSpeed = 0.0
+//            currentPosition = Constants.ArmConstants.ArmHeights.entries.toTypedArray().find { (it.position - p).absoluteValue < 0.05 }
+//        }
+        var output = pid.calculate(vel, targetSpeed)
+        println("pid output $output")
         output += kv * targetSpeed
         output += ks + sin(p) * ksin
 //
 //        if (p < UPPER_SOFT_STOP) {
 //            output = output.coerceAtLeast(0.0)
 //            println("UPPER SOFT STOP")
-//        } else if (p > LOWER_SOFT_STOP || currentTick) {
+//        } else if (p > LOWER_SOFT_STOP) {
 //            output = output.coerceAtMost(0.0)
 //            println("LOWER SOFT STOP")
 //        } else {
 //            println("ur good bro")
 //        }
         SmartDashboard.putNumber("output", output)
-        armMotor.set(output)
-        armMotorSecondary.set(output)
-
-
-
+        voltMove(output)
+//        armMotor.setVoltage(output)
+//        armMotorSecondary.set(output)
+        last = p
     }
 
     fun setGoal(newPos: Double) {
@@ -178,11 +175,15 @@ object Arm : SubsystemBase() {
     }
 
     fun release() {
-        profile = null
+        armMotor.stopMotor()
+        armMotorSecondary.stopMotor()
+        armMotor.idleMode = CANSparkBase.IdleMode.kCoast
+        armMotorSecondary.idleMode = CANSparkBase.IdleMode.kCoast
+//        profile = null
     }
 
     fun isMoving(): Boolean {
-        return profile != null
+        return targetSpeed != 0.0
     }
     fun voltMove(volts: Double){
         armMotor.setVoltage(volts)

@@ -17,7 +17,7 @@ object Intake : SubsystemBase() {
 
     init {
         intakeMotor.restoreFactoryDefaults()
-        intakeMotor.setSmartCurrentLimit(30)
+        intakeMotor.setSmartCurrentLimit(40)
         intakeMotor.idleMode = CANSparkBase.IdleMode.kCoast
         intakeMotor.inverted = true
         intakeMotor.burnFlash()
@@ -30,7 +30,7 @@ object Intake : SubsystemBase() {
         if (overCurrentTicks > 6){
             reset()
         }
-        if ((intakeMotor.outputCurrent > 20.0 )) {
+        if ((intakeMotor.outputCurrent > 8.0 )) {
             if (overCurrentTicks < 0) overCurrentTicks = 0
         }
     }

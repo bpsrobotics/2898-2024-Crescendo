@@ -18,18 +18,18 @@ import kotlin.math.abs
 object Shooter : SubsystemBase() {
     private val shooterMotorTop = CANSparkMax(ShooterTopId, CANSparkLowLevel.MotorType.kBrushless)
     private val shooterEncoderTop = shooterMotorTop.encoder
-    val wheelSpeedTop = shooterEncoderTop.velocity
+    val wheelSpeedTop get() = shooterEncoderTop.velocity
     private val shooterMotorBot = CANSparkMax(ShooterBottomId, CANSparkLowLevel.MotorType.kBrushless)
     private val shooterEncoderBot = shooterMotorBot.encoder
-    val wheelSpeedBot = shooterEncoderBot.velocity
+    val wheelSpeedBot get() = shooterEncoderBot.velocity
     // PID Constants
-    val kP = 0.1
+    val kP = 0.5
     val kI = 0.0
     val kD = 0.0
     private val pid = PIDController(kP, kI, kD)
     // Feed Forward Constants
-    val kS = 0.4
-    val kV = 0.1
+    val kS = 0.15
+    val kV = 0.5
     val kA = 0.0
     val ff = SimpleMotorFeedforward(kS, kV, kA)
 
@@ -47,23 +47,22 @@ object Shooter : SubsystemBase() {
 
     var topGoal = 0.0
     var botGoal = 0.0
-    val topPID = pid.calculate(wheelSpeedTop, topGoal)
+    var topPID = pid.calculate(wheelSpeedTop, topGoal)
     var topFF = ff.calculate(topGoal)
-    val botPID = pid.calculate(wheelSpeedBot, botGoal)
+    var botPID = pid.calculate(wheelSpeedBot, botGoal)
     var botFF = ff.calculate(botGoal)
     init{
         shooterMotorTop.restoreFactoryDefaults()
-        shooterMotorTop.setSmartCurrentLimit(50)
+        shooterMotorTop.setSmartCurrentLimit(40)
         shooterMotorTop.idleMode = CANSparkBase.IdleMode.kCoast
         shooterMotorTop.inverted = true
         shooterMotorTop.burnFlash()
 
         shooterMotorBot.restoreFactoryDefaults()
-        shooterMotorBot.setSmartCurrentLimit(50)
+        shooterMotorBot.setSmartCurrentLimit(40)
         shooterMotorBot.idleMode = CANSparkBase.IdleMode.kCoast
         shooterMotorBot.inverted = true
         shooterMotorBot.burnFlash()
-        SmartDashboard.putNumber("shooter speed", 2500.0)
 
     }
 
@@ -76,6 +75,15 @@ object Shooter : SubsystemBase() {
         currentTopAverage = topAverage.calculate(deltaSpeed / deltaTime)
         currentBotAverage = botAverage.calculate(deltaSpeedBack / deltaTime)
         prevTime = currentTimeMillis() / 1000.0
+
+
+        topPID = pid.calculate(wheelSpeedTop, topGoal)
+        topFF = ff.calculate(topGoal)
+        botPID = pid.calculate(wheelSpeedBot, botGoal)
+        botFF = ff.calculate(botGoal)
+        SmartDashboard.putNumber("ff", topFF)
+        SmartDashboard.putNumber("pid", topPID)
+        SmartDashboard.putNumber("velocity top", wheelSpeedTop)
 
         if(!motorStop){
             shooterMotorTop.setVoltage(topFF + topPID)
