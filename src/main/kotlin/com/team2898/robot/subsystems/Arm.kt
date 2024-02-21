@@ -44,6 +44,8 @@ object Arm : SubsystemBase() {
     var voltageApplied = 0.0
     var currentPosition: Constants.ArmConstants.ArmHeights? = null
 
+    var vel = 0.0
+
     fun pos(): Double {
         val p = if (encoder.absolutePosition < 0.3) {
             ((encoder.absolutePosition + 1.07) * 2 * PI)
@@ -62,8 +64,13 @@ object Arm : SubsystemBase() {
         ArmMaxSpeed,
         Arm_MaxAccel
     )
-    val pid = PIDController(0.0, 0.0, 0.0)
-    var profile: TrapezoidProfile? = null
+    val pid = PIDController(1.0, 0.0, 0.01)
+//    var profile: TrapezoidProfile? = null
+    var profile = TrapezoidProfile(constraints)
+    var initState = TrapezoidProfile.State(pos(), 0.0)
+    var goalState = TrapezoidProfile.State(pos(),0.0)
+    var targetSpeed = 0.0
+
     private val integral = MovingAverage(50)
 
     init {
@@ -109,6 +116,8 @@ object Arm : SubsystemBase() {
         val p = pos()
         val dp = p - last
         val dt = timer.get()
+        vel = dp / dt
+        timer.reset()
         timer.start()
         movingAverage.add(vel)
         movingAverage2.add(dp / dt)
@@ -164,14 +173,15 @@ object Arm : SubsystemBase() {
         if (newPos !in UPPER_SOFT_STOP..LOWER_SOFT_STOP) return
         setpoint = newPos
 
-        profile = TrapezoidProfile(constraints)
-        profile?.calculate(profileTimer.get(),
-            TrapezoidProfile.State(pos(), movingAverage.average),
-            TrapezoidProfile.State(newPos, 0.0)
-        )
+//        profile = TrapezoidProfile(constraints)
+//        profile?.calculate(profileTimer.get(),
+//            TrapezoidProfile.State(pos(), movingAverage.average),
+//            TrapezoidProfile.State(newPos, 0.0)
+//        )
         profileTimer.reset()
         profileTimer.start()
-
+        initState = TrapezoidProfile.State(pos(), vel)
+        goalState = TrapezoidProfile.State(setpoint, 0.0)
     }
 
     fun release() {
