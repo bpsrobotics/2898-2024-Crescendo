@@ -47,38 +47,43 @@ class Vision (
         cam,
         robotToCam
     )
-    fun getCameraYaw() : Double {
-        var Yaw = 0.0
+    fun getCameraData(targetID:Int) :  PhotonTrackedTarget{
         var result = cam.getLatestResult();
-        val targets = result.getTargets() ?: return 0.0
+        val targets = result.getTargets()
         for (i in targets) {
-            if (i.fiducialId == 4) {
-                return i.yaw
+            if (i.fiducialId == targetID) {
+                return i
             }
         }
-        return Yaw
+        return result.bestTarget
     }
-    fun hasTargets() : Boolean{
-        val alliance = DriverStation.getAlliance()
-        var targetID = 7
-        if (alliance.get() == DriverStation.Alliance.Red){
-            targetID = 4
-        }
+    fun hasSpecificTarget(tagID:Int) : Boolean {
         val result = cam.latestResult
         if (result.hasTargets()) {
             var result = cam.getLatestResult();
             val targets = result.getTargets()
             for (i in targets) {
-                if (i.fiducialId == targetID) {
+                if (i.fiducialId == tagID) {
                     return true
                 }
             }
         }
         return false
     }
+
+    fun hasTargets() : Boolean{
+        val result = cam.latestResult
+        return result.hasTargets()
+
+    }
     fun getEstimatedPose(prevEstimatedRobotPose: Pose2d?): Optional<EstimatedRobotPose>? {
         if(prevEstimatedRobotPose != null) PoseEstimator.setReferencePose(prevEstimatedRobotPose)
         val pose = PoseEstimator.update() ?: return null
+        return pose
+    }
+    fun getTagPoseFromField(targetID: Int) : Optional<Pose3d>?{
+
+        val pose = aprilTagFieldLayout.getTagPose(targetID) ?: return null
         return pose
     }
 }

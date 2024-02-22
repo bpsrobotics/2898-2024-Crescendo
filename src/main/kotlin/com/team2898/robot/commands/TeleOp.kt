@@ -9,21 +9,19 @@ package com.team2898.robot.commands
 
 import com.team2898.engine.utils.Sugar.degreesToRadians
 import com.team2898.engine.utils.Sugar.eqEpsilon
-import com.team2898.engine.utils.Sugar.radiansToDegrees
 import com.team2898.engine.utils.TurningPID
+import com.team2898.engine.utils.odometry.Vision
 import com.team2898.robot.Constants
 import com.team2898.robot.OI
 import com.team2898.robot.subsystems.*
-import com.team2898.engine.utils.odometry.Vision
 import edu.wpi.first.math.controller.PIDController
-import edu.wpi.first.math.geometry.Pose2d
-import edu.wpi.first.math.geometry.Rotation2d
-import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
+import org.photonvision.PhotonUtils
 import kotlin.math.*
+
 
 enum class DriveMode {
     Normal,
@@ -142,49 +140,38 @@ class TeleOp : Command() {
     val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
     fun alignRobot() {
         var currentPose = Odometry.supplyPose()
-        val pose = vision.getCameraYaw()
+        var poseYaw = 0.0
         var rotationSpeed = 0.0
         if (OI.alignButtonPressed && !alignMode) {
-
                 alignMode = true
         }
         if (OI.alignButtonRelease) {
             alignMode = false
         }
         if (alignMode) {
-//            if (!vision.hasTargets()) {
-//                if (currentPose.rotation.degrees < 0) {
-//                    rotationSpeed = 0.15
-//                } else {
-//                    rotationSpeed = -0.15
-//                }
-//            }
-            if (vision.hasTargets()) {
+            if (!vision.hasSpecificTarget(4)) {
+                targetRotation = (1*PI)
+                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation)
+            }
+            if (vision.hasSpecificTarget(4)) {
+                val target = vision.getCameraData(4)
+                poseYaw = target.yaw
                 println("target rotation" + targetRotation)
                 println("Turning")
-                println(xDist)
-                println(yDist)
+//                println(xDist)
+//                println(yDist)
                 println("current rotation" + currentPose.rotation.degrees)
                 println("alignMode" + alignMode)
 
-                targetRotation = currentPose.rotation.degrees - pose
-                val targetRotationNegativeError = targetRotation - 3.0
-                val targetRotationPositiveError = targetRotation + 3.0
-                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
-                    alignMode = false
-                }
-
-                rotationSpeed = if (pose > 0) {
-                    0.15
-                } else {
-                    -0.15
-                }
-//                val rotationSpeed = -turnController.calculate(pose.yaw.degreesToRadians() , targetRotation + (1 * PI))
-
-                println("Pose.yaw:" + pose.degreesToRadians())
-
+                targetRotation = currentPose.rotation.degrees - poseYaw
+//                val targetRotationNegativeError = targetRotation - 3.0
+//                val targetRotationPositiveError = targetRotation + 3.0
+//                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
+//                    alignMode = false
+//                }
+                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation + (1 * PI))
+                println("Pose.yaw:" + poseYaw.degreesToRadians())
                 // Use our forward/turn speeds to control the drivetrain
-
             }
             Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)// Use our forward/turn speeds to control the drivetrain
         }
