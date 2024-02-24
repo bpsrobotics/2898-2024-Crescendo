@@ -22,12 +22,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import org.photonvision.PhotonUtils
 import kotlin.math.*
-
-
-enum class DriveMode {
-    Normal,
-    Defense
-}
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import com.team2898.robot.Constants.*
 import edu.wpi.first.wpilibj2.command.InstantCommand
@@ -35,6 +29,12 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sign
+
+enum class DriveMode {
+    Normal,
+    Defense
+}
+
 
 /**
     Called when the Tele-Operated stage of the game begins.
