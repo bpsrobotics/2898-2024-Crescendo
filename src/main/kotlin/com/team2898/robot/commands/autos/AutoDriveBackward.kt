@@ -5,7 +5,6 @@ import com.team2898.robot.subsystems.Odometry
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj2.command.Command
-import edu.wpi.first.wpilibj2.command.CommandBase
 
 class AutoDriveBackward : Command(){
     private lateinit var autoCommandGroup: Command

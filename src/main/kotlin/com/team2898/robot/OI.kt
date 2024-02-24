@@ -1,6 +1,8 @@
 package com.team2898.robot
 
 import com.team2898.engine.utils.Vector
+import com.team2898.engine.utils.async.Promise
+import com.team2898.robot.subsystems.Arm
 import edu.wpi.first.math.MathUtil
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Joystick
@@ -8,6 +10,7 @@ import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.XboxController
 import edu.wpi.first.wpilibj.event.BooleanEvent
 import edu.wpi.first.wpilibj.event.EventLoop
+import edu.wpi.first.wpilibj2.command.InstantCommand
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 import kotlin.math.pow
 import kotlin.math.sign
@@ -29,6 +32,7 @@ object OI : SubsystemBase() {
      */
     private const val DEADZONE_THRESHOLD = 0.1
 
+    val loop = EventLoop()
     /**
      * Utility function for controller axis, optional deadzone and square/cube for extra fine-grain control
      */
@@ -91,16 +95,12 @@ object OI : SubsystemBase() {
         get() = driverController.leftTriggerAxis
     val rightTrigger
         get() = driverController.rightTriggerAxis
-    val defenseModeButton
+    val driverY
         get() = driverController.yButton
-    val normalModeButton
+    val driverX
         get() = driverController.xButton
-    val resetGyroStart
-        get() = driverController.rightBumperPressed
-    val resetGyro
-        get() = driverController.rightBumper
-    val resetGyroEnd
-        get() = driverController.rightBumperReleased
+    val resetGyro: BooleanEvent = driverController.rightBumper(loop).debounce(0.5).rising()
+
 
     val alignButton
         get() = driverController.yButton
@@ -116,18 +116,22 @@ object OI : SubsystemBase() {
         270 -> Vector(-1,0)
         else -> Vector.zero
     }
-    val moving get() = operatorController.getRawButton(7)
 
-    val grabTote get() = operatorController.getRawButton(9)//TODO change button
-    val grabToteToggle get() = operatorController.getRawButtonPressed(9)//TODO change button
+    val climb: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_UP, loop).debounce(Constants.ButtonConstants.CLIMBER_WAIT_DURATION)
 
-    val loop = EventLoop()
-    val climbReach: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_REACH, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
-    val climbLift: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_LIFT, loop).debounce(Constants.ButtonConstants.PRESS_ACTIVATE_DURATION).rising()
-    val shooterFlywheel get() = -operatorController.getRawAxis(1) // negate so that positive = forward
+    val armSelectUp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_UP, loop)
+    val armSelectDown: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DOWN, loop)
+
+    val armDirectGround: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_GROUND, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectStowed: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_STOWED, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectAmp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_AMP, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER1, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectShooter2: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER2, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+
+    val runIntake: BooleanEvent = BooleanEvent(loop) { hatVector == Vector(0,-1) }
 
     enum class Direction {
-        LEFT, RIGHT, UP, DOWN, INACTIVE;
+        LEFT, RIGHT, UP, DOWN, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, INACTIVE;
 
         fun mirrored() = when (this) {
             LEFT  -> RIGHT
@@ -140,49 +144,66 @@ object OI : SubsystemBase() {
             UP -> Vector(0,1)
             DOWN -> Vector(0,-1)
             INACTIVE -> Vector.zero
+            UPLEFT -> Vector(-1,1)
+            UPRIGHT -> Vector(1, 1)
+            DOWNLEFT -> Vector(-1, -1)
+            DOWNRIGHT -> Vector(1, -1)
         }
     }
 
     val alignmentPad get() = when(driverController.pov) {
         0    -> Direction.UP
+        45   -> Direction.UPRIGHT
         90   -> Direction.RIGHT
+        135  -> Direction.DOWNRIGHT
         180  -> Direction.DOWN
+        225  -> Direction.DOWNLEFT
         270  -> Direction.LEFT
+        315  -> Direction.UPLEFT
         else -> Direction.INACTIVE
     }
-    val operatorThrottle get() = -operatorController.getRawAxis(1)
 
-    val operatorTrigger get() = operatorController.trigger
+    val operatorTrigger: BooleanEvent = operatorController.button(1, loop)
+    val operatorTriggerReleased: BooleanEvent = operatorTrigger.falling()
     object Rumble {
         private var isRumbling  = false
         private var rumbleTime  = 0.0
         private val rumblePower = 0.0
         private val rumbleSide = GenericHID.RumbleType.kRightRumble
         private val rumbleTimer = Timer()
+        private val waiting = mutableSetOf<Promise<Unit>>()
         fun set(time: Double, power: Double, side: GenericHID.RumbleType = GenericHID.RumbleType.kBothRumble){
             rumbleTimer.reset()
             rumbleTime = time
             driverController.setRumble(side, power)
             rumbleTimer.start()
         }
+        fun until(promise: Promise<Unit>, power: Double = 1.0, side: GenericHID.RumbleType = GenericHID.RumbleType.kBothRumble) {
+            driverController.setRumble(side, power)
+            waiting.add(promise)
+            promise.then { update(); Promise.resolve(Unit) }
+        }
         fun update(){
-            if(rumbleTimer.hasElapsed(rumbleTime)){
+            if(rumbleTimer.hasElapsed(rumbleTime) && !(try {waiting.map { it.hasFulfilled }.reduce { acc, b -> acc or b }} catch (_:Throwable) {false})) {
                 driverController.setRumble(GenericHID.RumbleType.kBothRumble, 0.0)
+            }
+            waiting.forEach {
+                if (it.hasFulfilled) waiting.remove(it)
             }
         }
     }
     override fun periodic(){
         Rumble.update()
-        loop.poll()
     }
 
 //    init {
-//        Trigger { operatorController.pov != 0 }.toggleOnTrue(
-//            Commands.startEnd(
-//                Drivetrain::brakeMode,
-//                Drivetrain::coastMode
-//            )
-//        )
-//
+//        armUp.debounce(0.05).onTrue(InstantCommand({
+//            Arm.setGoal(Arm.setpoint + 0.1)
+//        }))
+//        armDown.debounce(0.05).onTrue(InstantCommand({
+//            Arm.setGoal(Arm.setpoint - 0.1)
+//        }))
 //    }
+
+
 }

@@ -8,7 +8,6 @@ import com.team2898.robot.RobotMap.ClimberId
 import edu.wpi.first.wpilibj.event.BooleanEvent
 import edu.wpi.first.wpilibj.event.EventLoop
 import edu.wpi.first.wpilibj2.command.SubsystemBase
-import java.util.function.BooleanSupplier
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -16,48 +15,50 @@ import kotlin.math.min
 object Climber : SubsystemBase() {
     private val climberMotor = CANSparkMax(ClimberId, CANSparkLowLevel.MotorType.kBrushless)
     private val climberCoder = climberMotor.encoder
-    var currentState: ClimberConstants.ClimbHeights? = null
+    var currentState: Boolean? = null
         private set
-    var targetState: ClimberConstants.ClimbHeights = ClimberConstants.ClimbHeights.STOWED
+    var targetState: Boolean = false
         private set
-    private var onceArrived: ((value: Unit) -> Unit)? = null
-    private var onceCancelled: ((error: Exception) -> Unit)? = null
+    private val waiting = mutableMapOf<Boolean, MutableSet<Promise.Companion.ResolversObject<Unit>>>()
     private var setSpeed = 1.0 // speed control
-    val distanceToGo get() = targetState.position - climberCoder.position
+    fun Boolean.toDouble() = if (this) 1.0 else 0.0
+    val distanceToGo get() = targetState.toDouble() - climberCoder.position
     val absDistanceToGo get() = abs(distanceToGo)
-    fun finished(loop: EventLoop): BooleanEvent {
-        return BooleanEvent(loop, ArrivedSignal)
-    }
-    fun arrived() = currentState == targetState
-    object ArrivedSignal : BooleanSupplier {
-        override fun getAsBoolean(): Boolean {
-            return arrived()
-        }
-    }
-    fun setState(newState: ClimberConstants.ClimbHeights) {
+    fun finished(loop: EventLoop) = BooleanEvent(loop) { arrived() }
+    fun arrived() = currentState != null && currentState == targetState
+    fun setState(newState: Boolean) {
         targetState = newState
         currentState = null
     }
-    fun go(newState: ClimberConstants.ClimbHeights): Promise<Unit> {
-        onceCancelled?.invoke(Exception("Climber movement cancelled"))
+    fun go(newState: Boolean): Promise<Unit> {
+        waiting.forEach { (t, u) ->
+            if (t != newState) {
+                u.forEach { it.reject(Exception("Arm movement cancelled")) }
+                waiting.remove(t)
+            }
+        }
         targetState = newState
         currentState = null
         val r = Promise.withResolvers<Unit>()
-        onceArrived = r.resolve
-        onceCancelled = r.reject
+        try {
+            waiting[newState]!!.add(r)
+        } catch (_: NullPointerException) { // EAFP: Easier to Ask for Forgiveness than Permission
+            waiting[newState] = mutableSetOf(r)
+        }
         return r.promise
     }
 
     override fun periodic() {
         val position = climberCoder.position
         val velocity = climberCoder.velocity
-        if (abs(position - targetState.position) > 0.3) {
+        if (abs(position - targetState.toDouble()) > 0.3) {
             if (abs(velocity) > 0.01) setSpeed = max(0.0, min(1.0, abs(ClimberConstants.ClimberMaxSpeed / velocity)))
             climberMotor.set(setSpeed)
         } else {
             climberMotor.set(0.0)
             currentState = targetState
-            onceArrived?.invoke(Unit)
+            waiting[targetState]?.forEach { it.resolve(Unit) }
+            waiting.remove(targetState)
         }
     }
 }

@@ -7,7 +7,8 @@ import edu.wpi.first.wpilibj.event.EventLoop
 class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: Throwable) -> Unit) -> Unit) : Thenable<T> {
     private var resolvedWith: T? = null
     private var rejectedWith: Throwable? = null
-    private var currentState: PromiseState = PromiseState.NOT_RUN
+    var hasFulfilled: Boolean = false
+    var currentState: PromiseState = PromiseState.NOT_RUN
     private var listenerApplied = false
     private val onResolved = EventTarget<T>()
     private val onRejected = EventTarget<Throwable>()
@@ -26,122 +27,109 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
         if (currentState != PromiseState.WAITING) return
         currentState = PromiseState.RESOLVED
         resolvedWith = value
+        hasFulfilled = true
         onResolved.dispatch(value)
     }
     private fun reject(error: Throwable) {
         if (currentState != PromiseState.WAITING) return
         currentState = PromiseState.REJECTED
         rejectedWith = error
+        hasFulfilled = true
         onRejected.dispatch(error)
     }
-    override fun<N> then(success: (value: T) -> N): Promise<N> {
-        return Promise { rs, rj ->
-            onResolved.addListener { value ->
-                try { rs(success(value)) }
-                catch (e: Throwable) {rj(e)}
-            }
-            onRejected.addListener { error -> rj(error) }
-        }
-    }
-    override fun<N> then(success: (value: T) -> Promise<N>): Promise<N> {
-        return Promise { rs, rj ->
-            onResolved.addListener { value ->
+    override fun<N> then(success: (value: T) -> Promise<N>)
+        = Promise { rs, rj ->
+            if (hasFulfilled) {
                 try {
-                    val x = success(value)
+                    val x = success(resolvedWith ?: throw rejectedWith ?: Throwable("nothing exception: if found, tell Grant to debug Promise code"))
                     x.onResolved.addListener { value2 -> rs(value2) }
                     x.onRejected.addListener(rj)
                 } catch (e: Throwable) {
                     rj(e)
                 }
-            }
-            onRejected.addListener { error -> rj(error) }
-        }
-    }
-    override fun<N> then(success: (value: T) -> N, failure: (error: Throwable) -> N) : Promise<N> {
-        return Promise { rs, rj ->
-            onResolved.addListener { value ->
-                try { rs(success(value)) }
-                catch (e: Throwable) {rj(e)}
-            }
-            onRejected.addListener { error ->
-                try { rs(failure(error)) }
-                catch (e: Throwable) {rj(e)}
+            } else {
+                onResolved.addListener { value ->
+                    try {
+                        val x = success(value)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
+                }
+                onRejected.addListener { error -> rj(error) }
             }
         }
-    }
-    override fun<N> then(success: (value: T) -> Promise<N>, failure: (error: Throwable) -> N) : Promise<N> {
+    override fun <N> then(
+        success: (value: T) -> Promise<N>,
+        failure: (error: Throwable) -> Promise<N>
+    ): Promise<N> {
         return Promise { rs, rj ->
-            onResolved.addListener { value ->
-                try {
-                    val x = success(value)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener(rj)
-                } catch (e: Throwable) {
-                    rj(e)
+            if (hasFulfilled) {
+                if (resolvedWith != null) {
+                    try {
+                        val x = success(resolvedWith!!)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
+                } else if (rejectedWith != null) {
+                    try {
+                        val x = failure(rejectedWith!!)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
+                } else rj(Throwable("nothing exception: if found, tell Grant to debug Promise code"))
+            } else {
+                onResolved.addListener { value ->
+                    try {
+                        val x = success(value)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
                 }
-            }
-            onRejected.addListener { error ->
-                try { rs(failure(error)) }
-                catch (e: Throwable) {rj(e)}
-            }
-        }
-    }
-    override fun<N> then(success: (value: T) -> N, failure: (error: Throwable) -> Promise<N>) : Promise<N> {
-        return Promise { rs, rj ->
-            onResolved.addListener { value ->
-                try { rs(success(value)) }
-                catch (e: Throwable) {rj(e)}
-            }
-            onRejected.addListener { error ->
-                try {
-                    val x = failure(error)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener(rj)
-                }
-                catch (e: Throwable) {
-                    rj(e)
-                }
-            }
-        }
-    }
-    override fun<N> then(success: (value: T) -> Promise<N>, failure: (error: Throwable) -> Promise<N>) : Promise<N> {
-        return Promise { rs, rj ->
-            onResolved.addListener { value ->
-                try {
-                    val x = success(value)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener { error -> rj(error) }
-                } catch (e: Throwable) {
-                    rj(e)
-                }
-            }
-            onRejected.addListener { error ->
-                try {
-                    val x = failure(error)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener { error2 -> rj(error2) }
-                } catch (e: Throwable) {
-                    rj(e)
+                onRejected.addListener { error ->
+                    try {
+                        val x = failure(error)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
                 }
             }
         }
     }
-    override fun catch(failure: (error: Throwable) -> T): Promise<T> {
-        return Promise { rs, rj ->
-            onResolved.addListener { value -> rs(value) }
-            onRejected.addListener { error -> try {rs(failure(error))} catch (e: Throwable) {rj(e)} }
-        }
-    }
+
     override fun catch(failure: (error: Throwable) -> Promise<T>): Promise<T> {
         return Promise { rs, rj ->
-            onResolved.addListener { value -> rs(value) }
-            onRejected.addListener { error ->
-                try {
-                    val x = failure(error)
-                    x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener { error2 -> rj(error2) }
-                } catch (e: Throwable) {
-                    rj(e)
+            if (hasFulfilled) {
+                if (resolvedWith != null) {
+                    rs(resolvedWith!!)
+                } else if (rejectedWith != null) {
+                    try {
+                        val x = failure(rejectedWith!!)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
+                }
+            } else {
+                onResolved.addListener { value -> rs(value) }
+                onRejected.addListener { error ->
+                    try {
+                        val x = failure(error)
+                        x.onResolved.addListener { value2 -> rs(value2) }
+                        x.onRejected.addListener(rj)
+                    } catch (e: Throwable) {
+                        rj(e)
+                    }
                 }
             }
         }
@@ -153,6 +141,10 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
         enum class PromiseSettledState {
             RESOLVED, REJECTED
         }
+
+        /**
+         * Returns a Promise that resolves when any promise passed resolves, and rejects when all promises passed reject.
+         */
         fun <T> any(iter: Set<Promise<T>>): Promise<T> {
             val icpy = iter.map { v -> v }
             val l = icpy.size
@@ -170,6 +162,10 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
                 }
             }
         }
+
+        /**
+         * Returns a Promise that resolves when all promises passed resolve, and rejects when any promise rejects.
+         */
         fun <T> all(iter: Set<Promise<T>>): Promise<Set<T>> {
             val icpy = iter.map { v -> v }
             val l = icpy.size
@@ -185,6 +181,10 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
                 }
             }
         }
+
+        /**
+         * Returns a Promise that adopts the state of the first promise to resolve or reject.
+         */
         fun <T> race(iter: Set<Promise<T>>): Promise<T> {
             return Promise { rs, rj ->
                 iter.forEach {
@@ -193,6 +193,10 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
                 }
             }
         }
+
+        /**
+         * Returns a Promise that resolves when all promises resolve or reject, with an iterable of the eventual states.
+         */
         fun <T> allSettled(iter: Set<Promise<T>>): Promise<Set<PromiseFulfillment<T>>> {
             val fulfillments = mutableSetOf<PromiseFulfillment<T>>()
             return Promise { rs, _ ->
@@ -217,18 +221,41 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
                 }
             }
         }
+
+        /**
+         * Returns a Promise that resolves with the values from all the promises in the iterable that resolved.
+         * Rejections are ignored.
+         */
+        fun <T> filter(iter: Set<Promise<T>>): Promise<Set<T>> {
+            val fulfillments = mutableSetOf<T>()
+            return Promise { rs, _ ->
+                if (iter.isEmpty()) rs(setOf())
+                else iter.forEach {
+                    it.onResolved.addListener { value ->
+                        fulfillments.add(value)
+                        if (fulfillments.size >= iter.size) rs(fulfillments)
+                    }
+                }
+            }
+        }
+
+        /**
+         * Returns a Promise that resolves immediately with the given value.
+         */
         fun <T> resolve(value: T): Promise<T> {
             return Promise { resolve, _ -> resolve(value) }
         }
-        fun <T> resolve(value: Promise<T>): Promise<T> {
-            return Promise { resolve, reject ->
-                value.onResolved.addListener(resolve)
-                value.onRejected.addListener(reject)
-            }
-        }
+
+        /**
+         * Returns a Promise that rejects immediately with the given reason.
+         */
         fun reject(error: Throwable): Promise<Nothing> {
             return Promise { _, reject -> reject(error) }
         }
+
+        /**
+         * Returns an object containing a new Promise and two functions to resolve or reject it.
+         */
         fun <T> withResolvers(): ResolversObject<T> {
             val p = Promise<T>{ _, _ -> }
             return object : ResolversObject<T> {
