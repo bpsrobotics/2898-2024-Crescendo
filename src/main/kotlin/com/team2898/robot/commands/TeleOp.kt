@@ -60,6 +60,10 @@ class TeleOp : Command() {
     var breakTimerGoal = 0.0
     var drivemode = DriveMode.Normal
     var resetGyroTimer = Timer()
+    private val vision = Vision("Camera_Module_v1")
+    var alignMode = false
+    var xDist = 0.0
+    var yDist = 0.0
     // Called every time the scheduler runs while the command is scheduled.
     fun turnSpeedNormal():Double {
         return -OI.turnX
@@ -182,6 +186,48 @@ class TeleOp : Command() {
         }
         else {
             Intake.stopIntake()
+        }
+    }
+    var targetRotation = Odometry.supplyPose().rotation.degrees
+    val ANGULAR_P = 0.2
+    val ANGULAR_D = 0.0
+    val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
+    fun alignRobot() {
+        var currentPose = Odometry.supplyPose()
+        var poseYaw = 0.0
+        var rotationSpeed = 0.0
+        if (OI.alignButtonPressed && !alignMode) {
+            alignMode = true
+        }
+        if (OI.alignButtonRelease) {
+            alignMode = false
+        }
+        if (alignMode) {
+            if (!vision.hasSpecificTarget(4)) {
+                targetRotation = (1*PI)
+                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation)
+            }
+            if (vision.hasSpecificTarget(4)) {
+                val target = vision.getCameraData(4)
+                poseYaw = target.yaw
+                println("target rotation" + targetRotation)
+                println("Turning")
+//                println(xDist)
+//                println(yDist)
+                println("current rotation" + currentPose.rotation.degrees)
+                println("alignMode" + alignMode)
+
+                targetRotation = currentPose.rotation.degrees - poseYaw
+//                val targetRotationNegativeError = targetRotation - 3.0
+//                val targetRotationPositiveError = targetRotation + 3.0
+//                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
+//                    alignMode = false
+//                }
+                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation + (1 * PI))
+                println("Pose.yaw:" + poseYaw.degreesToRadians())
+                // Use our forward/turn speeds to control the drivetrain
+            }
+            Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)// Use our forward/turn speeds to control the drivetrain
         }
     }
     override fun execute() {
