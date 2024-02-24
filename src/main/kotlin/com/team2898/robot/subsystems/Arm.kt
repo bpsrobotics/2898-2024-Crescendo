@@ -127,6 +127,7 @@ object Arm : SubsystemBase() {
         movingAverage.add(vel)
         movingAverage2.add(dp / dt)
         val rate = movingAverage.average
+//        val averagedRate = movingAverage2.average
 
         integral.add((rate - armMotor.encoder.velocity).absoluteValue)
 

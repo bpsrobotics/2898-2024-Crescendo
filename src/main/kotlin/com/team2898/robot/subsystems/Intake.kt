@@ -30,9 +30,11 @@ object Intake : SubsystemBase() {
         if (overCurrentTicks > 6){
             reset()
         }
-        if ((intakeMotor.outputCurrent > 8.0 )) {
-            if (overCurrentTicks < 0) overCurrentTicks = 0
-        }
+//        if ((intakeMotor.outputCurrent > 40.0 && autoIntake) || OI.opCtl.getRawButton(6)) {
+//            if (overCurrentTicks < 0) overCurrentTicks = 0
+//            autoIntake = false
+//            latchState = true
+//        }
     }
 
     fun runIntake(speed: Double){
