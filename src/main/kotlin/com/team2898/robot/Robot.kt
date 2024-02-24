@@ -32,7 +32,8 @@ class Robot : TimedRobot() {
     override fun robotInit() {
         Drivetrain
         Arm
-
+        Shooter
+        Intake
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
         robotContainer = RobotContainer()

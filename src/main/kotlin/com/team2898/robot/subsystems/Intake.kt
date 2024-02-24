@@ -13,9 +13,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase
 object Intake : SubsystemBase() {
     private val intakeMotor = CANSparkMax(IntakeId, CANSparkLowLevel.MotorType.kBrushed)
     var hasNote = false
-    var overCurrentTicks = -2
+    var overCurrentTicks = -1.0
     var stopTimer = Timer()
-    var stopCount = STOP_BUFFER
+    var output = 0.0
 
     init {
         intakeMotor.restoreFactoryDefaults()
@@ -29,26 +29,29 @@ object Intake : SubsystemBase() {
     override fun periodic() {
         SmartDashboard.putNumber("intake current", intakeMotor.outputCurrent)
         SmartDashboard.putBoolean("has note", hasNote)
-        if (overCurrentTicks > -1) overCurrentTicks++
-        if (overCurrentTicks > 6){
+        SmartDashboard.putNumber("intake output", output)
+        if (overCurrentTicks > -1.0) overCurrentTicks++
+        if (overCurrentTicks > 6.0){
             reset()
             hasNote = false
         }
-        if (intakeMotor.outputCurrent > 15.0 && overCurrentTicks < 0) {
+        SmartDashboard.putNumber("overcurrentTicks", overCurrentTicks)
+        if (intakeMotor.outputCurrent > 11.0 && overCurrentTicks < 0) {
             overCurrentTicks++
+            output = 0.0
             hasNote = true
             stopTimer.reset()
             stopTimer.start()
-            stopCount = stopTimer.get()
         }
-        if (stopCount < STOP_BUFFER && hasNote){
-            println("stopping intake")
-            stopIntake()
-        }
+//        if (stopTimer.get() < STOP_BUFFER && hasNote){
+//            println("stopping intake")
+//            output = 0.0
+//        }
+        intakeMotor.set(output)
     }
 
     fun runIntake(speed: Double){
-        intakeMotor.set(speed)
+        output = speed
     }
 
     fun stopIntake(){
@@ -56,7 +59,7 @@ object Intake : SubsystemBase() {
     }
 
     fun reset(){
-        overCurrentTicks = -2
+        overCurrentTicks = -1.0
     }
 
 }

@@ -88,10 +88,10 @@ object Shooter : SubsystemBase() {
         SmartDashboard.putNumber("pid", topPID)
         SmartDashboard.putNumber("velocity top", wheelSpeedTop)
 
-        if(!motorStop){
-            shooterMotorTop.setVoltage(topFF + topPID)
-            shooterMotorBot.setVoltage(botFF + botPID)
-        }
+//        if(!motorStop){
+//            shooterMotorTop.setVoltage(topFF + topPID)
+//            shooterMotorBot.setVoltage(botFF + botPID)
+//        }
 
 
         prevSpeedTop = wheelSpeedTop

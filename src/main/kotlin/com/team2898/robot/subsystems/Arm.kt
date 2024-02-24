@@ -34,7 +34,7 @@ object Arm : SubsystemBase() {
     private val encoder = DutyCycleEncoder(ArmDigitalInput)
 
     var setpoint = pos()
-    private const val UPPER_SOFT_STOP = -0.3
+    private const val UPPER_SOFT_STOP = -0.275
     val LOWER_SOFT_STOP = 1.76
     private var stopped = false
 //    var ksin = 0.877281
@@ -67,8 +67,8 @@ object Arm : SubsystemBase() {
         Arm_MaxAccel
     )
     // 0.5, 0.0, 0.15 undershoots
-//    val pid = PIDController(0.01, 0.0, 1.0)
-    val pid = PIDController(0.01, 0.0, 1.5)
+//    val pid = PIDController(0.01, 0.0, 0.5)
+    val pid = PIDController(0.1, 0.0, 0.1)
 //    var profile: TrapezoidProfile? = null
     var profile = TrapezoidProfile(constraints)
     var initState = TrapezoidProfile.State(pos(), 0.0)
@@ -114,7 +114,6 @@ object Arm : SubsystemBase() {
         ksin = SmartDashboard.getNumber("arm ksin", ksin)
         kv = SmartDashboard.getNumber("arm kv", kv)
         voltageApplied = SmartDashboard.getNumber("voltage applied", voltageApplied)
-        println(voltageApplied)
         val currentTick = false
 
         val p = pos()
@@ -185,7 +184,6 @@ object Arm : SubsystemBase() {
         armMotorSecondary.stopMotor()
         armMotor.idleMode = CANSparkBase.IdleMode.kCoast
         armMotorSecondary.idleMode = CANSparkBase.IdleMode.kCoast
-//        profile = null
     }
 
     fun isMoving(): Boolean {

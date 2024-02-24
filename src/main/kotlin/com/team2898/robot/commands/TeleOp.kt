@@ -114,12 +114,10 @@ class TeleOp : Command() {
     fun peripheralControls() {
 
         if (OI.armSelectUp.asBoolean) {
-            println("arm up")
             Arm.setGoal(Arm.pos() - 0.05)
 //            Arm.setGoal(Arm.targetState.up())
         }
         if (OI.armSelectDown.asBoolean) {
-            println("arm down")
             Arm.setGoal(Arm.pos() + 0.05)
 
 //            Arm.setGoal(Arm.targetState.down())
@@ -127,43 +125,42 @@ class TeleOp : Command() {
         when {
             OI.armDirectGround.asBoolean -> {
                 Arm.setGoal(ArmConstants.ArmHeights.GROUND.position)
-                println("arm ground")
             }
 
             OI.armDirectStowed.asBoolean -> {
                 Arm.setGoal(ArmConstants.ArmHeights.STOWED.position)
-                println("arm stowed")
             }
 
             OI.armDirectAmp.asBoolean -> {
                 Arm.setGoal(ArmConstants.ArmHeights.AMP.position)
-                println("arm amp")
             }
 
             OI.armDirectShooter1.asBoolean -> {
                 Arm.setGoal(ArmConstants.ArmHeights.SHOOTER1.position)
-                println("arm shooter1")
             }
 
             OI.armDirectShooter2.asBoolean -> {
                 Arm.setGoal(ArmConstants.ArmHeights.SHOOTER2.position)
-                println("arm shooter2")
             }
         }
         if (OI.operatorTrigger.asBoolean) {
             Shooter.setVoltage(7.0)
+        } else if (OI.shooterOutake.asBoolean) {
+            Shooter.setVoltage(-1.0)
+        } else {
+            Shooter.setVoltage(0.0)
         }
         if (OI.runIntake.asBoolean) {
             Intake.runIntake(0.5)
-            Shooter.setVoltage(-0.25)
+        } else if (OI.shooterOutake.asBoolean) {
+            Intake.runIntake(-0.3)
+        } else {
+            Intake.runIntake(0.0)
         }
-        if (OI.shooterOutake.asBoolean) {
-            Intake.runIntake(-0.4)
-            Shooter.setVoltage(-0.3)
-        }
+
     }
     var targetRotation = Odometry.supplyPose().rotation.degrees
-    val ANGULAR_P = 0.2
+    val ANGULAR_P = 0.1
     val ANGULAR_D = 0.0
     val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
     fun alignRobot() {
@@ -175,6 +172,9 @@ class TeleOp : Command() {
         }
         if (OI.alignButtonRelease) {
             alignMode = false
+        }
+        if (vision.hasSpecificTarget(4)) {
+            println("see")
         }
         if (alignMode) {
             if (!vision.hasSpecificTarget(4)) {
@@ -197,7 +197,7 @@ class TeleOp : Command() {
 //                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
 //                    alignMode = false
 //                }
-                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation + (1 * PI))
+                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians() + (1* PI))
                 println("Pose.yaw:" + poseYaw.degreesToRadians())
                 // Use our forward/turn speeds to control the drivetrain
             }
@@ -217,7 +217,6 @@ class TeleOp : Command() {
             rateLimit = true,
             secondOrder = true
         )
-//        Arm.voltMove(Arm.voltageApplied)
 
 
     }
