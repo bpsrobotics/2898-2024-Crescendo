@@ -10,6 +10,7 @@ package com.team2898.robot.commands
 import com.team2898.engine.utils.Sugar.degreesToRadians
 import com.team2898.engine.utils.Sugar.eqEpsilon
 import com.team2898.engine.utils.TurningPID
+import com.team2898.engine.utils.odometry.Vision
 import com.team2898.robot.Constants
 import com.team2898.robot.OI
 import com.team2898.robot.subsystems.*
@@ -149,16 +150,16 @@ class TeleOp : Command() {
                 println("arm shooter2")
             }
         }
-        if (OI.climb.asBoolean) {
-            println("climbing!!!")
-        }
-//        Climber.setState(OI.climb.asBoolean)
-//        if (Arm.currentPosition != null) {
         if (OI.operatorTrigger.asBoolean) {
             Shooter.setVoltage(7.0)
-//            SmartDashboard.putNumber("shooter speed", 60.0)
-//            val speed = SmartDashboard.getNumber("shooter speed", 610.0)
-//            Shooter.setWheelSpeed(Shooter.speed)
+        }
+        if (OI.runIntake.asBoolean) {
+            Intake.runIntake(0.5)
+            Shooter.setVoltage(-0.25)
+        }
+        if (OI.shooterOutake.asBoolean) {
+            Intake.runIntake(-0.4)
+            Shooter.setVoltage(-0.3)
         }
     }
     var targetRotation = Odometry.supplyPose().rotation.degrees
@@ -206,6 +207,7 @@ class TeleOp : Command() {
     override fun execute() {
         OI.loop.poll()
         handleResetGyro()
+        alignRobot()
         peripheralControls()
         Drivetrain.drive(
             -OI.translationX,

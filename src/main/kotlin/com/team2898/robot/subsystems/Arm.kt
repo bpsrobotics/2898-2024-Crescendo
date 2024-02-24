@@ -40,7 +40,6 @@ object Arm : SubsystemBase() {
 //    var ksin = 0.877281
     var ksin = 0.86
     var ks = -0.078825
-//    var ks = -0.1
 //    var kv = -2.42291
     var kv = -2.9
 //    var kv = -3.42291
