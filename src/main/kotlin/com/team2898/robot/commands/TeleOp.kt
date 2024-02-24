@@ -13,7 +13,7 @@ import com.team2898.engine.utils.TurningPID
 import com.team2898.robot.Constants
 import com.team2898.robot.OI
 import com.team2898.robot.subsystems.*
-import com.team2898.engine.utils.units.*
+import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
@@ -25,7 +25,13 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sign
+import kotlin.math.*
 
+
+enum class DriveMode {
+    Normal,
+    Defense
+}
 /**
     Called when the Tele-Operated stage of the game begins.
  */
@@ -73,13 +79,13 @@ class TeleOp : Command() {
         if (!turnSpeed.eqEpsilon(0, 0.04)) turnSpeed += kS * turnSpeed.sign
         return turnSpeed
     }
-    fun getTurnSpeed():Double {
-        return when {
-            OI.leftTrigger > 0.2 -> turnSpeedFieldOriented()
-            (drivemode == DriveMode.Defense) -> turnSpeedDefense()
-            else -> turnSpeedNormal()
-        }
-    }
+//    fun getTurnSpeed():Double {
+//        return when {
+//            OI.leftTrigger > 0.2 -> turnSpeedFieldOriented()
+//            (drivemode == DriveMode.Defense) -> turnSpeedDefense()
+//            else -> turnSpeedNormal()
+//        }
+//    }
     fun handleResetGyro(){
 //        if(OI.resetGyroStart){
 //            resetGyroTimer.reset()
@@ -98,16 +104,13 @@ class TeleOp : Command() {
     fun peripheralControls() {
         if (OI.armSelectUp.asBoolean) {
             println("arm up")
-            InstantCommand({
-                Arm.setGoal(Arm.setpoint - 0.1)
-            })
+            Arm.setGoal(Arm.pos() - 0.05)
 //            Arm.setGoal(Arm.targetState.up())
         }
         if (OI.armSelectDown.asBoolean) {
             println("arm down")
-            InstantCommand({
-                Arm.setGoal(Arm.setpoint + 0.1)
-            })
+            Arm.setGoal(Arm.pos() + 0.05)
+
 //            Arm.setGoal(Arm.targetState.down())
         }
         when {
@@ -115,18 +118,22 @@ class TeleOp : Command() {
                 Arm.setGoal(ArmConstants.ArmHeights.GROUND.position)
                 println("arm ground")
             }
+
             OI.armDirectStowed.asBoolean -> {
                 Arm.setGoal(ArmConstants.ArmHeights.STOWED.position)
                 println("arm stowed")
             }
+
             OI.armDirectAmp.asBoolean -> {
                 Arm.setGoal(ArmConstants.ArmHeights.AMP.position)
                 println("arm amp")
             }
+
             OI.armDirectShooter1.asBoolean -> {
                 Arm.setGoal(ArmConstants.ArmHeights.SHOOTER1.position)
                 println("arm shooter1")
             }
+
             OI.armDirectShooter2.asBoolean -> {
                 Arm.setGoal(ArmConstants.ArmHeights.SHOOTER2.position)
                 println("arm shooter2")
@@ -142,30 +149,10 @@ class TeleOp : Command() {
 //            SmartDashboard.putNumber("shooter speed", 60.0)
 //            val speed = SmartDashboard.getNumber("shooter speed", 610.0)
 //            Shooter.setWheelSpeed(Shooter.speed)
-
-//                println("shooter velocity ${Arm.currentPosition?.shooterVelocity}")
-//                Shooter.setFlywheelSpeed(Arm.currentPosition?.shooterVelocity ?: 0.0.mps)
-
-        } else if (OI.operatorTriggerReleased.asBoolean) {
-            Shooter.setVoltage(7.0)
-//            println("shooter shoot")
-//            Intake.runIntake(0.5)
-        } else {
-            Shooter.stop()
-//                Shooter.setFlywheelSpeed(0.0.mps)
-        }
-//        }
-        if (Arm.currentPosition == Constants.ArmConstants.ArmHeights.GROUND || OI.runIntake.asBoolean) {
-            println("run intake")
-            Intake.runIntake(0.5)
-        } else {
-            Intake.stopIntake()
-        }
-        if (OI.shooterOutake.asBoolean){
-            Intake.runIntake(-0.5)
-//            Shooter.setVoltage(-2.0)
         }
     }
+
+
     override fun execute() {
         OI.loop.poll()
         handleResetGyro()
@@ -173,7 +160,7 @@ class TeleOp : Command() {
         Drivetrain.drive(
             -OI.translationX,
             -OI.translationY,
-            getTurnSpeed(),
+            turnSpeedNormal(),
             fieldRelative = true,
             rateLimit = true,
             secondOrder = true

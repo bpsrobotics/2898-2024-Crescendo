@@ -151,10 +151,10 @@ object Drivetrain
         get() = Odometry.SwerveOdometry.poseMeters
 
 
-    fun sysIdDynamic(direction: Direction): Command{
+    fun driveSysIdDynamic(direction: Direction): Command{
         return sysIdRoutine.dynamic(direction)
     }
-    fun sysIdQuasistatic(direction: Direction): Command {
+    fun driveSysIdQuasistatic(direction: Direction): Command {
         return sysIdRoutine.quasistatic(direction)
     }
 
