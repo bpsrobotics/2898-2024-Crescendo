@@ -56,7 +56,6 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
         drivingSparkMax.restoreFactoryDefaults()
         turningSparkMax.restoreFactoryDefaults()
         drivingSparkMax.inverted
-//        m_turningSparkMax.inverted
         drivingSparkMax.setSmartCurrentLimit(DrivingMotorCurrentLimit)
 
         turningSparkMax.setSmartCurrentLimit(TurningMotorCurrentLimit)
@@ -102,13 +101,11 @@ class SwerveModule(drivingCANId: Int, turningCANId: Int, chassisAngularOffset: D
     /** The current state of the module. */
     var state =
             SwerveModuleState(drivingEncoder.velocity,
-//                Rotation2d(readEnc()))
                 readEnc())
     /** The current position of the module. */
     var position =
             SwerveModulePosition(
                 drivingEncoder.position,
-//                Rotation2d(readEnc()))
                 readEnc())
     /** Updates swerve state and position */
     fun update(){

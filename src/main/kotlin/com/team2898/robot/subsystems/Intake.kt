@@ -22,6 +22,7 @@ object Intake : SubsystemBase() {
     val buffer = Debouncer(0.04, Debouncer.DebounceType.kRising)
     val bufferTimer = Timer()
     val intakeState get() = bufferTimer.hasElapsed(STOP_BUFFER)
+    val gracePeriod get() = !bufferTimer.hasElapsed(STOP_BUFFER + 5.0)
 
     init {
         intakeMotor.restoreFactoryDefaults()
@@ -51,14 +52,18 @@ object Intake : SubsystemBase() {
 
     fun intake(speed: Double){
         if (intakeState) {
-            if (buffer.calculate(currentAverage > 8.0) && !hasNote) {
+            if (buffer.calculate(currentAverage > 7.5) && !hasNote && !gracePeriod) {
                 output = 0.0
                 bufferTimer.reset()
                 bufferTimer.start()
                 hasNote = true
             } else {
-                output = speed
-                hasNote = false
+                if (gracePeriod) {
+                    output = speed
+                } else {
+                    output = speed
+                    hasNote = false
+                }
             }
         } else {
             println("stopping intake")

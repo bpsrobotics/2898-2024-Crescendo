@@ -107,7 +107,11 @@ class TeleOp : Command() {
     val climbReachInputBuffer = Timer()
     val climbLiftInputBuffer = Timer()
     fun peripheralControls() {
-
+        if (vision.hasSpecificTarget(4)) {
+            val target = vision.getCameraData(4)
+            val disToSpeaker = atan2(1.98, sqrt(target.bestCameraToTarget.x.pow(2) - 1.41.pow(2)))
+            SmartDashboard.putNumber("AngleSpeaker", disToSpeaker)
+        }
         if (OI.armSelectUp.asBoolean) {
             Arm.setGoal(Arm.pos() - 0.075)
 //            Arm.setGoal(Arm.targetState.up())
