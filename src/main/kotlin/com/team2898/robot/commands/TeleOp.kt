@@ -11,20 +11,15 @@ import com.team2898.engine.utils.Sugar.degreesToRadians
 import com.team2898.engine.utils.Sugar.eqEpsilon
 import com.team2898.engine.utils.TurningPID
 import com.team2898.engine.utils.odometry.Vision
-import com.team2898.robot.Constants
 import com.team2898.robot.OI
 import com.team2898.robot.subsystems.*
 import edu.wpi.first.math.controller.PIDController
-import com.team2898.engine.utils.units.*
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
-import org.photonvision.PhotonUtils
 import kotlin.math.*
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import com.team2898.robot.Constants.*
-import edu.wpi.first.wpilibj2.command.InstantCommand
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -114,11 +109,11 @@ class TeleOp : Command() {
     fun peripheralControls() {
 
         if (OI.armSelectUp.asBoolean) {
-            Arm.setGoal(Arm.pos() - 0.05)
+            Arm.setGoal(Arm.pos() - 0.075)
 //            Arm.setGoal(Arm.targetState.up())
         }
         if (OI.armSelectDown.asBoolean) {
-            Arm.setGoal(Arm.pos() + 0.05)
+            Arm.setGoal(Arm.pos() + 0.075)
 
 //            Arm.setGoal(Arm.targetState.down())
         }
@@ -144,18 +139,18 @@ class TeleOp : Command() {
             }
         }
         if (OI.operatorTrigger.asBoolean) {
-            Shooter.setVoltage(7.0)
+            Shooter.setVoltage(6.0)
         } else if (OI.shooterOutake.asBoolean) {
-            Shooter.setVoltage(-1.0)
+            Shooter.setVoltage(-0.5)
         } else {
             Shooter.setVoltage(0.0)
         }
         if (OI.runIntake.asBoolean) {
-            Intake.runIntake(0.5)
+            Intake.intake(0.6)
         } else if (OI.shooterOutake.asBoolean) {
-            Intake.runIntake(-0.3)
+            Intake.intake(-0.4)
         } else {
-            Intake.runIntake(0.0)
+            Intake.intake(0.0)
         }
 
     }

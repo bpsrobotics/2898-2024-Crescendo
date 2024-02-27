@@ -154,7 +154,7 @@ class Constants {
 
     object IntakeConstants{
         const val INTAKE_SPEED = 0.75
-        const val STOP_BUFFER = 1.0
+        const val STOP_BUFFER = 0.5
     }
     object ShooterConstants{
         val FLYWHEEL_CIRCUMFERENCE = 4.inches
