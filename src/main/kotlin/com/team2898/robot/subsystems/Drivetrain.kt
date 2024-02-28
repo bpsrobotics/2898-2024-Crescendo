@@ -150,13 +150,13 @@ object Drivetrain
     val pose: Pose2d
         get() = Odometry.SwerveOdometry.poseMeters
 
-
-    fun driveSysIdDynamic(direction: Direction): Command{
-        return sysIdRoutine.dynamic(direction)
-    }
-    fun driveSysIdQuasistatic(direction: Direction): Command {
-        return sysIdRoutine.quasistatic(direction)
-    }
+//
+//    fun driveSysIdDynamic(direction: Direction): Command{
+//        return sysIdRoutine.dynamic(direction)
+//    }
+//    fun driveSysIdQuasistatic(direction: Direction): Command {
+//        return sysIdRoutine.quasistatic(direction)
+//    }
 
     /**
      * Resets the odometry to the specified pose.
@@ -167,43 +167,43 @@ object Drivetrain
         Odometry.resetOdometry(pose)
     }
 
-    // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
-    private val d_appliedVoltage: MutableMeasure<Voltage> = mutable(Volts.of(0.0))
-
-    // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
-    private val d_distance: MutableMeasure<Distance> = mutable(Meters.of(0.0))
-
-    // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
-    private val d_velocity: MutableMeasure<Velocity<Distance>> = mutable(MetersPerSecond.of(0.0))
-    // Create a new SysId routine for characterizing the drive.
-    val sysIdRoutine = SysIdRoutine(
-        // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
-        SysIdRoutine.Config(),
-        SysIdRoutine.Mechanism(
-            // Tell SysId how to plumb the driving voltage to the motors.
-            { volts: Measure<Voltage> ->
-                for (module in modules){
-                        module.voltageDrive(volts.`in`(Volts))
-//                        println("module number${module.moduleID} + position" + module.position.distanceMeters)
-//                        println(volts.`in`(Volts))
-                    }
-            },
-            { log: SysIdRoutineLog ->
-                for (module in modules){
-                    log.motor("drive" + module.moduleID)
-                        .voltage(d_appliedVoltage.mut_replace(
-                            module.getVoltage(), Volts
-                        ))
-                        .linearPosition(d_distance.mut_replace(module.position.distanceMeters, Meters))
-                        .linearVelocity(d_velocity.mut_replace(
-                            module.drivingEncoder.velocity, MetersPerSecond
-                        ))
-                }
-
-            },
-            this
-        )
-    )
+//    // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
+//    private val d_appliedVoltage: MutableMeasure<Voltage> = mutable(Volts.of(0.0))
+//
+//    // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
+//    private val d_distance: MutableMeasure<Distance> = mutable(Meters.of(0.0))
+//
+//    // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
+//    private val d_velocity: MutableMeasure<Velocity<Distance>> = mutable(MetersPerSecond.of(0.0))
+//    // Create a new SysId routine for characterizing the drive.
+//    val sysIdRoutine = SysIdRoutine(
+//        // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
+//        SysIdRoutine.Config(),
+//        SysIdRoutine.Mechanism(
+//            // Tell SysId how to plumb the driving voltage to the motors.
+//            { volts: Measure<Voltage> ->
+//                for (module in modules){
+//                        module.voltageDrive(volts.`in`(Volts))
+////                        println("module number${module.moduleID} + position" + module.position.distanceMeters)
+////                        println(volts.`in`(Volts))
+//                    }
+//            },
+//            { log: SysIdRoutineLog ->
+//                for (module in modules){
+//                    log.motor("drive" + module.moduleID)
+//                        .voltage(d_appliedVoltage.mut_replace(
+//                            module.getVoltage(), Volts
+//                        ))
+//                        .linearPosition(d_distance.mut_replace(module.position.distanceMeters, Meters))
+//                        .linearVelocity(d_velocity.mut_replace(
+//                            module.drivingEncoder.velocity, MetersPerSecond
+//                        ))
+//                }
+//
+//            },
+//            this
+//        )
+//    )
 
 
     /**

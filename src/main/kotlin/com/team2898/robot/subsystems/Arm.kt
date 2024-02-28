@@ -68,7 +68,7 @@ object Arm : SubsystemBase() {
     )
     // 0.5, 0.0, 0.15 undershoots
 //    val pid = PIDController(0.01, 0.0, 0.5)
-    val pid = PIDController(0.1, 0.0, 0.1)
+    val pid = PIDController(0.01, 0.0, 1.0)
 //    var profile: TrapezoidProfile? = null
     var profile = TrapezoidProfile(constraints)
     var initState = TrapezoidProfile.State(pos(), 0.0)
@@ -150,10 +150,10 @@ object Arm : SubsystemBase() {
 //            currentPosition = Constants.ArmConstants.ArmHeights.entries.toTypedArray().find { (it.position - p).absoluteValue < 0.05 }
 //        }
         var output = pid.calculate(vel, targetSpeed)
-        println("pid output $output")
+//        println("pid output $output")
         output += kv * targetSpeed
         output += ks + sin(p) * ksin
-        println("final output $output")
+//        println("final output $output")
 //
 //        if (p < UPPER_SOFT_STOP) {
 //            output = output.coerceAtLeast(ks + sin(p) * ksin - 0.2)
