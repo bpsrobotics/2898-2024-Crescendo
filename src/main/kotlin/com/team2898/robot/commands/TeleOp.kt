@@ -10,21 +10,26 @@ package com.team2898.robot.commands
 import com.team2898.engine.utils.Sugar.degreesToRadians
 import com.team2898.engine.utils.Sugar.eqEpsilon
 import com.team2898.engine.utils.TurningPID
-import com.team2898.robot.Constants
+import com.team2898.engine.utils.odometry.Vision
 import com.team2898.robot.OI
 import com.team2898.robot.subsystems.*
-import com.team2898.engine.utils.units.*
+import edu.wpi.first.math.controller.PIDController
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
+import kotlin.math.*
 import com.team2898.robot.Constants.*
-import edu.wpi.first.wpilibj2.command.InstantCommand
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sign
+
+enum class DriveMode {
+    Normal,
+    Defense
+}
+
 
 /**
     Called when the Tele-Operated stage of the game begins.
@@ -49,7 +54,11 @@ class TeleOp : Command() {
     val breakTimer = Timer()
     var breakTimerGoal = 0.0
     var drivemode = DriveMode.Normal
-//    var resetGyroTimer = Timer()
+    var resetGyroTimer = Timer()
+    private val vision = Vision("Camera_Module_v1")
+    var alignMode = false
+    var xDist = 0.0
+    var yDist = 0.0
     // Called every time the scheduler runs while the command is scheduled.
     fun turnSpeedNormal():Double {
         return -OI.turnX
@@ -73,13 +82,13 @@ class TeleOp : Command() {
         if (!turnSpeed.eqEpsilon(0, 0.04)) turnSpeed += kS * turnSpeed.sign
         return turnSpeed
     }
-    fun getTurnSpeed():Double {
-        return when {
-            OI.leftTrigger > 0.2 -> turnSpeedFieldOriented()
-            (drivemode == DriveMode.Defense) -> turnSpeedDefense()
-            else -> turnSpeedNormal()
-        }
-    }
+//    fun getTurnSpeed():Double {
+//        return when {
+//            OI.leftTrigger > 0.2 -> turnSpeedFieldOriented()
+//            (drivemode == DriveMode.Defense) -> turnSpeedDefense()
+//            else -> turnSpeedNormal()
+//        }
+//    }
     fun handleResetGyro(){
 //        if(OI.resetGyroStart){
 //            resetGyroTimer.reset()
@@ -95,90 +104,121 @@ class TeleOp : Command() {
 //            resetGyroTimer.stop()
 //        }
     }
+    val climbReachInputBuffer = Timer()
+    val climbLiftInputBuffer = Timer()
     fun peripheralControls() {
+        if (vision.hasSpecificTarget(4)) {
+            val target = vision.getCameraData(4)
+            val disToSpeaker = atan2(1.98, sqrt(target.bestCameraToTarget.x.pow(2) - 1.41.pow(2)))
+            SmartDashboard.putNumber("AngleSpeaker", disToSpeaker)
+        }
         if (OI.armSelectUp.asBoolean) {
-            println("arm up")
-            InstantCommand({
-                Arm.setGoal(Arm.setpoint + 0.1)
-            })
+            Arm.setGoal(Arm.pos() - 0.075)
 //            Arm.setGoal(Arm.targetState.up())
         }
         if (OI.armSelectDown.asBoolean) {
-            println("arm down")
-            InstantCommand({
-                Arm.setGoal(Arm.setpoint - 0.1)
-            })
+            Arm.setGoal(Arm.pos() + 0.075)
+
 //            Arm.setGoal(Arm.targetState.down())
         }
         when {
             OI.armDirectGround.asBoolean -> {
-                ArmMove(ArmConstants.ArmHeights.GROUND)
-                println("arm ground")
+                Arm.setGoal(ArmConstants.ArmHeights.GROUND.position)
             }
+
             OI.armDirectStowed.asBoolean -> {
-                ArmMove(ArmConstants.ArmHeights.STOWED)
-                println("arm stowed")
+                Arm.setGoal(ArmConstants.ArmHeights.STOWED.position)
             }
+
             OI.armDirectAmp.asBoolean -> {
-                ArmMove(ArmConstants.ArmHeights.AMP)
-                println("arm amp")
+                Arm.setGoal(ArmConstants.ArmHeights.AMP.position)
             }
+
             OI.armDirectShooter1.asBoolean -> {
-                ArmMove(ArmConstants.ArmHeights.SHOOTER1)
-                println("arm shooter1")
+                Arm.setGoal(ArmConstants.ArmHeights.SHOOTER1.position)
             }
+
             OI.armDirectShooter2.asBoolean -> {
-                ArmMove(ArmConstants.ArmHeights.SHOOTER2)
-                println("arm shooter2")
+                Arm.setGoal(ArmConstants.ArmHeights.SHOOTER2.position)
             }
         }
-        if (OI.climb.asBoolean) {
-            println("climbing!!!")
-        }
-//        Climber.setState(OI.climb.asBoolean)
-//        if (Arm.currentPosition != null) {
         if (OI.operatorTrigger.asBoolean) {
-            Shooter.setVoltage(5.0)
-//            SmartDashboard.putNumber("shooter speed", 10.0)
-//            val speed = SmartDashboard.getNumber("shooter speed", 10.0)
-//            Shooter.setWheelSpeed(Shooter.speed)
-
-//                println("shooter velocity ${Arm.currentPosition?.shooterVelocity}")
-//                Shooter.setFlywheelSpeed(Arm.currentPosition?.shooterVelocity ?: 0.0.mps)
-
-        } else if (OI.operatorTriggerReleased.asBoolean) {
-            Shooter.setVoltage(5.0)
-//            println("shooter shoot")
-//            Intake.runIntake(0.5)
+            Shooter.setVoltage(6.0)
+        } else if (OI.shooterOutake.asBoolean) {
+            Shooter.setVoltage(-0.75)
         } else {
-            Shooter.stop()
-//                Shooter.setFlywheelSpeed(0.0.mps)
+            Shooter.setVoltage(0.0)
         }
-//        }
-        if (Arm.currentPosition == Constants.ArmConstants.ArmHeights.GROUND || OI.runIntake.asBoolean) {
-            println("run intake")
-            Intake.runIntake(0.25)
+        if (OI.runIntake.asBoolean) {
+            Intake.intake(0.5)
+        } else if (OI.shooterOutake.asBoolean) {
+            Intake.outtake()
         } else {
-            Intake.stopIntake()
+            Intake.intake(0.0)
         }
-        if (OI.shooterOutake.asBoolean){
-            Intake.runIntake(-0.25)
-            Shooter.setVoltage(-2.0)
+
+        if (OI.shootNote.asBoolean) {
+        }
+
+    }
+    var targetRotation = Odometry.supplyPose().rotation.degrees
+    val ANGULAR_P = 0.1
+    val ANGULAR_D = 0.0
+    val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
+    fun alignRobot() {
+        var currentPose = Odometry.supplyPose()
+        var poseYaw = 0.0
+        var rotationSpeed = 0.0
+        if (OI.alignButtonPressed && !alignMode) {
+            alignMode = true
+        }
+        if (OI.alignButtonRelease) {
+            alignMode = false
+        }
+        if (vision.hasSpecificTarget(4)) {
+            println("see")
+        }
+        if (alignMode) {
+            if (!vision.hasSpecificTarget(4)) {
+                targetRotation = (1*PI)
+                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation)
+            }
+            if (vision.hasSpecificTarget(4)) {
+                val target = vision.getCameraData(4)
+                poseYaw = target.yaw
+                println("target rotation" + targetRotation)
+                println("Turning")
+//                println(xDist)
+//                println(yDist)
+                println("current rotation" + currentPose.rotation.degrees)
+                println("alignMode" + alignMode)
+
+                targetRotation = currentPose.rotation.degrees - poseYaw
+//                val targetRotationNegativeError = targetRotation - 3.0
+//                val targetRotationPositiveError = targetRotation + 3.0
+//                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
+//                    alignMode = false
+//                }
+                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians() + (1* PI))
+                println("Pose.yaw:" + poseYaw.degreesToRadians())
+                // Use our forward/turn speeds to control the drivetrain
+            }
+            Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)// Use our forward/turn speeds to control the drivetrain
         }
     }
     override fun execute() {
         OI.loop.poll()
         handleResetGyro()
+        alignRobot()
         peripheralControls()
         Drivetrain.drive(
             -OI.translationX,
             -OI.translationY,
-            getTurnSpeed(),
+            turnSpeedNormal(),
             fieldRelative = true,
             rateLimit = true,
             secondOrder = true
         )
-        Arm.voltMove(Arm.voltageApplied)
 
 
     }
