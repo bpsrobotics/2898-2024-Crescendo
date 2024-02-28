@@ -109,7 +109,7 @@ class Constants {
         val DrivingMotorIdleMode = CANSparkBase.IdleMode.kBrake
         val TurningMotorIdleMode = CANSparkBase.IdleMode.kBrake
         const val DrivingMotorCurrentLimit = 40 // amps
-        const val TurningMotorCurrentLimit = 40 // amps
+        const val TurningMotorCurrentLimit = 20 // amps
     }
 
     object OIConstants {
@@ -140,14 +140,14 @@ class Constants {
     }
 
     object ArmConstants {
-        const val ArmMaxSpeed = 1.0
+        const val ArmMaxSpeed = 1.5
         const val Arm_MaxAccel = 1.5
         enum class ArmHeights(val position: Double) {
             GROUND(Arm.LOWER_SOFT_STOP),
-            STOWED(0.12),
-            AMP(-0.35),
-            SHOOTER1(1.57),
-            SHOOTER2(1.25)
+            STOWED(0.183),
+            AMP(-0.1),
+            SHOOTER1(1.0), //base of speaker
+            SHOOTER2(1.3)
 
         }
     }
@@ -197,7 +197,7 @@ class Constants {
         const val ARM_DIRECT_AMP = 7
         const val ARM_DIRECT_SHOOTER1 = 9
         const val ARM_DIRECT_SHOOTER2 = 10
-        const val ARM_DIRECT_WAIT_DURATION = 0.25
+        const val ARM_DIRECT_WAIT_DURATION = 0.05
 
         const val PRESS_ACTIVATE_DURATION = 0.1
         const val INPUT_BUFFER_DURATION = 0.2

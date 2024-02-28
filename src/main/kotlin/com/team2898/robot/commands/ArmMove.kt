@@ -14,6 +14,7 @@ class ArmMove(private val goal: Double) : Command() {
 
     override fun initialize() {
         Arm.setGoal(goal)
+        println("trying to $goal")
     }
 
     override fun isFinished(): Boolean {

@@ -106,11 +106,15 @@ class TeleOp : Command() {
     }
     val climbReachInputBuffer = Timer()
     val climbLiftInputBuffer = Timer()
+    var angleSpeaker = 0.0
     fun peripheralControls() {
         if (vision.hasSpecificTarget(4)) {
             val target = vision.getCameraData(4)
-            val disToSpeaker = atan2(1.98, sqrt(target.bestCameraToTarget.x.pow(2) - 1.41.pow(2)))
-            SmartDashboard.putNumber("AngleSpeaker", disToSpeaker)
+            val distToSpeaker = atan2(2.08, sqrt((target.bestCameraToTarget.x).pow(2)-(1.41 - 0.675).pow(2)))
+            angleSpeaker = distToSpeaker - 32.0.degreesToRadians() + (0.5 * PI) - ArmConstants.ArmHeights.SHOOTER1.position
+            SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
+        } else {
+            angleSpeaker = 0.0
         }
         if (OI.armSelectUp.asBoolean) {
             Arm.setGoal(Arm.pos() - 0.075)
@@ -161,31 +165,33 @@ class TeleOp : Command() {
         }
 
     }
-    var targetRotation = Odometry.supplyPose().rotation.degrees
+
     val ANGULAR_P = 0.1
     val ANGULAR_D = 0.0
     val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
     fun alignRobot() {
+        var targetRotation = Odometry.supplyPose().rotation.degrees
         var currentPose = Odometry.supplyPose()
         var poseYaw = 0.0
         var rotationSpeed = 0.0
-        if (OI.alignButtonPressed && !alignMode) {
-            alignMode = true
-        }
-        if (OI.alignButtonRelease) {
-            alignMode = false
-        }
+
         if (vision.hasSpecificTarget(4)) {
             println("see")
         }
-        if (alignMode) {
-            if (!vision.hasSpecificTarget(4)) {
-                targetRotation = (1*PI)
-                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation)
+        if (vision.hasSpecificTarget(4)) {
+            val target = vision.getCameraData(4)
+//            if (!vision.hasSpecificTarget(4)) {
+//                targetRotation = (1*PI)
+//                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation)
+//            }
+            if (OI.alignButtonPressed && !alignMode) {
+                alignMode = true
+                poseYaw = currentPose.rotation.degrees - target.yaw
             }
-            if (vision.hasSpecificTarget(4)) {
-                val target = vision.getCameraData(4)
-                poseYaw = target.yaw
+            if (OI.alignButtonRelease) {
+                alignMode = false
+            }
+            if (alignMode) {
                 println("target rotation" + targetRotation)
                 println("Turning")
 //                println(xDist)
@@ -193,13 +199,13 @@ class TeleOp : Command() {
                 println("current rotation" + currentPose.rotation.degrees)
                 println("alignMode" + alignMode)
 
-                targetRotation = currentPose.rotation.degrees - poseYaw
+                targetRotation = poseYaw
 //                val targetRotationNegativeError = targetRotation - 3.0
 //                val targetRotationPositiveError = targetRotation + 3.0
 //                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
 //                    alignMode = false
 //                }
-                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians() + (1* PI))
+                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians() + (1*PI))
                 println("Pose.yaw:" + poseYaw.degreesToRadians())
                 // Use our forward/turn speeds to control the drivetrain
             }
@@ -207,9 +213,7 @@ class TeleOp : Command() {
         }
     }
     override fun execute() {
-        OI.loop.poll()
         handleResetGyro()
-        alignRobot()
         peripheralControls()
         Drivetrain.drive(
             -OI.translationX,

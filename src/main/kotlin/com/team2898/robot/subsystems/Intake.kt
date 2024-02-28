@@ -3,8 +3,6 @@ package com.team2898.robot.subsystems
 import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
-import com.team2898.robot.Constants.IntakeConstants.STOP_BUFFER
-import com.team2898.robot.OI
 
 import com.team2898.robot.RobotMap.IntakeId
 import edu.wpi.first.math.filter.Debouncer
