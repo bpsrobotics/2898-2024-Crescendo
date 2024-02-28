@@ -11,16 +11,21 @@ import com.team2898.engine.utils.Sugar.degreesToRadians
 import com.team2898.engine.utils.Sugar.eqEpsilon
 import com.team2898.engine.utils.TurningPID
 import com.team2898.engine.utils.odometry.Vision
+import com.team2898.robot.Constants
 import com.team2898.robot.OI
 import com.team2898.robot.subsystems.*
 import edu.wpi.first.math.controller.PIDController
+import com.team2898.engine.utils.units.*
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
+import org.photonvision.PhotonUtils
 import kotlin.math.*
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import com.team2898.robot.Constants.*
 import com.team2898.robot.subsystems.Intake.inAndOut
+import edu.wpi.first.wpilibj2.command.InstantCommand
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -140,7 +145,7 @@ class TeleOp : Command() {
             }
 
             OI.armDirectShooter1.asBoolean -> {
-                Arm.setGoal(ArmConstants.ArmHeights.SHOOTER1.position)
+                Arm.setGoal(ArmConstants.ArmHeights.SHOOTER1.position + angleSpeaker)
             }
 
             OI.armDirectShooter2.asBoolean -> {
@@ -158,13 +163,13 @@ class TeleOp : Command() {
             Intake.intake(0.5)
         } else if (OI.shooterOutake.asBoolean) {
             Intake.outtake()
+        } else if (OI.shootNote.asBoolean) {
+            inAndOut()
         } else {
             Intake.intake(0.0)
         }
 
-        if (OI.shootNote.asBoolean) {
-            inAndOut()
-        }
+
 
     }
 
@@ -215,7 +220,9 @@ class TeleOp : Command() {
         }
     }
     override fun execute() {
+        OI.loop.poll()
         handleResetGyro()
+        alignRobot()
         peripheralControls()
         Drivetrain.drive(
             -OI.translationX,
