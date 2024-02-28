@@ -117,8 +117,9 @@ class TeleOp : Command() {
         if (vision.hasSpecificTarget(4)) {
             val target = vision.getCameraData(4)
             val distToSpeaker = atan2(2.08, sqrt((target.bestCameraToTarget.x).pow(2)-(1.41 - 0.675).pow(2)))
-            angleSpeaker = distToSpeaker - 32.0.degreesToRadians() + (0.5 * PI) - ArmConstants.ArmHeights.SHOOTER1.position
+            angleSpeaker =(0.5 * PI) - (distToSpeaker - 32.0.degreesToRadians() - ((0.5* PI) - ArmConstants.ArmHeights.SHOOTER1.position))
             SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
+            SmartDashboard.putNumber("arm angle b4", angleSpeaker)
         } else {
             angleSpeaker = 0.0
         }
@@ -145,7 +146,7 @@ class TeleOp : Command() {
             }
 
             OI.armDirectShooter1.asBoolean -> {
-                Arm.setGoal(ArmConstants.ArmHeights.SHOOTER1.position + angleSpeaker)
+                Arm.setGoal(ArmConstants.ArmHeights.SHOOTER1.position )
             }
 
             OI.armDirectShooter2.asBoolean -> {
@@ -160,7 +161,7 @@ class TeleOp : Command() {
             Shooter.setVoltage(0.0)
         }
         if (OI.runIntake.asBoolean) {
-            Intake.intake(0.5)
+            Intake.intake(0.55)
         } else if (OI.shooterOutake.asBoolean) {
             Intake.outtake()
         } else if (OI.shootNote.asBoolean) {
@@ -214,9 +215,12 @@ class TeleOp : Command() {
 //                }
                 rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians() + (1*PI))
                 println("Pose.yaw:" + poseYaw.degreesToRadians())
-                // Use our forward/turn speeds to control the drivetrain
+                Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
+            // Use our forward/turn speeds to control the drivetrain
             }
-            Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)// Use our forward/turn speeds to control the drivetrain
+
+
+            // Use our forward/turn speeds to control the drivetrain
         }
     }
     override fun execute() {
