@@ -74,7 +74,9 @@ object Intake : SubsystemBase() {
         if (!bufferTimer.hasElapsed(0.5)) {
             output = -0.4
         } else {
-            output = 0.5
+            if (!bufferTimer.hasElapsed(1.0)) {
+                output = 0.5
+            }
         }
     }
 

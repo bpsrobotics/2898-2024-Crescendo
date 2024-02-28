@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import kotlin.math.*
 import com.team2898.robot.Constants.*
+import com.team2898.robot.subsystems.Intake.inAndOut
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -162,6 +163,7 @@ class TeleOp : Command() {
         }
 
         if (OI.shootNote.asBoolean) {
+            inAndOut()
         }
 
     }
