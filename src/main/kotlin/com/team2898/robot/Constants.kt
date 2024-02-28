@@ -144,16 +144,17 @@ class Constants {
         const val Arm_MaxAccel = 1.5
         enum class ArmHeights(val position: Double) {
             GROUND(Arm.LOWER_SOFT_STOP),
-            STOWED(0.79),
-            AMP(0.41),
-            SHOOTER1(2.0),
-            SHOOTER2(1.9)
+            STOWED(0.12),
+            AMP(-0.35),
+            SHOOTER1(1.57),
+            SHOOTER2(1.25)
 
         }
     }
 
     object IntakeConstants{
         const val INTAKE_SPEED = 0.75
+        const val STOP_BUFFER = 1.0
     }
     object ShooterConstants{
         val FLYWHEEL_CIRCUMFERENCE = 4.inches
@@ -187,6 +188,7 @@ class Constants {
         const val CLIMBER_UP = 2 // very hard to press accidentally
         const val CLIMBER_WAIT_DURATION = 0.5
 
+        const val SHOOT = 4
         const val ARM_UP = 5
         const val ARM_DOWN = 3
 
