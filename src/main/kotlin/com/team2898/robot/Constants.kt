@@ -6,15 +6,13 @@
 package com.team2898.robot
 
 import com.revrobotics.CANSparkBase
-import com.team2898.engine.utils.units.MetersPerSecond
+import com.team2898.engine.utils.units.inches
 import com.team2898.robot.subsystems.Arm
 import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics
 import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.math.util.Units
 import edu.wpi.first.wpilibj2.command.Command
-import com.team2898.engine.utils.units.*
-import kotlin.math.PI
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide

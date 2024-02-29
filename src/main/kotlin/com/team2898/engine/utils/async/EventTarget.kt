@@ -2,9 +2,11 @@ package com.team2898.engine.utils.async
 
 import com.team2898.engine.utils.Symbol
 
+@Suppress("unused")
 class EventTarget<DataType> {
     private val listeners: MutableMap<Symbol, (ev: DataType) -> Unit> = mutableMapOf()
     private val onceListeners: MutableMap<Symbol, (ev: DataType) -> Unit> = mutableMapOf()
+    operator fun invoke(fn: (ev: DataType) -> Unit) = addListener(fn)
     fun addListener(fn: (ev: DataType) -> Unit): Symbol {
         val s = Symbol()
         listeners[s] = fn

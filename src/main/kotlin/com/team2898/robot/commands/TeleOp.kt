@@ -25,12 +25,6 @@ import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sign
 
-enum class DriveMode {
-    Normal,
-    Defense
-}
-
-
 /**
     Called when the Tele-Operated stage of the game begins.
  */
@@ -53,7 +47,6 @@ class TeleOp : Command() {
     val kS = 0.1
     val breakTimer = Timer()
     var breakTimerGoal = 0.0
-    var drivemode = DriveMode.Normal
     var resetGyroTimer = Timer()
     private val vision = Vision("Camera_Module_v1")
     var alignMode = false
@@ -104,8 +97,6 @@ class TeleOp : Command() {
 //            resetGyroTimer.stop()
 //        }
     }
-    val climbReachInputBuffer = Timer()
-    val climbLiftInputBuffer = Timer()
     fun peripheralControls() {
         if (vision.hasSpecificTarget(4)) {
             val target = vision.getCameraData(4)
@@ -159,12 +150,10 @@ class TeleOp : Command() {
 
     }
     var targetRotation = Odometry.supplyPose().rotation.degrees
-    val ANGULAR_P = 0.1
-    val ANGULAR_D = 0.0
     val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
     fun alignRobot() {
-        var currentPose = Odometry.supplyPose()
-        var poseYaw = 0.0
+        val currentPose = Odometry.supplyPose()
+        val poseYaw: Double
         var rotationSpeed = 0.0
         if (OI.alignButtonPressed && !alignMode) {
             alignMode = true
@@ -183,12 +172,12 @@ class TeleOp : Command() {
             if (vision.hasSpecificTarget(4)) {
                 val target = vision.getCameraData(4)
                 poseYaw = target.yaw
-                println("target rotation" + targetRotation)
+                println("target rotation $targetRotation")
                 println("Turning")
 //                println(xDist)
 //                println(yDist)
-                println("current rotation" + currentPose.rotation.degrees)
-                println("alignMode" + alignMode)
+                println("current rotation " + currentPose.rotation.degrees)
+                println("alignMode $alignMode")
 
                 targetRotation = currentPose.rotation.degrees - poseYaw
 //                val targetRotationNegativeError = targetRotation - 3.0
@@ -200,7 +189,7 @@ class TeleOp : Command() {
                 println("Pose.yaw:" + poseYaw.degreesToRadians())
                 // Use our forward/turn speeds to control the drivetrain
             }
-            Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)// Use our forward/turn speeds to control the drivetrain
+            Drivetrain.drive(0.0, 0.0, rotationSpeed, fieldRelative = true, rateLimit = true, secondOrder = true)// Use our forward/turn speeds to control the drivetrain
         }
     }
     override fun execute() {
@@ -231,9 +220,7 @@ class TeleOp : Command() {
     }
 
     companion object {
-        enum class DriveMode {
-            Normal,
-            Defense
-        }
+        const val ANGULAR_P = 0.1
+        const val ANGULAR_D = 0.0
     }
 }

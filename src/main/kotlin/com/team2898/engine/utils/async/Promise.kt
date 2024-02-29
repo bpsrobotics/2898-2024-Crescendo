@@ -4,12 +4,12 @@ import com.team2898.engine.utils.AggregateException
 import edu.wpi.first.wpilibj.event.BooleanEvent
 import edu.wpi.first.wpilibj.event.EventLoop
 
-class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: Throwable) -> Unit) -> Unit) : Thenable<T> {
+@Suppress("unused")
+class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: Throwable) -> Unit) -> Unit) {
     private var resolvedWith: T? = null
     private var rejectedWith: Throwable? = null
     var hasFulfilled: Boolean = false
     var currentState: PromiseState = PromiseState.NOT_RUN
-    private var listenerApplied = false
     private val onResolved = EventTarget<T>()
     private val onRejected = EventTarget<Throwable>()
     fun hasResolved(loop: EventLoop) = BooleanEvent(loop) { currentState == PromiseState.RESOLVED }
@@ -21,7 +21,11 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
     private fun run() {
         if (currentState != PromiseState.NOT_RUN) return
         currentState = PromiseState.WAITING
-        fn({d -> resolve(d)}, {e -> reject(e)})
+        try {
+            fn({ d -> resolve(d) }, { e -> reject(e) })
+        } catch (e: Throwable) {
+            reject(e)
+        }
     }
     private fun resolve(value: T) {
         if (currentState != PromiseState.WAITING) return
@@ -37,7 +41,8 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
         hasFulfilled = true
         onRejected.dispatch(error)
     }
-    override fun<N> then(success: (value: T) -> Promise<N>)
+    operator fun <N> invoke(success: (value: T) -> Promise<N>) = then(success)
+    fun<N> then(success: (value: T) -> Promise<N>)
         = Promise { rs, rj ->
             if (hasFulfilled) {
                 try {
@@ -60,7 +65,7 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
                 onRejected.addListener { error -> rj(error) }
             }
         }
-    override fun <N> then(
+    fun <N> then(
         success: (value: T) -> Promise<N>,
         failure: (error: Throwable) -> Promise<N>
     ): Promise<N> {
@@ -106,7 +111,7 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
         }
     }
 
-    override fun catch(failure: (error: Throwable) -> Promise<T>): Promise<T> {
+    fun catch(failure: (error: Throwable) -> Promise<T>): Promise<T> {
         return Promise { rs, rj ->
             if (hasFulfilled) {
                 if (resolvedWith != null) {
