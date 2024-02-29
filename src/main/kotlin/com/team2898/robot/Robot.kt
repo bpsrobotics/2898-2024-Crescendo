@@ -36,13 +36,7 @@ class Robot : TimedRobot() {
         Arm
         Shooter
         Intake
-        NamedCommands.registerCommand("ground", ArmMove(Constants.ArmConstants.ArmHeights.GROUND))
-        NamedCommands.registerCommand("speakerbase", ArmMove(Constants.ArmConstants.ArmHeights.SHOOTER2))
-        NamedCommands.registerCommand("stowed", ArmMove(Constants.ArmConstants.ArmHeights.STOWED))
-        NamedCommands.registerCommand("amp", ArmMove(Constants.ArmConstants.ArmHeights.AMP))
-        NamedCommands.registerCommand("intake", IntakeNote())
-        NamedCommands.registerCommand("setshooter", SetShooter())
-        NamedCommands.registerCommand("inAndOut", InAndOut())
+
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
         robotContainer = RobotContainer()

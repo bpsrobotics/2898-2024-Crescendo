@@ -24,7 +24,6 @@ import org.photonvision.PhotonUtils
 import kotlin.math.*
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import com.team2898.robot.Constants.*
-import com.team2898.robot.subsystems.Intake.inAndOut
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -165,7 +164,7 @@ class TeleOp : Command() {
         } else if (OI.shooterOutake.asBoolean) {
             Intake.outtake()
         } else if (OI.shootNote.asBoolean) {
-            inAndOut()
+            InAndOut()
         } else {
             Intake.intake(0.0)
         }

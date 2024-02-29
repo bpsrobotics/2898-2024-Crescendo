@@ -6,8 +6,14 @@ package com.team2898.robot
 //import com.team2898.robot.Constants.OperatorConstants
 
 import com.pathplanner.lib.auto.AutoBuilder
+import com.pathplanner.lib.auto.NamedCommands
+import com.pathplanner.lib.commands.PathPlannerAuto
 import com.pathplanner.lib.path.PathPlannerPath
 import com.team2898.robot.Constants.AutoConstants.commandMap
+import com.team2898.robot.commands.ArmMove
+import com.team2898.robot.commands.InAndOut
+import com.team2898.robot.commands.IntakeNote
+import com.team2898.robot.commands.SetShooter
 import com.team2898.robot.commands.autos.TestAuto
 import com.team2898.robot.commands.autos.TestAuto2
 import com.team2898.robot.subsystems.Drivetrain.drive
@@ -38,6 +44,13 @@ class RobotContainer {
 
     /** The container for the robot. Contains subsystems, OI devices, and commands.  */
     init {
+        NamedCommands.registerCommand("ground", ArmMove(Constants.ArmConstants.ArmHeights.GROUND))
+        NamedCommands.registerCommand("speaker", ArmMove(Constants.ArmConstants.ArmHeights.SHOOTER2))
+        NamedCommands.registerCommand("stowed", ArmMove(Constants.ArmConstants.ArmHeights.STOWED))
+        NamedCommands.registerCommand("amp", ArmMove(Constants.ArmConstants.ArmHeights.AMP))
+        NamedCommands.registerCommand("intake", IntakeNote())
+        NamedCommands.registerCommand("setshooter", SetShooter())
+        NamedCommands.registerCommand("inAndOut", InAndOut())
         // Configure the trigger bindings
         configureBindings()
         autoCommandChooser.addOption("test auto", TestAuto())
@@ -48,7 +61,8 @@ class RobotContainer {
 
     }
     fun getAutonomousCommand(): Command{
-        return autoCommandChooser.selected
+        val path = PathPlannerAuto("basic")
+        return path
     }
 
     /**

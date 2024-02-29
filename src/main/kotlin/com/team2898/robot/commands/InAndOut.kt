@@ -13,7 +13,18 @@ class InAndOut : Command() {
     override fun initialize() {
         time.reset()
         time.start()
-        Intake.inAndOut()
+
+    }
+
+    override fun execute() {
+        if (!time.hasElapsed(0.1)) {
+            Intake.output = -0.4
+        } else {
+            if (!time.hasElapsed(0.5)) {
+                Intake.output = 0.7
+            }
+        }
+        println("whart")
     }
 
     override fun isFinished(): Boolean {

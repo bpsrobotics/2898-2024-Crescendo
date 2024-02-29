@@ -15,6 +15,7 @@ class SetShooter : Command() {
         time.reset()
         time.start()
         Shooter.setVoltage(7.0)
+        println("shooter")
     }
 
     override fun isFinished(): Boolean {

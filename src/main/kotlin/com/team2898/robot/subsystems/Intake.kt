@@ -68,16 +68,6 @@ object Intake : SubsystemBase() {
         output = -0.4
     }
 
-    fun inAndOut() {
-        bufferTimer.reset()
-        bufferTimer.start()
-        if (!bufferTimer.hasElapsed(0.5)) {
-            output = -0.4
-        } else {
-            if (!bufferTimer.hasElapsed(1.0)) {
-                output = 0.5
-            }
-        }
-    }
+
 
 }
