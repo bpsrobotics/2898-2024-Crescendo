@@ -5,10 +5,7 @@ package com.team2898.robot
 
 import com.fasterxml.jackson.databind.util.Named
 import com.pathplanner.lib.auto.NamedCommands
-import com.team2898.robot.commands.ArmMove
-import com.team2898.robot.commands.IntakeNote
-import com.team2898.robot.commands.SetShooter
-import com.team2898.robot.commands.TeleOp
+import com.team2898.robot.commands.*
 import com.team2898.robot.subsystems.Arm
 import com.team2898.robot.subsystems.Drivetrain
 import com.team2898.robot.subsystems.Intake
@@ -45,6 +42,7 @@ class Robot : TimedRobot() {
         NamedCommands.registerCommand("amp", ArmMove(Constants.ArmConstants.ArmHeights.AMP))
         NamedCommands.registerCommand("intake", IntakeNote())
         NamedCommands.registerCommand("setshooter", SetShooter())
+        NamedCommands.registerCommand("inAndOut", InAndOut())
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
         robotContainer = RobotContainer()

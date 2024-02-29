@@ -65,27 +65,7 @@ class RobotContainer {
         // cancelling on release.
         //m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand())
         // guard for bot-on-board
-//        commandMap.put(
-//            "start",
-//            SequentialCommandGroup(PrintCommand("***Path Start"),
-//            InstantCommand({ println("path start") })
-//            )
-//        )
-//        commandMap.put(
-//            "middle",
-//            SequentialCommandGroup(PrintCommand("***Path Middle"))
-//        )
-//        commandMap.put(
-//            "end", SequentialCommandGroup(
-//                PrintCommand("***Path End"),
-//                InstantCommand({drive(0.0,0.0,0.0,false,false)})
-//            )
-//        )
-//        commandMap.put(
-//            "score", SequentialCommandGroup(
-//                PrintCommand("***Path score"),
-//            )
-//        )
+
     }
 
      /**

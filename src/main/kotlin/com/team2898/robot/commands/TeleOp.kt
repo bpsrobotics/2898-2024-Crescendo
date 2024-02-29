@@ -146,7 +146,7 @@ class TeleOp : Command() {
             }
 
             OI.armDirectShooter1.asBoolean -> {
-                Arm.setGoal(ArmConstants.ArmHeights.SHOOTER1.position )
+                Arm.setGoal(ArmConstants.ArmHeights.SHOOTER1.position)
             }
 
             OI.armDirectShooter2.asBoolean -> {
