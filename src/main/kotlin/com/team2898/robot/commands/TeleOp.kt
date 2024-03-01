@@ -9,6 +9,7 @@ package com.team2898.robot.commands
 
 import com.team2898.engine.utils.Sugar.degreesToRadians
 import com.team2898.engine.utils.Sugar.eqEpsilon
+import com.team2898.engine.utils.Sugar.radiansToDegrees
 import com.team2898.engine.utils.TurningPID
 import com.team2898.engine.utils.odometry.Vision
 import com.team2898.robot.Constants
@@ -24,6 +25,7 @@ import org.photonvision.PhotonUtils
 import kotlin.math.*
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import com.team2898.robot.Constants.*
+import edu.wpi.first.units.Angle
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -113,14 +115,24 @@ class TeleOp : Command() {
     val climbLiftInputBuffer = Timer()
     var angleSpeaker = 0.0
     fun peripheralControls() {
+        var x1 = 0.5
+        var y1 = 0.269
+        var h = 1.41 - y1
         if (vision.hasSpecificTarget(4)) {
-            val target = vision.getCameraData(4)
-            val distToSpeaker = atan2(2.08, sqrt((target.bestCameraToTarget.x).pow(2)-(1.41 - 0.675).pow(2)))
-            angleSpeaker =(0.5 * PI) - (distToSpeaker - 32.0.degreesToRadians() - ((0.5* PI) - ArmConstants.ArmHeights.SHOOTER1.position))
+            var d = vision.getCameraData(4).bestCameraToTarget.x + x1
+            var distToSpeaker = (180.0 - atan2(2.08, sqrt(d.pow(2)-h.pow(2))).radiansToDegrees() - (32+90)).degreesToRadians()
+//            for(i in 1..5) {
+//                distToSpeaker = (180.0 - atan2(2.08, sqrt(d.pow(2)-h.pow(2))).radiansToDegrees() - 148.0)
+//                x1 = 0.0325 + 0.573786*cos(distToSpeaker)
+//                y1 = 0.055 + 0.573786*sin(distToSpeaker)
+//                h += x1
+//                d += y1
+//            }
+            angleSpeaker =(0.5 * PI) - distToSpeaker
             SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
             SmartDashboard.putNumber("arm angle b4", angleSpeaker)
         } else {
-            angleSpeaker = 0.0
+            angleSpeaker = ArmConstants.ArmHeights.SHOOTER1.position
         }
         if (OI.armSelectUp.asBoolean) {
             Arm.setGoal(Arm.pos() - 0.075)
@@ -145,7 +157,7 @@ class TeleOp : Command() {
             }
 
             OI.armDirectShooter1.asBoolean -> {
-                Arm.setGoal(ArmConstants.ArmHeights.SHOOTER1.position)
+                Arm.setGoal(angleSpeaker)
             }
 
             OI.armDirectShooter2.asBoolean -> {
@@ -177,10 +189,10 @@ class TeleOp : Command() {
     val ANGULAR_D = 0.0
     val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
     fun alignRobot() {
-        var targetRotation = Odometry.supplyPose().rotation.degrees
         var currentPose = Odometry.supplyPose()
         var poseYaw = 0.0
         var rotationSpeed = 0.0
+        var targetRotation = currentPose.rotation.degrees
 
         if (vision.hasSpecificTarget(4)) {
             println("see")
@@ -193,7 +205,7 @@ class TeleOp : Command() {
 //            }
             if (OI.alignButtonPressed && !alignMode) {
                 alignMode = true
-                poseYaw = currentPose.rotation.degrees - target.yaw
+                poseYaw = currentPose.rotation.degrees + target.yaw
             }
             if (OI.alignButtonRelease) {
                 alignMode = false
@@ -212,7 +224,7 @@ class TeleOp : Command() {
 //                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
 //                    alignMode = false
 //                }
-                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians() + (1*PI))
+                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians())
                 println("Pose.yaw:" + poseYaw.degreesToRadians())
                 Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
             // Use our forward/turn speeds to control the drivetrain
