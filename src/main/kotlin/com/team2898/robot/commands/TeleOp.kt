@@ -228,8 +228,8 @@ class TeleOp : Command() {
         alignRobot()
         peripheralControls()
         Drivetrain.drive(
-            -OI.translationX,
-            -OI.translationY,
+            OI.translationX,
+            OI.translationY,
             turnSpeedNormal(),
             fieldRelative = true,
             rateLimit = true,

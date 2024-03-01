@@ -8,21 +8,13 @@ package com.team2898.robot
 import com.pathplanner.lib.auto.AutoBuilder
 import com.pathplanner.lib.auto.NamedCommands
 import com.pathplanner.lib.commands.PathPlannerAuto
-import com.pathplanner.lib.path.PathPlannerPath
-import com.team2898.robot.Constants.AutoConstants.commandMap
 import com.team2898.robot.commands.ArmMove
 import com.team2898.robot.commands.InAndOut
 import com.team2898.robot.commands.IntakeNote
 import com.team2898.robot.commands.SetShooter
-import com.team2898.robot.commands.autos.TestAuto
-import com.team2898.robot.commands.autos.TestAuto2
-import com.team2898.robot.subsystems.Drivetrain.drive
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
-import edu.wpi.first.wpilibj2.command.InstantCommand
-import edu.wpi.first.wpilibj2.command.PrintCommand
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
 import edu.wpi.first.wpilibj2.command.button.Trigger
 
@@ -53,15 +45,15 @@ class RobotContainer {
         NamedCommands.registerCommand("inAndOut", InAndOut())
         // Configure the trigger bindings
         configureBindings()
-        autoCommandChooser.addOption("test auto", TestAuto())
-        autoCommandChooser.setDefaultOption("testAuto2", TestAuto2())
+
+        autoCommandChooser = AutoBuilder.buildAutoChooser("one-note")
 
         SmartDashboard.putData("Auto mode", autoCommandChooser)
 
 
     }
     fun getAutonomousCommand(): Command{
-        val path = PathPlannerAuto("basic")
+        val path = autoCommandChooser.selected
         return path
     }
 

@@ -14,11 +14,17 @@
         {
           "type": "named",
           "data": {
+            "name": "amp"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
             "name": "speaker"
           }
         },
         {
-          "type": "sequential",
+          "type": "parallel",
           "data": {
             "commands": [
               {
@@ -39,7 +45,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "basic"
+            "pathName": "stage-note"
           }
         }
       ]

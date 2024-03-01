@@ -130,6 +130,14 @@ class Constants {
         const val PYController = 1.0
         const val PThetaController = 1.0
 
+        const val translationP = 1.0
+        const val translationI = 0.0
+        const val translationD = 0.0
+
+        const val rotationP = 0.75
+        const val rotationI = 0.0
+        const val rotationD = 0.0
+
         // Constraint for the motion profiled robot angle controller
         val ThetaControllerConstraints = TrapezoidProfile.Constraints(
                 MaxAngularSpeedRadiansPerSecond, MaxAngularSpeedRadiansPerSecondSquared)
@@ -146,8 +154,8 @@ class Constants {
             GROUND(Arm.LOWER_SOFT_STOP),
             STOWED(0.183),
             AMP(-0.1),
-            SHOOTER1(1.0), //base of speaker
-            SHOOTER2(1.3)
+            SHOOTER1(1.0),
+            SHOOTER2(1.3)   //base
 
         }
     }
