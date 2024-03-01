@@ -115,20 +115,19 @@ class TeleOp : Command() {
     val climbLiftInputBuffer = Timer()
     var angleSpeaker = 0.0
     fun peripheralControls() {
-        var x1 = 0.5
-        var y1 = 0.269
-        var h = 1.41 - y1
+        var x1 = 0.0
+        var y1 = 0.0
+        var h = 1.3555
         if (vision.hasSpecificTarget(4)) {
-            var d = vision.getCameraData(4).bestCameraToTarget.x + x1
-            var distToSpeaker = (180.0 - atan2(2.08, sqrt(d.pow(2)-h.pow(2))).radiansToDegrees() - (32+90)).degreesToRadians()
-//            for(i in 1..5) {
-//                distToSpeaker = (180.0 - atan2(2.08, sqrt(d.pow(2)-h.pow(2))).radiansToDegrees() - 148.0)
-//                x1 = 0.0325 + 0.573786*cos(distToSpeaker)
-//                y1 = 0.055 + 0.573786*sin(distToSpeaker)
-//                h += x1
-//                d += y1
-//            }
-            angleSpeaker =(0.5 * PI) - distToSpeaker
+            var d = vision.getCameraData(4).bestCameraToTarget.x
+            var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
+            var angleToSpeaker = 0.0
+            for(i in 1..5) {
+                angleToSpeaker = (180.0 - atan2(1.98 - y1, distToSpeaker + x1).radiansToDegrees() - (32+90)).degreesToRadians()
+                x1 = 0.0325 + 0.573786*cos(angleToSpeaker)
+                y1 = 0.055 + 0.573786*sin(angleToSpeaker)
+            }
+            angleSpeaker =(0.5 * PI) - angleToSpeaker
             SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
             SmartDashboard.putNumber("arm angle b4", angleSpeaker)
         } else {
