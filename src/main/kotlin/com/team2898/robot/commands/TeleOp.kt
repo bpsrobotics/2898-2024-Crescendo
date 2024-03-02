@@ -123,7 +123,7 @@ class TeleOp : Command() {
             var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
             var angleToSpeaker = 0.0
             for(i in 1..5) {
-                angleToSpeaker = (180.0 - atan2(1.98 - y1, distToSpeaker + x1).radiansToDegrees() - (32+90+10.88)).degreesToRadians()
+                angleToSpeaker = (180.0 - atan2(2.08 - y1, distToSpeaker + x1).radiansToDegrees() - (32+90+10.88)).degreesToRadians()
                 x1 = -0.035 + 0.6*cos(angleToSpeaker)
                 y1 = 0.055 + 0.6*sin(angleToSpeaker)
             }
@@ -134,11 +134,11 @@ class TeleOp : Command() {
             angleSpeaker = ArmConstants.ArmHeights.SHOOTER1.position
         }
         if (OI.armSelectUp.asBoolean) {
-            Arm.setGoal(Arm.pos() - 0.075)
+            Arm.setGoal(Arm.pos() - 0.1)
 //            Arm.setGoal(Arm.targetState.up())
         }
         if (OI.armSelectDown.asBoolean) {
-            Arm.setGoal(Arm.pos() + 0.075)
+            Arm.setGoal(Arm.pos() + 0.1)
 
 //            Arm.setGoal(Arm.targetState.down())
         }

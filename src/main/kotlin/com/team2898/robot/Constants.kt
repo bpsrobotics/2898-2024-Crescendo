@@ -6,7 +6,6 @@
 package com.team2898.robot
 
 import com.revrobotics.CANSparkBase
-import com.team2898.engine.utils.units.MetersPerSecond
 import com.team2898.robot.subsystems.Arm
 import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics
@@ -14,7 +13,6 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.math.util.Units
 import edu.wpi.first.wpilibj2.command.Command
 import com.team2898.engine.utils.units.*
-import kotlin.math.PI
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -108,7 +106,7 @@ class Constants {
         const val TurningMaxOutput = 1.0
         val DrivingMotorIdleMode = CANSparkBase.IdleMode.kBrake
         val TurningMotorIdleMode = CANSparkBase.IdleMode.kBrake
-        const val DrivingMotorCurrentLimit = 40 // amps
+        const val DrivingMotorCurrentLimit = 50 // amps
         const val TurningMotorCurrentLimit = 20 // amps
     }
 
@@ -130,13 +128,13 @@ class Constants {
         const val PYController = 1.0
         const val PThetaController = 1.0
 
-        const val translationP = 1.0
-        const val translationI = 0.0
-        const val translationD = 0.0
+        const val TranslationP = 1.0
+        const val TranslationI = 0.0
+        const val TranslationD = 0.0
 
-        const val rotationP = 0.75
-        const val rotationI = 0.0
-        const val rotationD = 0.0
+        const val RotationP = 0.8
+        const val RotationI = 0.0
+        const val RotationD = 0.0
 
         // Constraint for the motion profiled robot angle controller
         val ThetaControllerConstraints = TrapezoidProfile.Constraints(

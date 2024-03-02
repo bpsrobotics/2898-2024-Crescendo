@@ -12,12 +12,12 @@ import com.pathplanner.lib.util.PIDConstants
 import com.pathplanner.lib.util.ReplanningConfig
 import com.team2898.engine.utils.SwerveUtils
 import com.team2898.robot.Constants
-import com.team2898.robot.Constants.AutoConstants.rotationD
-import com.team2898.robot.Constants.AutoConstants.rotationI
-import com.team2898.robot.Constants.AutoConstants.rotationP
-import com.team2898.robot.Constants.AutoConstants.translationD
-import com.team2898.robot.Constants.AutoConstants.translationI
-import com.team2898.robot.Constants.AutoConstants.translationP
+import com.team2898.robot.Constants.AutoConstants.RotationD
+import com.team2898.robot.Constants.AutoConstants.RotationI
+import com.team2898.robot.Constants.AutoConstants.RotationP
+import com.team2898.robot.Constants.AutoConstants.TranslationD
+import com.team2898.robot.Constants.AutoConstants.TranslationI
+import com.team2898.robot.Constants.AutoConstants.TranslationP
 import com.team2898.robot.Constants.DriveConstants
 import com.team2898.robot.Constants.DriveConstants.DriveKinematics
 import com.team2898.robot.Constants.DriveConstants.MaxSpeedMetersPerSecond
@@ -41,18 +41,11 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry
 import edu.wpi.first.math.kinematics.SwerveModuleState
 import edu.wpi.first.networktables.NetworkTableInstance
-import edu.wpi.first.units.*
-import edu.wpi.first.units.MutableMeasure.mutable
-import edu.wpi.first.units.Units.*
 import edu.wpi.first.util.WPIUtilJNI
 import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj.DriverStation.Alliance
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
-import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog
-import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.SubsystemBase
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction
 import java.util.function.BooleanSupplier
 
 
@@ -285,13 +278,9 @@ object Drivetrain
 
     }
 
-    var chassisDrive = {
-            speeds: ChassisSpeeds ->
-        val wantedStates = DriveKinematics.toSwerveModuleStates(speeds)
-        setModuleStates(wantedStates)
-    }
 
-    fun chassisDrive2(speeds: ChassisSpeeds) {
+
+    fun chassisDrive(speeds: ChassisSpeeds) {
         val wantedStates = DriveKinematics.toSwerveModuleStates(speeds)
         setModuleStates(wantedStates)
     }
@@ -346,13 +335,13 @@ object Drivetrain
 
     fun configureAuto() {
         AutoBuilder.configureHolonomic(
-            Odometry::supplyPose,  // Robot pose supplier
+            Odometry::autoPose,  // Robot pose supplier
             Odometry::resetOdometry,  // Method to reset odometry (will be called if your auto has a starting pose)
             Odometry::chassisSpeeds,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            this::chassisDrive2,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+            this::chassisDrive,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                PIDConstants(translationP, translationI, translationD),  // Translation PID constants
-                PIDConstants(rotationP, rotationI, rotationD),  // Rotation PID constants
+                PIDConstants(TranslationP, TranslationI, TranslationD),  // Translation PID constants
+                PIDConstants(RotationP, RotationI, RotationD),  // Rotation PID constants
                 MaxSpeedMetersPerSecond,  // Max module speed, in m/s
                 0.7112,  // Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() // Default path replanning config. See the API for the options here

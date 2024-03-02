@@ -126,7 +126,7 @@ object OI : SubsystemBase() {
     val armDirectGround: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_GROUND, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
     val armDirectStowed: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_STOWED, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
     val armDirectAmp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_AMP, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
-    val armDirectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER1, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER1, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION)
     val armDirectShooter2: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER2, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
 
     val shootNote: BooleanEvent = operatorController.button(SHOOT, loop).debounce(0.2).rising()
