@@ -55,7 +55,7 @@ class Vision (
                 return i.bestCameraToTarget
             }
         }
-        return result.bestTarget.bestCameraToTarget
+        return result.bestTarget.bestCameraToTarget ?: return Transform3d(0.0,0.0,0.0, Rotation3d())
     }
     fun hasSpecificTarget(tagID:Int) : Boolean {
         val result = cam.latestResult

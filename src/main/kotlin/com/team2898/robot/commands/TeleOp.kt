@@ -117,15 +117,15 @@ class TeleOp : Command() {
     fun peripheralControls() {
         var x1 = 0.0
         var y1 = 0.0
-        var h = 1.3555
+        var h = 1.21
         if (vision.hasSpecificTarget(7)) {
             var d = vision.getCameraData(7).x
             var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
             var angleToSpeaker = 0.0
             for(i in 1..5) {
-                angleToSpeaker = (180.0 - atan2(1.98 - y1, distToSpeaker + x1).radiansToDegrees() - (32+90)).degreesToRadians()
-                x1 = -0.0325 + 0.573786*cos(angleToSpeaker)
-                y1 = 0.055 + 0.573786*sin(angleToSpeaker)
+                angleToSpeaker = (180.0 - atan2(1.98 - y1, distToSpeaker + x1).radiansToDegrees() - (32+90+10.88)).degreesToRadians()
+                x1 = -0.035 + 0.6*cos(angleToSpeaker)
+                y1 = 0.055 + 0.6*sin(angleToSpeaker)
             }
             angleSpeaker =(0.5 * PI) - angleToSpeaker
             SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
@@ -236,7 +236,7 @@ class TeleOp : Command() {
     override fun execute() {
         OI.loop.poll()
         handleResetGyro()
-        alignRobot()
+//        alignRobot()
         peripheralControls()
         Drivetrain.drive(
             OI.translationX,
