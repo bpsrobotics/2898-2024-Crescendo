@@ -10,8 +10,8 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
     private var rejectedWith: Throwable? = null
     var hasFulfilled: Boolean = false
     var currentState: PromiseState = PromiseState.NOT_RUN
-    private val onResolved = EventTarget<T>()
-    private val onRejected = EventTarget<Throwable>()
+    private val onResolved = EventTarget<T, Promise<T>>(this)
+    private val onRejected = EventTarget<Throwable, Promise<T>>(this)
     fun hasResolved(loop: EventLoop) = BooleanEvent(loop) { currentState == PromiseState.RESOLVED }
     fun hasRejected(loop: EventLoop) = BooleanEvent(loop) { currentState == PromiseState.REJECTED }
 
@@ -46,23 +46,23 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
         = Promise { rs, rj ->
             if (hasFulfilled) {
                 try {
-                    val x = success(resolvedWith ?: throw rejectedWith ?: Throwable("nothing exception: if found, tell Grant to debug Promise code"))
+                    val x = success(resolvedWith ?: throw rejectedWith ?: Throwable("impossible exception: if found, tell Grant to debug Promise code"))
                     x.onResolved.addListener { value2 -> rs(value2) }
-                    x.onRejected.addListener(rj)
+                    x.onRejected.addListener {rj(it.data)}
                 } catch (e: Throwable) {
                     rj(e)
                 }
             } else {
-                onResolved.addListener { value ->
+                onResolved.addListener { event ->
                     try {
-                        val x = success(value)
+                        val x = success(event.data)
                         x.onResolved.addListener { value2 -> rs(value2) }
-                        x.onRejected.addListener(rj)
+                        x.onRejected.addListener {rj(it.data)}
                     } catch (e: Throwable) {
                         rj(e)
                     }
                 }
-                onRejected.addListener { error -> rj(error) }
+                onRejected.addListener { event -> rj(event.data) }
             }
         }
     fun <N> then(
@@ -74,35 +74,35 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
                 if (resolvedWith != null) {
                     try {
                         val x = success(resolvedWith!!)
-                        x.onResolved.addListener { value2 -> rs(value2) }
-                        x.onRejected.addListener(rj)
+                        x.onResolved.addListener { value2 -> rs(value2.data) }
+                        x.onRejected.addListener {rj(it.data)}
                     } catch (e: Throwable) {
                         rj(e)
                     }
                 } else if (rejectedWith != null) {
                     try {
                         val x = failure(rejectedWith!!)
-                        x.onResolved.addListener { value2 -> rs(value2) }
-                        x.onRejected.addListener(rj)
+                        x.onResolved.addListener { value2 -> rs(value2.data) }
+                        x.onRejected.addListener {rj(it.data)}
                     } catch (e: Throwable) {
                         rj(e)
                     }
-                } else rj(Throwable("nothing exception: if found, tell Grant to debug Promise code"))
+                } else rj(Throwable("impossible exception: if found, tell Grant to debug Promise code"))
             } else {
                 onResolved.addListener { value ->
                     try {
-                        val x = success(value)
-                        x.onResolved.addListener { value2 -> rs(value2) }
-                        x.onRejected.addListener(rj)
+                        val x = success(value.data)
+                        x.onResolved.addListener { value2 -> rs(value2.data) }
+                        x.onRejected.addListener {rj(it.data)}
                     } catch (e: Throwable) {
                         rj(e)
                     }
                 }
                 onRejected.addListener { error ->
                     try {
-                        val x = failure(error)
-                        x.onResolved.addListener { value2 -> rs(value2) }
-                        x.onRejected.addListener(rj)
+                        val x = failure(error.data)
+                        x.onResolved.addListener { value2 -> rs(value2.data) }
+                        x.onRejected.addListener {rj(it.data)}
                     } catch (e: Throwable) {
                         rj(e)
                     }
@@ -119,19 +119,19 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
                 } else if (rejectedWith != null) {
                     try {
                         val x = failure(rejectedWith!!)
-                        x.onResolved.addListener { value2 -> rs(value2) }
-                        x.onRejected.addListener(rj)
+                        x.onResolved.addListener { value2 -> rs(value2.data) }
+                        x.onRejected.addListener {rj(it.data)}
                     } catch (e: Throwable) {
                         rj(e)
                     }
                 }
             } else {
-                onResolved.addListener { value -> rs(value) }
+                onResolved.addListener { value -> rs(value.data) }
                 onRejected.addListener { error ->
                     try {
-                        val x = failure(error)
-                        x.onResolved.addListener { value2 -> rs(value2) }
-                        x.onRejected.addListener(rj)
+                        val x = failure(error.data)
+                        x.onResolved.addListener { value2 -> rs(value2.data) }
+                        x.onRejected.addListener {rj(it.data)}
                     } catch (e: Throwable) {
                         rj(e)
                     }
@@ -158,10 +158,10 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
             return Promise { rs, rj ->
                 if (l == 0) rj(IllegalArgumentException("Iterable passed to Promise.any was empty"))
                 else icpy.forEach { item ->
-                    item.onResolved.addListener(rs)
-                    item.onRejected.addListener { error ->
+                    item.onResolved.addListener { event -> rs(event.data) }
+                    item.onRejected.addListener { event ->
                         rjc++
-                        rejections.add(error)
+                        rejections.add(event.data)
                         if (rjc >= l) rj(AggregateException(null, null, *rejections.toTypedArray()))
                     }
                 }
@@ -179,10 +179,10 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
                 if (l == 0) rs(setOf())
                 else icpy.forEach { item ->
                     item.onResolved.addListener {
-                        resolutions.add(it)
+                        resolutions.add(it.data)
                         if (resolutions.size >= l) rs(resolutions)
                     }
-                    item.onRejected.addListener(rj)
+                    item.onRejected.addListener {rj(it.data)}
                 }
             }
         }
@@ -193,8 +193,8 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
         fun <T> race(iter: Set<Promise<T>>): Promise<T> {
             return Promise { rs, rj ->
                 iter.forEach {
-                    it.onResolved.addListener(rs)
-                    it.onRejected.addListener(rj)
+                    it.onResolved.addListener { event -> rs(event.data)}
+                    it.onRejected.addListener { event -> rj(event.data)}
                 }
             }
         }
@@ -207,19 +207,19 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
             return Promise { rs, _ ->
                 if (iter.isEmpty()) rs(setOf())
                 else iter.forEach { item ->
-                    item.onResolved.addListener { value ->
+                    item.onResolved.addListener { event ->
                         fulfillments.add(object : PromiseFulfillment<T> {
                             override val status = PromiseSettledState.RESOLVED
-                            override val value = value
+                            override val value = event.data
                             override val reason = null
                         })
                         if (fulfillments.size >= iter.size) rs(fulfillments)
                     }
-                    item.onRejected.addListener { error ->
+                    item.onRejected.addListener { event ->
                         fulfillments.add(object : PromiseFulfillment<T> {
                             override val status = PromiseSettledState.REJECTED
                             override val value = null
-                            override val reason = error
+                            override val reason = event.data
                         })
                         if (fulfillments.size >= iter.size) rs(fulfillments)
                     }
@@ -236,8 +236,8 @@ class Promise<T>(private val fn: (resolve: (value: T) -> Unit, reject: (error: T
             return Promise { rs, _ ->
                 if (iter.isEmpty()) rs(setOf())
                 else iter.forEach {
-                    it.onResolved.addListener { value ->
-                        fulfillments.add(value)
+                    it.onResolved.addListener { event ->
+                        fulfillments.add(event.data)
                         if (fulfillments.size >= iter.size) rs(fulfillments)
                     }
                 }

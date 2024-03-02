@@ -6,6 +6,7 @@ import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.team2898.engine.utils.MovingAverage
 import com.team2898.engine.utils.Sugar.radiansToDegrees
+import com.team2898.engine.utils.async.EventTarget
 import com.team2898.robot.Constants
 import com.team2898.robot.Constants.ArmConstants.ArmMaxSpeed
 import com.team2898.robot.Constants.ArmConstants.Arm_MaxAccel
@@ -33,6 +34,7 @@ object Arm : SubsystemBase() {
     private val armMotorSecondary = CANSparkMax(Arm_right, CANSparkLowLevel.MotorType.kBrushless)
     private val encoder = DutyCycleEncoder(ArmDigitalInput)
 
+    val onStop = EventTarget<Constants.ArmConstants.ArmHeights?, Arm>(this)
     var setpoint = pos()
     private const val UPPER_SOFT_STOP = -0.275
     val LOWER_SOFT_STOP = 1.76
@@ -98,6 +100,9 @@ object Arm : SubsystemBase() {
         SmartDashboard.putNumber("voltage applied", voltageApplied)
         SmartDashboard.putNumber("angle deg", encoder.absolutePosition * 360)
         SmartDashboard.putNumber("angle from lower deg", LOWER_SOFT_STOP.radiansToDegrees() - pos().radiansToDegrees())
+        onStop {
+            if (it.data == null) println("Arm has stopped at a position not within tolerance of an ArmHeight")
+        }
     }
 
     var last = pos()
@@ -114,7 +119,6 @@ object Arm : SubsystemBase() {
         ksin = SmartDashboard.getNumber("arm ksin", ksin)
         kv = SmartDashboard.getNumber("arm kv", kv)
         voltageApplied = SmartDashboard.getNumber("voltage applied", voltageApplied)
-        val currentTick = false
 
         val p = pos()
         val dp = p - last
@@ -144,11 +148,14 @@ object Arm : SubsystemBase() {
             goalState
         ).velocity
         SmartDashboard.putNumber("arm target speed", targetSpeed)
-//        if (setpoint !in LOWER_SOFT_STOP..UPPER_SOFT_STOP) {
-////            profile = null
-//            targetSpeed = 0.0
-//            currentPosition = Constants.ArmConstants.ArmHeights.entries.toTypedArray().find { (it.position - p).absoluteValue < 0.05 }
-//        }
+        if ((p - setpoint).absoluteValue < 0.05 && vel.absoluteValue < 0.05) {
+            val newPos = Constants.ArmConstants.ArmHeights.entries.toTypedArray()
+                .find { (it.position - p).absoluteValue < 0.05 }
+            if (newPos != currentPosition) {
+                currentPosition = newPos
+                onStop(currentPosition)
+            }
+        }
         var output = pid.calculate(vel, targetSpeed)
         output += kv * targetSpeed
         output += ks + sin(p) * ksin
