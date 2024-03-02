@@ -12,6 +12,12 @@ import com.pathplanner.lib.util.PIDConstants
 import com.pathplanner.lib.util.ReplanningConfig
 import com.team2898.engine.utils.SwerveUtils
 import com.team2898.robot.Constants
+import com.team2898.robot.Constants.AutoConstants.rotationD
+import com.team2898.robot.Constants.AutoConstants.rotationI
+import com.team2898.robot.Constants.AutoConstants.rotationP
+import com.team2898.robot.Constants.AutoConstants.translationD
+import com.team2898.robot.Constants.AutoConstants.translationI
+import com.team2898.robot.Constants.AutoConstants.translationP
 import com.team2898.robot.Constants.DriveConstants
 import com.team2898.robot.Constants.DriveConstants.DriveKinematics
 import com.team2898.robot.Constants.DriveConstants.MaxSpeedMetersPerSecond
@@ -150,7 +156,7 @@ object Drivetrain
     val pose: Pose2d
         get() = Odometry.SwerveOdometry.poseMeters
 
-//
+
 //    fun driveSysIdDynamic(direction: Direction): Command{
 //        return sysIdRoutine.dynamic(direction)
 //    }
@@ -279,8 +285,13 @@ object Drivetrain
 
     }
 
-    val chassisDrive = {
+    var chassisDrive = {
             speeds: ChassisSpeeds ->
+        val wantedStates = DriveKinematics.toSwerveModuleStates(speeds)
+        setModuleStates(wantedStates)
+    }
+
+    fun chassisDrive2(speeds: ChassisSpeeds) {
         val wantedStates = DriveKinematics.toSwerveModuleStates(speeds)
         setModuleStates(wantedStates)
     }
@@ -338,10 +349,10 @@ object Drivetrain
             Odometry::supplyPose,  // Robot pose supplier
             Odometry::resetOdometry,  // Method to reset odometry (will be called if your auto has a starting pose)
             Odometry::chassisSpeeds,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            chassisDrive,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+            this::chassisDrive2,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                PIDConstants(Constants.ModuleConstants.DrivingP, Constants.ModuleConstants.DrivingI, Constants.ModuleConstants.DrivingD),  // Translation PID constants
-                PIDConstants(Constants.ModuleConstants.TurningP, Constants.ModuleConstants.TurningI, Constants.ModuleConstants.TurningD),  // Rotation PID constants
+                PIDConstants(translationP, translationI, translationD),  // Translation PID constants
+                PIDConstants(rotationP, rotationI, rotationD),  // Rotation PID constants
                 MaxSpeedMetersPerSecond,  // Max module speed, in m/s
                 0.7112,  // Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() // Default path replanning config. See the API for the options here

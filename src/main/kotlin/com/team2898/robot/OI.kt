@@ -2,6 +2,7 @@ package com.team2898.robot
 
 import com.team2898.engine.utils.Vector
 import com.team2898.engine.utils.async.Promise
+import com.team2898.robot.Constants.ButtonConstants.SHOOT
 import com.team2898.robot.subsystems.Arm
 import edu.wpi.first.math.MathUtil
 import edu.wpi.first.wpilibj.GenericHID
@@ -87,7 +88,7 @@ object OI : SubsystemBase() {
 
     /** Driver controller's throttle on the right joystick for the X Axis, from -1 (left) to 1 (right) */
     val turnX
-        get() = process(-driverController.rightX, deadzone = true, square = false)
+        get() = process(driverController.rightX, deadzone = true, square = false)
     /** Driver controller's throttle on the right joystick for the Y Axis, from -1 (down) to 1 (up) */
     val turnY
         get() = process(driverController.rightY, deadzone = true, square = false)
@@ -128,6 +129,7 @@ object OI : SubsystemBase() {
     val armDirectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER1, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
     val armDirectShooter2: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER2, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
 
+    val shootNote: BooleanEvent = operatorController.button(SHOOT, loop).debounce(0.2).rising()
     val runIntake: BooleanEvent = BooleanEvent(loop) { hatVector == Vector(0,-1) }
     val shooterOutake: BooleanEvent = BooleanEvent(loop) { hatVector == Vector(0, 1) }
 

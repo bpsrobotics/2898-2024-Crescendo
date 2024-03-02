@@ -4,7 +4,6 @@ import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.team2898.robot.Constants.IntakeConstants.STOP_BUFFER
-import com.team2898.robot.OI
 
 import com.team2898.robot.RobotMap.IntakeId
 import edu.wpi.first.math.filter.Debouncer
@@ -17,7 +16,7 @@ object Intake : SubsystemBase() {
     private val intakeMotor = CANSparkMax(IntakeId, CANSparkLowLevel.MotorType.kBrushed)
     var hasNote = false
     var output = 0.0
-    val currentFilter = LinearFilter.movingAverage(15)
+    val currentFilter = LinearFilter.movingAverage(20)
     var currentAverage = 0.0
     val buffer = Debouncer(0.04, Debouncer.DebounceType.kRising)
     val bufferTimer = Timer()
@@ -40,19 +39,13 @@ object Intake : SubsystemBase() {
         SmartDashboard.putNumber("current average", currentAverage)
         SmartDashboard.putNumber("intake timer ", bufferTimer.get())
         currentAverage = currentFilter.calculate(intakeMotor.outputCurrent)
-//        if (buffer.calculate(currentAverage > 10.0) && !hasNote) {
-//            output = 0.0
-//            hasNote = true
-//        }
-//        if (buffer.calculate(currentAverage < 10.0 && currentAverage > 3.0)) {
-//            hasNote = false
-//        }
+
         intakeMotor.set(output)
     }
 
     fun intake(speed: Double){
         if (intakeState) {
-            if (buffer.calculate(currentAverage > 7.5) && !hasNote && !gracePeriod) {
+            if (buffer.calculate(currentAverage > 7.0) && !hasNote && !gracePeriod) {
                 output = 0.0
                 bufferTimer.reset()
                 bufferTimer.start()
@@ -69,6 +62,10 @@ object Intake : SubsystemBase() {
             println("stopping intake")
             output = 0.0
         }
+    }
+
+    fun outtake() {
+        output = -0.4
     }
 
 

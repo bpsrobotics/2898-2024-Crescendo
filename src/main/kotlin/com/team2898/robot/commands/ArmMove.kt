@@ -10,6 +10,8 @@ import edu.wpi.first.wpilibj2.command.Command
  * @author Ori
  */
 class ArmMove(private val goal: Double) : Command() {
+
+
     constructor(goal: Constants.ArmConstants.ArmHeights) : this(goal.position)
 
     override fun initialize() {

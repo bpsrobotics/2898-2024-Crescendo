@@ -3,7 +3,9 @@
 // the WPILib BSD license file in the root directory of this project.
 package com.team2898.robot
 
-import com.team2898.robot.commands.TeleOp
+import com.fasterxml.jackson.databind.util.Named
+import com.pathplanner.lib.auto.NamedCommands
+import com.team2898.robot.commands.*
 import com.team2898.robot.subsystems.Arm
 import com.team2898.robot.subsystems.Drivetrain
 import com.team2898.robot.subsystems.Intake
@@ -34,6 +36,7 @@ class Robot : TimedRobot() {
         Arm
         Shooter
         Intake
+
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
         robotContainer = RobotContainer()

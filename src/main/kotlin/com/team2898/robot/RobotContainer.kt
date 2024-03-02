@@ -5,6 +5,13 @@ package com.team2898.robot
 
 //import com.team2898.robot.Constants.OperatorConstants
 
+import com.pathplanner.lib.auto.AutoBuilder
+import com.pathplanner.lib.auto.NamedCommands
+import com.pathplanner.lib.commands.PathPlannerAuto
+import com.team2898.robot.commands.ArmMove
+import com.team2898.robot.commands.InAndOut
+import com.team2898.robot.commands.IntakeNote
+import com.team2898.robot.commands.SetShooter
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
@@ -29,17 +36,25 @@ class RobotContainer {
 
     /** The container for the robot. Contains subsystems, OI devices, and commands.  */
     init {
+        NamedCommands.registerCommand("ground", ArmMove(Constants.ArmConstants.ArmHeights.GROUND))
+        NamedCommands.registerCommand("speaker", ArmMove(Constants.ArmConstants.ArmHeights.SHOOTER2))
+        NamedCommands.registerCommand("stowed", ArmMove(Constants.ArmConstants.ArmHeights.STOWED))
+        NamedCommands.registerCommand("amp", ArmMove(Constants.ArmConstants.ArmHeights.AMP))
+        NamedCommands.registerCommand("intake", IntakeNote())
+        NamedCommands.registerCommand("setshooter", SetShooter())
+        NamedCommands.registerCommand("inAndOut", InAndOut())
         // Configure the trigger bindings
         configureBindings()
-//        autoCommandChooser.addOption("test auto", TestAuto())
-//        autoCommandChooser.setDefaultOption("testAuto2", TestAuto2())
+
+        autoCommandChooser = AutoBuilder.buildAutoChooser("one-note")
 
         SmartDashboard.putData("Auto mode", autoCommandChooser)
 
 
     }
     fun getAutonomousCommand(): Command{
-        return autoCommandChooser.selected
+        val path = autoCommandChooser.selected
+        return path
     }
 
     /**
@@ -56,27 +71,7 @@ class RobotContainer {
         // cancelling on release.
         //m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand())
         // guard for bot-on-board
-//        commandMap.put(
-//            "start",
-//            SequentialCommandGroup(PrintCommand("***Path Start"),
-//            InstantCommand({ println("path start") })
-//            )
-//        )
-//        commandMap.put(
-//            "middle",
-//            SequentialCommandGroup(PrintCommand("***Path Middle"))
-//        )
-//        commandMap.put(
-//            "end", SequentialCommandGroup(
-//                PrintCommand("***Path End"),
-//                InstantCommand({drive(0.0,0.0,0.0,false,false)})
-//            )
-//        )
-//        commandMap.put(
-//            "score", SequentialCommandGroup(
-//                PrintCommand("***Path score"),
-//            )
-//        )
+
     }
 
      /**
