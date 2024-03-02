@@ -118,8 +118,8 @@ class TeleOp : Command() {
         var x1 = 0.0
         var y1 = 0.0
         var h = 1.3555
-        if (vision.hasSpecificTarget(4)) {
-            var d = vision.getCameraData(4).bestCameraToTarget.x
+        if (vision.hasSpecificTarget(7)) {
+            var d = vision.getCameraData(7).bestCameraToTarget.x
             var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
             var angleToSpeaker = 0.0
             for(i in 1..5) {
@@ -193,11 +193,11 @@ class TeleOp : Command() {
         var rotationSpeed = 0.0
         var targetRotation = currentPose.rotation.degrees
 
-        if (vision.hasSpecificTarget(4)) {
+        if (vision.hasSpecificTarget(7)) {
             println("see")
         }
-        if (vision.hasSpecificTarget(4)) {
-            val target = vision.getCameraData(4)
+        if (vision.hasSpecificTarget(7)) {
+            val target = vision.getCameraData(7)
 //            if (!vision.hasSpecificTarget(4)) {
 //                targetRotation = (1*PI)
 //                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation)
