@@ -27,8 +27,10 @@ object Odometry : SubsystemBase(), PoseProvider {
         ))
     override val pose: Pose2d
         get() = SwerveOdometry.poseMeters
-    var poseSupplier: Supplier<Pose2d> = Supplier {pose}
     fun supplyPose(): Pose2d {
+        return Pose2d(pose.x, pose.y, pose.rotation)
+    }
+    fun autoPose(): Pose2d {
         return Pose2d(pose.x, pose.y, pose.rotation)
     }
 

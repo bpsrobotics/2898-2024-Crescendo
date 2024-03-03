@@ -47,15 +47,15 @@ class Vision (
         cam,
         robotToCam
     )
-    fun getCameraData(targetID:Int) :  PhotonTrackedTarget{
+    fun getCameraData(targetID:Int) :  Transform3d{
         var result = cam.getLatestResult();
-        val targets = result.getTargets()
+        val targets = result.getTargets() ?: return Transform3d(0.0, 0.0, 0.0, Rotation3d())
         for (i in targets) {
             if (i.fiducialId == targetID) {
-                return i
+                return i.bestCameraToTarget
             }
         }
-        return result.bestTarget
+        return result.bestTarget.bestCameraToTarget ?: return Transform3d(0.0,0.0,0.0, Rotation3d())
     }
     fun hasSpecificTarget(tagID:Int) : Boolean {
         val result = cam.latestResult

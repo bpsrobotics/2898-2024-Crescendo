@@ -10,6 +10,7 @@ import com.team2898.robot.subsystems.Arm
 import com.team2898.robot.subsystems.Drivetrain
 import com.team2898.robot.subsystems.Intake
 import com.team2898.robot.subsystems.Shooter
+import edu.wpi.first.wpilibj.DataLogManager
 import edu.wpi.first.wpilibj.TimedRobot
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
@@ -33,7 +34,8 @@ class Robot : TimedRobot() {
      */
     override fun robotInit() {
         Drivetrain
-        Arm
+        DataLogManager.start()
+        SmartDashboard.putData(Arm)
         Shooter
         Intake
 

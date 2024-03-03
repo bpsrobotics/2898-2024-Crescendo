@@ -59,7 +59,7 @@ object Arm : SubsystemBase() {
         return angleModulus(p)
     }
 
-    val movingAverage = MovingAverage(10)
+    val movingAverage = MovingAverage(15)
     val movingAverage2 = MovingAverage(25)
 
     val profileTimer = Timer()
@@ -70,7 +70,7 @@ object Arm : SubsystemBase() {
     )
     // 0.5, 0.0, 0.15 undershoots
 //    val pid = PIDController(0.01, 0.0, 0.5)
-    val pid = PIDController(0.1, 0.0, 0.1)
+    val pid = PIDController(0.01, 0.0, 0.1)
 //    var profile: TrapezoidProfile? = null
     var profile = TrapezoidProfile(constraints)
     var initState = TrapezoidProfile.State(pos(), 0.0)
@@ -147,6 +147,9 @@ object Arm : SubsystemBase() {
             initState,
             goalState
         ).velocity
+        if (pos() in (setpoint-0.01)..(setpoint+0.01)) {
+            targetSpeed = 0.0
+        }
         SmartDashboard.putNumber("arm target speed", targetSpeed)
         if ((p - setpoint).absoluteValue < 0.05 && vel.absoluteValue < 0.05) {
             val newPos = Constants.ArmConstants.ArmHeights.entries.toTypedArray()
@@ -202,9 +205,15 @@ object Arm : SubsystemBase() {
         builder.addDoubleProperty("position", { pos() }) {}
         builder.addDoubleProperty("raw position", { encoder.absolutePosition }) {}
         builder.addDoubleProperty("arm motor rate", { armMotor.encoder.velocity }) {}
-        builder.addDoubleProperty("rate", { movingAverage.average }) {}
-        builder.addDoubleProperty("rate2", { movingAverage2.average }) {}
+        builder.addDoubleProperty("average velocity rate", { movingAverage.average }) {}
         builder.addDoubleProperty("motor output", { armMotor.appliedOutput }) {}
+        builder.addDoubleProperty("target position", { setpoint }) {}
+        builder.addDoubleProperty("left voltage", { armMotor.busVoltage }) {}
+        builder.addDoubleProperty("right voltage", { armMotorSecondary.busVoltage }) {}
+        builder.addDoubleProperty("actual velocity", { vel }) {}
+        builder.addDoubleProperty("target velocity", { targetSpeed }) {}
+        builder.addDoubleProperty("current drawn (both motors)", { armMotor.busVoltage + armMotorSecondary.busVoltage }) {}
+
     }
 
 }

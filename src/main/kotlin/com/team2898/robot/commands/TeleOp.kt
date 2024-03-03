@@ -1,6 +1,9 @@
 package com.team2898.robot.commands
 
 import com.team2898.engine.utils.Sugar.degreesToRadians
+import com.team2898.engine.utils.Sugar.eqEpsilon
+import com.team2898.engine.utils.Sugar.radiansToDegrees
+import com.team2898.engine.utils.TurningPID
 import com.team2898.engine.utils.odometry.Vision
 import com.team2898.robot.Constants.ArmConstants
 import com.team2898.robot.OI
@@ -11,6 +14,20 @@ import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import kotlin.math.*
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
+import com.team2898.robot.Constants.*
+import edu.wpi.first.units.Angle
+import edu.wpi.first.wpilibj2.command.InstantCommand
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.pow
+import kotlin.math.sign
+
+enum class DriveMode {
+    Normal,
+    Defense
+}
+
 
 /**
     Called when the Tele-Operated stage of the game begins.
@@ -87,22 +104,27 @@ class TeleOp : Command() {
     }
     var angleSpeaker = 0.0
     fun peripheralControls() {
-        val automations = SmartDashboard.getBoolean("automateTeleOp", false)
-        if (vision.hasSpecificTarget(4)) {
-            val target = vision.getCameraData(4)
-            val distToSpeaker = atan2(2.08, sqrt((target.bestCameraToTarget.x).pow(2)-(1.41 - 0.675).pow(2)))
-            angleSpeaker =(0.5 * PI) - (distToSpeaker - 32.0.degreesToRadians() - ((0.5* PI) - ArmConstants.ArmHeights.SHOOTER1.position))
-            SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
-            SmartDashboard.putNumber("arm angle b4", angleSpeaker)
-        } else {
-            angleSpeaker = 0.0
+        var x1 = 0.0
+        var y1 = 0.0
+        var h = 1.21
+        if (vision.hasSpecificTarget(7)) {
+            var d = vision.getCameraData(7).x
+            var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
+            var angleToSpeaker = 0.0
+            for(i in 1..5) {
+                angleToSpeaker = (180.0 - atan2(2.08 - y1, distToSpeaker + x1).radiansToDegrees() - (32+90+10.88)).degreesToRadians()
+                x1 = -0.035 + 0.6*cos(angleToSpeaker)
+                y1 = 0.055 + 0.6*sin(angleToSpeaker)
+            }
+            angleSpeaker =(0.5 * PI) - angleToSpeaker
         }
+        val automations = SmartDashboard.getBoolean("automateTeleOp", false)
         if (OI.armSelectUp.asBoolean) {
-            Arm.setGoal(Arm.pos() - 0.075)
+            Arm.setGoal(Arm.pos() - 0.1)
 //            Arm.setGoal(Arm.targetState.up())
         }
         if (OI.armSelectDown.asBoolean) {
-            Arm.setGoal(Arm.pos() + 0.075)
+            Arm.setGoal(Arm.pos() + 0.1)
 
 //            Arm.setGoal(Arm.targetState.down())
         }
@@ -120,7 +142,7 @@ class TeleOp : Command() {
             }
 
             OI.armDirectShooter1.asBoolean -> {
-                Arm.setGoal(ArmConstants.ArmHeights.SHOOTER1.position)
+                Arm.setGoal(angleSpeaker)
             }
 
             OI.armDirectShooter2.asBoolean -> {
@@ -148,33 +170,34 @@ class TeleOp : Command() {
     var targetRotation = Odometry.supplyPose().rotation.degrees
     val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
     fun alignRobot() {
-//        var targetRotation = Odometry.supplyPose().rotation.degrees
-        val currentPose = Odometry.supplyPose()
-        val rotationSpeed: Double
+        var currentPose = Odometry.supplyPose()
+        var poseYaw = 0.0
+        var rotationSpeed = 0.0
+        var targetRotation = currentPose.rotation.degrees
 
-        if (vision.hasSpecificTarget(4)) {
+        if (vision.hasSpecificTarget(7)) {
             println("see")
         }
-        if (vision.hasSpecificTarget(4)) {
-            val target = vision.getCameraData(4)
+        if (vision.hasSpecificTarget(7)) {
+            val target = vision.getCameraData(7)
 //            if (!vision.hasSpecificTarget(4)) {
 //                targetRotation = (1*PI)
 //                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation)
 //            }
-            val poseYaw = if (OI.alignButtonPressed && !alignMode) {
+            if (OI.alignButtonPressed && !alignMode) {
                 alignMode = true
-                currentPose.rotation.degrees - target.yaw
-            } else 0.0
+                poseYaw = currentPose.rotation.degrees
+            }
             if (OI.alignButtonRelease) {
                 alignMode = false
             }
             if (alignMode) {
-                println("target rotation $targetRotation")
+                println("target rotation" + targetRotation)
                 println("Turning")
 //                println(xDist)
 //                println(yDist)
-                println("current rotation " + currentPose.rotation.degrees)
-                println("alignMode $alignMode")
+                println("current rotation" + currentPose.rotation.degrees)
+                println("alignMode" + alignMode)
 
                 targetRotation = poseYaw
 //                val targetRotationNegativeError = targetRotation - 3.0
@@ -182,9 +205,9 @@ class TeleOp : Command() {
 //                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
 //                    alignMode = false
 //                }
-                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians() + (1*PI))
+                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians())
                 println("Pose.yaw:" + poseYaw.degreesToRadians())
-                Drivetrain.drive(0.0, 0.0, rotationSpeed, fieldRelative = true, rateLimit = true, secondOrder = true)
+                Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
             // Use our forward/turn speeds to control the drivetrain
             }
 
@@ -195,7 +218,7 @@ class TeleOp : Command() {
     override fun execute() {
         OI.loop.poll()
         handleResetGyro()
-        alignRobot()
+//        alignRobot()
         peripheralControls()
         Drivetrain.drive(
             OI.translationX,
