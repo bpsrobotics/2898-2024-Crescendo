@@ -1,9 +1,7 @@
 package com.team2898.robot.commands
 
 import com.team2898.engine.utils.Sugar.degreesToRadians
-import com.team2898.engine.utils.Sugar.eqEpsilon
 import com.team2898.engine.utils.Sugar.radiansToDegrees
-import com.team2898.engine.utils.TurningPID
 import com.team2898.engine.utils.odometry.Vision
 import com.team2898.robot.Constants.ArmConstants
 import com.team2898.robot.OI
@@ -14,20 +12,6 @@ import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import kotlin.math.*
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
-import com.team2898.robot.Constants.*
-import edu.wpi.first.units.Angle
-import edu.wpi.first.wpilibj2.command.InstantCommand
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.pow
-import kotlin.math.sign
-
-enum class DriveMode {
-    Normal,
-    Defense
-}
-
 
 /**
     Called when the Tele-Operated stage of the game begins.
@@ -106,10 +90,10 @@ class TeleOp : Command() {
     fun peripheralControls() {
         var x1 = 0.0
         var y1 = 0.0
-        var h = 1.21
+        val h = 1.21
         if (vision.hasSpecificTarget(7)) {
-            var d = vision.getCameraData(7).x
-            var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
+            val d = vision.getCameraData(7).x
+            val distToSpeaker = sqrt(d.pow(2)-h.pow(2))
             var angleToSpeaker = 0.0
             for(i in 1..5) {
                 angleToSpeaker = (180.0 - atan2(2.08 - y1, distToSpeaker + x1).radiansToDegrees() - (32+90+10.88)).degreesToRadians()
@@ -170,16 +154,16 @@ class TeleOp : Command() {
     var targetRotation = Odometry.supplyPose().rotation.degrees
     val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
     fun alignRobot() {
-        var currentPose = Odometry.supplyPose()
+        val currentPose = Odometry.supplyPose()
         var poseYaw = 0.0
-        var rotationSpeed = 0.0
-        var targetRotation = currentPose.rotation.degrees
+        val rotationSpeed: Double
+//        var targetRotation = currentPose.rotation.degrees
 
         if (vision.hasSpecificTarget(7)) {
             println("see")
         }
         if (vision.hasSpecificTarget(7)) {
-            val target = vision.getCameraData(7)
+//            val target = vision.getCameraData(7)
 //            if (!vision.hasSpecificTarget(4)) {
 //                targetRotation = (1*PI)
 //                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation)
@@ -192,12 +176,12 @@ class TeleOp : Command() {
                 alignMode = false
             }
             if (alignMode) {
-                println("target rotation" + targetRotation)
+                println("target rotation $targetRotation")
                 println("Turning")
 //                println(xDist)
 //                println(yDist)
-                println("current rotation" + currentPose.rotation.degrees)
-                println("alignMode" + alignMode)
+                println("current rotation ${currentPose.rotation.degrees}")
+                println("alignMode $alignMode")
 
                 targetRotation = poseYaw
 //                val targetRotationNegativeError = targetRotation - 3.0
@@ -207,7 +191,7 @@ class TeleOp : Command() {
 //                }
                 rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians())
                 println("Pose.yaw:" + poseYaw.degreesToRadians())
-                Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
+                Drivetrain.drive(0.0, 0.0, rotationSpeed, fieldRelative = true, rateLimit = true, secondOrder = true)
             // Use our forward/turn speeds to control the drivetrain
             }
 
