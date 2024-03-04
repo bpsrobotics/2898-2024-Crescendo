@@ -217,10 +217,8 @@ class TeleOp : Command() {
             if (alignMode) {
                 println("target rotation" + targetRotation)
                 println("Turning")
-//                println(xDist)
-//                println(yDist)
-                println("current rotation" + currentPose.rotation.degrees)
                 println("alignMode" + alignMode)
+
 
                 targetRotation = currentPose.rotation.degrees + target
 //                val targetRotationNegativeError = targetRotation - 3.0
@@ -241,7 +239,7 @@ class TeleOp : Command() {
     override fun execute() {
         OI.loop.poll()
         handleResetGyro()
-//        alignRobot()
+        alignRobot()
         peripheralControls()
         Drivetrain.drive(
             OI.translationX,

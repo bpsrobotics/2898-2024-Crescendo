@@ -23,19 +23,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase
 import java.util.function.Supplier
 
 object Odometry : SubsystemBase(), PoseProvider {
-    private val vision = Vision("Camera_Module_v1")
-    var SwerveOdometry = SwerveDrivePoseEstimator(
+    var SwerveOdometry = SwerveDriveOdometry(
         Constants.DriveConstants.DriveKinematics,
         Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
             Drivetrain.frontLeft.position,
             Drivetrain.frontRight.position,
             Drivetrain.rearLeft.position,
             Drivetrain.rearRight.position
-        ),
-        Pose2d(Translation2d(0.0,0.0),Rotation2d(0.0,0.0))
-    )
+        ))
     override val pose: Pose2d
-        get() = SwerveOdometry.estimatedPosition
+        get() = SwerveOdometry.poseMeters
     fun supplyPose(): Pose2d {
         return Pose2d(pose.x, pose.y, pose.rotation)
     }
@@ -78,20 +75,6 @@ object Odometry : SubsystemBase(), PoseProvider {
         update()
     }
     override fun update(){
-        var currentVisionValues = vision.getEstimatedPose(pose)
-        if (currentVisionValues!= null) {
-            if(currentVisionValues.isPresent){
-                val getCurrentVisionValues = currentVisionValues.get()
-                val stdDevs: Matrix<N3, N1> = Matrix(Nat.N3(), Nat.N1())
-                stdDevs.fill(10.0)
-                //stdDevs.set(1,3,1000.0)
-                SwerveOdometry.setVisionMeasurementStdDevs(stdDevs) //TODO figure out STDev method
-                SwerveOdometry.addVisionMeasurement(
-                    getCurrentVisionValues.estimatedPose.toPose2d(),
-                    getCurrentVisionValues.timestampSeconds
-                )//TODO Check timestamp seconds is in synch with robot code
-            }
-        }
         NavX.update(timer.get())
         SwerveOdometry.update(
             Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
@@ -104,6 +87,7 @@ object Odometry : SubsystemBase(), PoseProvider {
         lastPose = pose
         SmartDashboard.putNumber("Odometry/FieldX", pose.x)
         SmartDashboard.putNumber("Odometry/FieldY", pose.y)
+        SmartDashboard.putNumber("Odometry/Angle", pose.rotation.degrees)
         SmartDashboard.putNumberArray("Odometry/velocity", arrayOf(velocity.x,velocity.y))
         SmartDashboard.putNumber("Odometry/test", timer.get())
         timer.reset()
