@@ -97,7 +97,7 @@ class Constants {
         const val DrivingKa = 0.0
         const val DrivingMinOutput = -1.0
         const val DrivingMaxOutput = 1.0
-        var TurningP = 0.75
+        var TurningP = 0.9
         var TurningI = 0.0
         var TurningD = 0.0
 //        var Ks = 0.06 //0.085
@@ -169,6 +169,8 @@ class Constants {
     }
 
     object ClimberConstants{
+        const val STALL_CURRENT = 20
+
         const val ClimberMaxSpeed = 1.0
         const val ClimberAcceleration = 1.0
         enum class ClimbHeights(val position: Double) {

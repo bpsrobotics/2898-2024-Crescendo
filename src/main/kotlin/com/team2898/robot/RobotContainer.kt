@@ -46,7 +46,7 @@ class RobotContainer {
         // Configure the trigger bindings
         configureBindings()
 
-        autoCommandChooser = AutoBuilder.buildAutoChooser("south-one-note")
+        autoCommandChooser = AutoBuilder.buildAutoChooser("middle-one-note")
 
 
         SmartDashboard.putData("Auto mode", autoCommandChooser)

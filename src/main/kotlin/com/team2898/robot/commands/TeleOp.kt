@@ -12,18 +12,14 @@ import com.team2898.engine.utils.Sugar.eqEpsilon
 import com.team2898.engine.utils.Sugar.radiansToDegrees
 import com.team2898.engine.utils.TurningPID
 import com.team2898.engine.utils.odometry.Vision
-import com.team2898.robot.Constants
 import com.team2898.robot.OI
 import com.team2898.robot.subsystems.*
 import edu.wpi.first.math.controller.PIDController
-import com.team2898.engine.utils.units.*
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
-import org.photonvision.PhotonUtils
 import kotlin.math.*
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import com.team2898.robot.Constants.*
 import edu.wpi.first.units.Angle
 import edu.wpi.first.wpilibj.DriverStation
@@ -119,6 +115,7 @@ class TeleOp : Command() {
     val climbReachInputBuffer = Timer()
     val climbLiftInputBuffer = Timer()
     var angleSpeaker = 0.0
+    var climbDown = false
     fun peripheralControls() {
         var x1 = 0.0
         var y1 = 0.0
@@ -179,14 +176,34 @@ class TeleOp : Command() {
             Intake.intake(0.55)
         } else if (OI.shooterOutake.asBoolean) {
             Intake.outtake()
-        } else if (OI.shootNote.asBoolean) {
-            InAndOut()
+
         } else {
             Intake.intake(0.0)
         }
+//        if (Arm.pos() > 1.5 || Arm.pos() < -0.1) {
+//            if (climb.asBoolean) {
+//                Climber.setSpeed(-12.0)
+//                climbDown = false
+//            }
+//        } else {
+//            if (!Climber.stalled && !climbDown) {
+//                Climber.setSpeed(12.0)
+//            } else {
+//                Climber.setSpeed(0.0)
+//                climbDown = true
+//            }
+//        }
 
-
-
+        if (OI.climbUp.asBoolean) {
+            Climber.setSpeed(12.0)
+            println("up")
+        } else if (OI.climbDown.asBoolean){
+            Climber.setSpeed(-12.0)
+            println("down")
+        } else {
+            Climber.setSpeed(0.0)
+        }
+//        Climber.setVoltage(Climber.output)
     }
 
     val ANGULAR_P = 0.1

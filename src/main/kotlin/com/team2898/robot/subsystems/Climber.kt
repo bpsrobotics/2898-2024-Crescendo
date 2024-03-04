@@ -1,64 +1,88 @@
 package com.team2898.robot.subsystems
 
+import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
-import com.team2898.engine.utils.async.Promise
-import com.team2898.robot.Constants.ClimberConstants
-import com.team2898.robot.RobotMap.ClimberId
-import edu.wpi.first.wpilibj.event.BooleanEvent
-import edu.wpi.first.wpilibj.event.EventLoop
+import com.team2898.robot.Constants.ClimberConstants.STALL_CURRENT
+import com.team2898.robot.RobotMap.ClimbPrimaryId
+import com.team2898.robot.RobotMap.ClimbSecondaryId
+import edu.wpi.first.math.filter.Debouncer
+import edu.wpi.first.wpilibj.Timer
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.SubsystemBase
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
+
 
 object Climber : SubsystemBase() {
-    private val climberMotor = CANSparkMax(ClimberId, CANSparkLowLevel.MotorType.kBrushless)
-    private val climberCoder = climberMotor.encoder
-    var currentState: Boolean? = null
-        private set
-    var targetState: Boolean = false
-        private set
-    private val waiting = mutableMapOf<Boolean, MutableSet<Promise.Companion.ResolversObject<Unit>>>()
-    private var setSpeed = 1.0 // speed control
-    fun Boolean.toDouble() = if (this) 1.0 else 0.0
-    val distanceToGo get() = targetState.toDouble() - climberCoder.position
-    val absDistanceToGo get() = abs(distanceToGo)
-    fun finished(loop: EventLoop) = BooleanEvent(loop) { arrived() }
-    fun arrived() = currentState != null && currentState == targetState
-    fun setState(newState: Boolean) {
-        targetState = newState
-        currentState = null
-    }
-    fun go(newState: Boolean): Promise<Unit> {
-        waiting.forEach { (t, u) ->
-            if (t != newState) {
-                u.forEach { it.reject(Exception("Arm movement cancelled")) }
-                waiting.remove(t)
-            }
-        }
-        targetState = newState
-        currentState = null
-        val r = Promise.withResolvers<Unit>()
-        try {
-            waiting[newState]!!.add(r)
-        } catch (_: NullPointerException) { // EAFP: Easier to Ask for Forgiveness than Permission
-            waiting[newState] = mutableSetOf(r)
-        }
-        return r.promise
+    private val climbMotor = CANSparkMax(ClimbPrimaryId, CANSparkLowLevel.MotorType.kBrushed)
+    private val climbMotorSecondary = CANSparkMax(ClimbSecondaryId, CANSparkLowLevel.MotorType.kBrushed)
+
+    var output = 0.0
+    val buffer = Debouncer(0.2, Debouncer.DebounceType.kRising)
+    var stalled = false
+
+    val stallTimer = Timer()
+
+
+    init {
+        SmartDashboard.putNumber("output climb", output)
+        climbMotor.restoreFactoryDefaults()
+        climbMotor.setSmartCurrentLimit(15)
+        climbMotor.idleMode = CANSparkBase.IdleMode.kBrake
+        climbMotor.burnFlash()
+
+        climbMotorSecondary.restoreFactoryDefaults()
+        climbMotorSecondary.setSmartCurrentLimit(15)
+        climbMotorSecondary.idleMode = CANSparkBase.IdleMode.kBrake
+        climbMotorSecondary.follow(climbMotor)
+        climbMotor.burnFlash()
+        stallTimer.reset()
+        stallTimer.start()
     }
 
     override fun periodic() {
-        val position = climberCoder.position
-        val velocity = climberCoder.velocity
-        if (abs(position - targetState.toDouble()) > 0.3) {
-            if (abs(velocity) > 0.01) setSpeed = max(0.0, min(1.0, abs(ClimberConstants.ClimberMaxSpeed / velocity)))
-            climberMotor.set(setSpeed)
-        } else {
-            climberMotor.set(0.0)
-            currentState = targetState
-            waiting[targetState]?.forEach { it.resolve(Unit) }
-            waiting.remove(targetState)
-        }
+//        output = SmartDashboard.getNumber("output climb", output)
+        SmartDashboard.putBoolean("Climb down", !stalled)
+//        if (output > 0.0) {
+//            release()
+//        } else {
+//            brake()
+//        }
+        setVoltage(output)
+        println("output " + output)
+        println("current " + climbMotor.outputCurrent)
     }
+
+    fun setSpeed(input: Double) {
+//        if (stallTimer.hasElapsed(1.0)) {
+//            if (!stalled) {
+//                if (buffer.calculate(climbMotor.outputCurrent > STALL_CURRENT)) {
+//                    output = 0.0
+//                    stalled = true
+//                } else {
+//                    output = input
+//                }
+//            } else {
+//                output = 0.0
+//                stallTimer.reset()
+//                stallTimer.start()
+//            }
+//        } else {
+//            output = 0.0
+//        }
+        output = input
+
+    }
+    fun setVoltage(input: Double){
+        climbMotor.setVoltage(input)
+    }
+    fun release() {
+        climbMotor.idleMode = CANSparkBase.IdleMode.kCoast
+        climbMotorSecondary.idleMode = CANSparkBase.IdleMode.kCoast
+    }
+    fun brake() {
+        climbMotor.idleMode = CANSparkBase.IdleMode.kBrake
+        climbMotorSecondary.idleMode = CANSparkBase.IdleMode.kBrake
+    }
+
+
 }

@@ -6,10 +6,7 @@ package com.team2898.robot
 import com.fasterxml.jackson.databind.util.Named
 import com.pathplanner.lib.auto.NamedCommands
 import com.team2898.robot.commands.*
-import com.team2898.robot.subsystems.Arm
-import com.team2898.robot.subsystems.Drivetrain
-import com.team2898.robot.subsystems.Intake
-import com.team2898.robot.subsystems.Shooter
+import com.team2898.robot.subsystems.*
 import edu.wpi.first.wpilibj.DataLogManager
 import edu.wpi.first.wpilibj.TimedRobot
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
@@ -34,10 +31,12 @@ class Robot : TimedRobot() {
      */
     override fun robotInit() {
         Drivetrain
-        DataLogManager.start()
-        SmartDashboard.putData(Arm)
+//        DataLogManager.start()
+//        SmartDashboard.putData(Arm)
+        Arm
         Shooter
         Intake
+        Climber
 
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
