@@ -208,5 +208,9 @@ class Constants {
         const val PRESS_ACTIVATE_DURATION = 0.1
         const val INPUT_BUFFER_DURATION = 0.2
     }
+    object VisionConstants{
+        const val RED_ALLIANCE_SPEAKER_TAG_ID = 4
+        const val BLUE_ALLIANCE_SPEAKER_TAG_ID = 7
+    }
 
 }

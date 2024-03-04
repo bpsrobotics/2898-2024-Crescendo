@@ -26,6 +26,7 @@ import kotlin.math.*
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
 import com.team2898.robot.Constants.*
 import edu.wpi.first.units.Angle
+import edu.wpi.first.wpilibj.DriverStation
 import edu.wpi.first.wpilibj2.command.InstantCommand
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -64,8 +65,12 @@ class TeleOp : Command() {
     var resetGyroTimer = Timer()
     private val vision = Vision("Camera_Module_v1")
     var alignMode = false
-    var xDist = 0.0
-    var yDist = 0.0
+//    val targetID = if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+//        Constants.VisionConstants.RED_ALLIANCE_SPEAKER_TAG_ID
+//    } else{
+//        Constants.VisionConstants.BLUE_ALLIANCE_SPEAKER_TAG_ID
+//    }
+    val targetID = 4
     // Called every time the scheduler runs while the command is scheduled.
     fun turnSpeedNormal():Double {
         return -OI.turnX
@@ -117,15 +122,15 @@ class TeleOp : Command() {
     fun peripheralControls() {
         var x1 = 0.0
         var y1 = 0.0
-        var h = 1.21
-        if (vision.hasSpecificTarget(7)) {
-            var d = vision.getCameraData(7).x
+        var h = 1.41 - 0.23375
+        if (vision.hasSpecificTarget(targetID)) {
+            var d = vision.getCameraData(targetID).x
             var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
             var angleToSpeaker = 0.0
             for(i in 1..5) {
-                angleToSpeaker = (180.0 - atan2(2.08 - y1, distToSpeaker + x1).radiansToDegrees() - (32+90+10.88)).degreesToRadians()
-                x1 = -0.035 + 0.6*cos(angleToSpeaker)
-                y1 = 0.055 + 0.6*sin(angleToSpeaker)
+                angleToSpeaker = (180.0 - atan2(2.08 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88)).degreesToRadians()
+                x1 = 0.10125 + 0.6*cos(angleToSpeaker)
+                y1 = 0.255 + 0.6*sin(angleToSpeaker)
             }
             angleSpeaker =(0.5 * PI) - angleToSpeaker
             SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
@@ -187,24 +192,24 @@ class TeleOp : Command() {
     val ANGULAR_P = 0.1
     val ANGULAR_D = 0.0
     val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
+    var target = 0.0
     fun alignRobot() {
         var currentPose = Odometry.supplyPose()
         var poseYaw = 0.0
         var rotationSpeed = 0.0
         var targetRotation = currentPose.rotation.degrees
 
-        if (vision.hasSpecificTarget(7)) {
+        if (vision.hasSpecificTarget(targetID)) {
             println("see")
         }
-        if (vision.hasSpecificTarget(7)) {
-            val target = vision.getCameraData(7)
+        if (vision.hasSpecificTarget(targetID)) {
+            target = vision.getCameraYaw(targetID)
 //            if (!vision.hasSpecificTarget(4)) {
 //                targetRotation = (1*PI)
 //                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation)
 //            }
             if (OI.alignButtonPressed && !alignMode) {
                 alignMode = true
-                poseYaw = currentPose.rotation.degrees
             }
             if (OI.alignButtonRelease) {
                 alignMode = false
@@ -217,13 +222,13 @@ class TeleOp : Command() {
                 println("current rotation" + currentPose.rotation.degrees)
                 println("alignMode" + alignMode)
 
-                targetRotation = poseYaw
+                targetRotation = currentPose.rotation.degrees + target
 //                val targetRotationNegativeError = targetRotation - 3.0
 //                val targetRotationPositiveError = targetRotation + 3.0
 //                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
 //                    alignMode = false
 //                }
-                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians())
+                rotationSpeed = turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians())
                 println("Pose.yaw:" + poseYaw.degreesToRadians())
                 Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
             // Use our forward/turn speeds to control the drivetrain
