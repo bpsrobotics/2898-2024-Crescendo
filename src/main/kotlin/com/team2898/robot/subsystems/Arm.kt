@@ -202,7 +202,7 @@ object Arm : SubsystemBase() {
         armMotorSecondary.setVoltage(volts)
     }
     override fun initSendable(builder: SendableBuilder) {
-        builder.addDoubleProperty("position", { pos() }) {}
+        builder.addDoubleProperty("arm position", { pos() }) {}
         builder.addDoubleProperty("raw position", { encoder.absolutePosition }) {}
         builder.addDoubleProperty("arm motor rate", { armMotor.encoder.velocity }) {}
         builder.addDoubleProperty("average velocity rate", { movingAverage.average }) {}

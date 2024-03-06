@@ -57,6 +57,17 @@ class Vision (
         }
         return result.bestTarget.bestCameraToTarget ?: return Transform3d(0.0,0.0,0.0, Rotation3d())
     }
+
+    fun getCameraYaw(targetID: Int) : Double{
+        var result = cam.getLatestResult();
+        val targets = result.getTargets() ?: return 0.0
+        for (i in targets) {
+            if (i.fiducialId == targetID) {
+                return i.yaw
+            }
+        }
+        return result.bestTarget.yaw ?: return 0.0
+    }
     fun hasSpecificTarget(tagID:Int) : Boolean {
         val result = cam.latestResult
         if (result.hasTargets()) {

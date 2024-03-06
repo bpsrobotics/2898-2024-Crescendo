@@ -39,8 +39,12 @@ class TeleOp : Command() {
 //    var resetGyroTimer = Timer()
     private val vision = Vision("Camera_Module_v1")
     var alignMode = false
-//    var xDist = 0.0
-//    var yDist = 0.0
+//    val targetID = if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+//        Constants.VisionConstants.RED_ALLIANCE_SPEAKER_TAG_ID
+//    } else{
+//        Constants.VisionConstants.BLUE_ALLIANCE_SPEAKER_TAG_ID
+//    }
+    val targetID = 4
     // Called every time the scheduler runs while the command is scheduled.
     fun turnSpeedNormal():Double {
         return -OI.turnX
@@ -87,20 +91,25 @@ class TeleOp : Command() {
 //        }
     }
     var angleSpeaker = 0.0
+    var climbDown = false
     fun peripheralControls() {
         var x1 = 0.0
         var y1 = 0.0
-        val h = 1.21
-        if (vision.hasSpecificTarget(7)) {
-            val d = vision.getCameraData(7).x
-            val distToSpeaker = sqrt(d.pow(2)-h.pow(2))
+        var h = 1.41 - 0.23375
+        if (vision.hasSpecificTarget(targetID)) {
+            var d = vision.getCameraData(targetID).x
+            var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
             var angleToSpeaker = 0.0
             for(i in 1..5) {
-                angleToSpeaker = (180.0 - atan2(2.08 - y1, distToSpeaker + x1).radiansToDegrees() - (32+90+10.88)).degreesToRadians()
-                x1 = -0.035 + 0.6*cos(angleToSpeaker)
-                y1 = 0.055 + 0.6*sin(angleToSpeaker)
+                angleToSpeaker = (180.0 - atan2(2.08 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88)).degreesToRadians()
+                x1 = 0.10125 + 0.6*cos(angleToSpeaker)
+                y1 = 0.255 + 0.6*sin(angleToSpeaker)
             }
             angleSpeaker =(0.5 * PI) - angleToSpeaker
+            SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
+            SmartDashboard.putNumber("arm angle b4", angleSpeaker)
+        } else {
+            angleSpeaker = ArmConstants.ArmHeights.SHOOTER1.position
         }
         val automations = SmartDashboard.getBoolean("automateTeleOp", false)
         if (OI.armSelectUp.asBoolean) {
@@ -144,54 +153,74 @@ class TeleOp : Command() {
             Intake.intake(0.55)
         } else if (OI.shooterOutake.asBoolean) {
             Intake.outtake()
-        } else if (OI.shootNote.asBoolean) {
-            InAndOut()
+
         } else {
             Intake.intake(0.0)
         }
+//        if (Arm.pos() > 1.5 || Arm.pos() < -0.1) {
+//            if (climb.asBoolean) {
+//                Climber.setSpeed(-12.0)
+//                climbDown = false
+//            }
+//        } else {
+//            if (!Climber.stalled && !climbDown) {
+//                Climber.setSpeed(12.0)
+//            } else {
+//                Climber.setSpeed(0.0)
+//                climbDown = true
+//            }
+//        }
 
+        if (OI.climbUp.asBoolean) {
+            Climber.setSpeed(12.0)
+            println("up")
+        } else if (OI.climbDown.asBoolean){
+            Climber.setSpeed(-12.0)
+            println("down")
+        } else {
+            Climber.setSpeed(0.0)
+        }
+//        Climber.setVoltage(Climber.output)
     }
     var targetRotation = Odometry.supplyPose().rotation.degrees
     val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
+    var target = 0.0
     fun alignRobot() {
         val currentPose = Odometry.supplyPose()
         var poseYaw = 0.0
         val rotationSpeed: Double
 //        var targetRotation = currentPose.rotation.degrees
 
-        if (vision.hasSpecificTarget(7)) {
+        if (vision.hasSpecificTarget(targetID)) {
             println("see")
         }
-        if (vision.hasSpecificTarget(7)) {
-//            val target = vision.getCameraData(7)
+        if (vision.hasSpecificTarget(targetID)) {
+            target = vision.getCameraYaw(targetID)
 //            if (!vision.hasSpecificTarget(4)) {
 //                targetRotation = (1*PI)
 //                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation)
 //            }
             if (OI.alignButtonPressed && !alignMode) {
                 alignMode = true
-                poseYaw = currentPose.rotation.degrees
             }
             if (OI.alignButtonRelease) {
                 alignMode = false
             }
             if (alignMode) {
-                println("target rotation $targetRotation")
+                println("target rotation" + targetRotation)
                 println("Turning")
-//                println(xDist)
-//                println(yDist)
-                println("current rotation ${currentPose.rotation.degrees}")
-                println("alignMode $alignMode")
+                println("alignMode" + alignMode)
 
-                targetRotation = poseYaw
+
+                targetRotation = currentPose.rotation.degrees + target
 //                val targetRotationNegativeError = targetRotation - 3.0
 //                val targetRotationPositiveError = targetRotation + 3.0
 //                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
 //                    alignMode = false
 //                }
-                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians())
+                rotationSpeed = turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians())
                 println("Pose.yaw:" + poseYaw.degreesToRadians())
-                Drivetrain.drive(0.0, 0.0, rotationSpeed, fieldRelative = true, rateLimit = true, secondOrder = true)
+                Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
             // Use our forward/turn speeds to control the drivetrain
             }
 
@@ -202,7 +231,7 @@ class TeleOp : Command() {
     override fun execute() {
         OI.loop.poll()
         handleResetGyro()
-//        alignRobot()
+        alignRobot()
         peripheralControls()
         Drivetrain.drive(
             OI.translationX,

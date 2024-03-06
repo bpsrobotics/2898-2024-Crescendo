@@ -3,12 +3,18 @@ package com.team2898.robot.subsystems
 import com.team2898.engine.utils.units.Degrees
 import com.team2898.engine.utils.units.Meters
 import com.team2898.engine.utils.odometry.PoseProvider
+import com.team2898.engine.utils.odometry.Vision
 import com.team2898.robot.Constants
+import edu.wpi.first.math.Matrix
+import edu.wpi.first.math.Nat
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.ChassisSpeeds
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry
+import edu.wpi.first.math.numbers.N1
+import edu.wpi.first.math.numbers.N3
 import edu.wpi.first.util.sendable.SendableBuilder
 import edu.wpi.first.util.sendable.SendableRegistry
 import edu.wpi.first.wpilibj.Timer
@@ -81,6 +87,7 @@ object Odometry : SubsystemBase(), PoseProvider {
         lastPose = pose
         SmartDashboard.putNumber("Odometry/FieldX", pose.x)
         SmartDashboard.putNumber("Odometry/FieldY", pose.y)
+        SmartDashboard.putNumber("Odometry/Angle", pose.rotation.degrees)
         SmartDashboard.putNumberArray("Odometry/velocity", arrayOf(velocity.x,velocity.y))
         SmartDashboard.putNumber("Odometry/test", timer.get())
         timer.reset()
