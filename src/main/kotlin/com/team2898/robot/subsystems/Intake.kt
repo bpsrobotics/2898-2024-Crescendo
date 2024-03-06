@@ -63,8 +63,6 @@ object Intake : SubsystemBase() {
             output = speed
             hasNote = false
         }
-
-
     }
 
     fun outtake() {
