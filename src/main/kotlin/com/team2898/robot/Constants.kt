@@ -170,6 +170,7 @@ class Constants {
     }
 
     object ClimberConstants{
+        const val CURRENT_LIMIT = 15
         const val STALL_CURRENT = 20
 
         const val ClimberMaxSpeed = 1.0

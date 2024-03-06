@@ -3,6 +3,7 @@ package com.team2898.robot.subsystems
 import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
+import com.team2898.robot.Constants
 import com.team2898.robot.Constants.ClimberConstants.STALL_CURRENT
 import com.team2898.robot.RobotMap.ClimbPrimaryId
 import com.team2898.robot.RobotMap.ClimbSecondaryId
@@ -10,6 +11,7 @@ import edu.wpi.first.math.filter.Debouncer
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.SubsystemBase
+import frc.engine.utils.initMotorControllers
 
 
 object Climber : SubsystemBase() {
@@ -25,16 +27,11 @@ object Climber : SubsystemBase() {
 
     init {
         SmartDashboard.putNumber("output climb", output)
-        climbMotor.restoreFactoryDefaults()
-        climbMotor.setSmartCurrentLimit(15)
-        climbMotor.idleMode = CANSparkBase.IdleMode.kBrake
-        climbMotor.burnFlash()
-
-        climbMotorSecondary.restoreFactoryDefaults()
-        climbMotorSecondary.setSmartCurrentLimit(15)
-        climbMotorSecondary.idleMode = CANSparkBase.IdleMode.kBrake
+        initMotorControllers(Constants.ClimberConstants.CURRENT_LIMIT, CANSparkBase.IdleMode.kBrake, climbMotor, climbMotorSecondary)
         climbMotorSecondary.follow(climbMotor)
+
         climbMotor.burnFlash()
+        climbMotorSecondary.burnFlash()
         stallTimer.reset()
         stallTimer.start()
     }
