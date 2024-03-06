@@ -160,6 +160,7 @@ class Constants {
     }
 
     object IntakeConstants{
+        const val CURRENT_LIMIT = 20
         const val INTAKE_SPEED = 0.75
         const val STOP_BUFFER = 1.0
     }

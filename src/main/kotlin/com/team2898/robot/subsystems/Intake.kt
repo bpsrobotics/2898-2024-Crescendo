@@ -3,6 +3,7 @@ package com.team2898.robot.subsystems
 import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
+import com.team2898.robot.Constants
 import com.team2898.robot.Constants.IntakeConstants.STOP_BUFFER
 
 import com.team2898.robot.RobotMap.IntakeId
@@ -11,6 +12,7 @@ import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.SubsystemBase
+import frc.engine.utils.initMotorControllers
 
 object Intake : SubsystemBase() {
     private val intakeMotor = CANSparkMax(IntakeId, CANSparkLowLevel.MotorType.kBrushed)
@@ -24,9 +26,7 @@ object Intake : SubsystemBase() {
     val gracePeriod get() = !bufferTimer.hasElapsed(STOP_BUFFER + 5.0)
 
     init {
-        intakeMotor.restoreFactoryDefaults()
-        intakeMotor.setSmartCurrentLimit(20)
-        intakeMotor.idleMode = CANSparkBase.IdleMode.kBrake
+        initMotorControllers(Constants.IntakeConstants.CURRENT_LIMIT, CANSparkBase.IdleMode.kBrake)
         intakeMotor.inverted = true
         intakeMotor.burnFlash()
         bufferTimer.start()
@@ -44,24 +44,27 @@ object Intake : SubsystemBase() {
     }
 
     fun intake(speed: Double){
-        if (intakeState) {
-            if (buffer.calculate(currentAverage > 7.0) && !hasNote && !gracePeriod) {
-                output = 0.0
-                bufferTimer.reset()
-                bufferTimer.start()
-                hasNote = true
-            } else {
-                if (gracePeriod) {
-                    output = speed
-                } else {
-                    output = speed
-                    hasNote = false
-                }
-            }
-        } else {
+        if (!intakeState) {
             println("stopping intake")
             output = 0.0
+            return
         }
+
+        if (buffer.calculate(currentAverage > 7.0) && !hasNote && !gracePeriod) {
+            output = 0.0
+            bufferTimer.restart()
+            hasNote = true
+            return
+        }
+
+        if (gracePeriod) {
+            output = speed
+        } else {
+            output = speed
+            hasNote = false
+        }
+
+
     }
 
     fun outtake() {
