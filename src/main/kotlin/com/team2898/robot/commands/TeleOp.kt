@@ -27,12 +27,6 @@ import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sign
 
-enum class DriveMode {
-    Normal,
-    Defense
-}
-
-
 /**
     Called when the Tele-Operated stage of the game begins.
  */
