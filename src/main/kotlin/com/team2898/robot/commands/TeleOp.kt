@@ -91,14 +91,14 @@ class TeleOp : Command() {
 //        }
     }
     var angleSpeaker = 0.0
-    var climbDown = false
+//    var climbDown = false
     fun peripheralControls() {
         var x1 = 0.0
         var y1 = 0.0
-        var h = 1.41 - 0.23375
+        val h = 1.41 - 0.23375
         if (vision.hasSpecificTarget(targetID)) {
-            var d = vision.getCameraData(targetID).x
-            var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
+            val d = vision.getCameraData(targetID).x
+            val distToSpeaker = sqrt(d.pow(2)-h.pow(2))
             var angleToSpeaker = 0.0
             for(i in 1..5) {
                 angleToSpeaker = (180.0 - atan2(2.08 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88)).degreesToRadians()
@@ -153,7 +153,6 @@ class TeleOp : Command() {
             Intake.intake(0.55)
         } else if (OI.shooterOutake.asBoolean) {
             Intake.outtake()
-
         } else {
             Intake.intake(0.0)
         }
@@ -187,7 +186,7 @@ class TeleOp : Command() {
     var target = 0.0
     fun alignRobot() {
         val currentPose = Odometry.supplyPose()
-        var poseYaw = 0.0
+        val poseYaw = 0.0
         val rotationSpeed: Double
 //        var targetRotation = currentPose.rotation.degrees
 
@@ -207,9 +206,9 @@ class TeleOp : Command() {
                 alignMode = false
             }
             if (alignMode) {
-                println("target rotation" + targetRotation)
+                println("target rotation $targetRotation")
                 println("Turning")
-                println("alignMode" + alignMode)
+                println("alignMode $alignMode")
 
 
                 targetRotation = currentPose.rotation.degrees + target
@@ -220,7 +219,7 @@ class TeleOp : Command() {
 //                }
                 rotationSpeed = turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians())
                 println("Pose.yaw:" + poseYaw.degreesToRadians())
-                Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
+                Drivetrain.drive(0.0, 0.0, rotationSpeed, fieldRelative = true, rateLimit = true, secondOrder = true)
             // Use our forward/turn speeds to control the drivetrain
             }
 

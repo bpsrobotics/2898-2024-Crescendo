@@ -48,7 +48,7 @@ object Climber : SubsystemBase() {
 //            brake()
 //        }
         setVoltage(output)
-        println("output " + output)
+        println("output $output")
         println("current " + climbMotor.outputCurrent)
     }
 

@@ -2,8 +2,7 @@ package com.team2898.robot
 
 import com.team2898.engine.utils.Vector
 import com.team2898.engine.utils.async.Promise
-import com.team2898.robot.Constants.ButtonConstants.SHOOT
-import com.team2898.robot.subsystems.Arm
+import com.team2898.robot.Constants.ButtonConstants
 import edu.wpi.first.math.MathUtil
 import edu.wpi.first.wpilibj.GenericHID
 import edu.wpi.first.wpilibj.Joystick
@@ -119,14 +118,14 @@ object OI : SubsystemBase() {
 
 //    val climb: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_UP, loop).debounce(Constants.ButtonConstants.CLIMBER_WAIT_DURATION)
 
-    val armSelectUp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_UP, loop).rising()
-    val armSelectDown: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DOWN, loop).rising()
+    val armSelectUp: BooleanEvent = operatorController.button(ButtonConstants.ARM_UP, loop).rising()
+    val armSelectDown: BooleanEvent = operatorController.button(ButtonConstants.ARM_DOWN, loop).rising()
 
-    val armDirectGround: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_GROUND, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
-    val armDirectStowed: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_STOWED, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
-    val armDirectAmp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_AMP, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
-    val armDirectShooter1: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER1, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION)
-    val armDirectShooter2: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_SHOOTER2, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectGround: BooleanEvent = operatorController.button(ButtonConstants.ARM_DIRECT_GROUND, loop).debounce(ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectStowed: BooleanEvent = operatorController.button(ButtonConstants.ARM_DIRECT_STOWED, loop).debounce(ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectAmp: BooleanEvent = operatorController.button(ButtonConstants.ARM_DIRECT_AMP, loop).debounce(ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
+    val armDirectShooter1: BooleanEvent = operatorController.button(ButtonConstants.ARM_DIRECT_SHOOTER1, loop).debounce(ButtonConstants.ARM_DIRECT_WAIT_DURATION)
+    val armDirectShooter2: BooleanEvent = operatorController.button(ButtonConstants.ARM_DIRECT_SHOOTER2, loop).debounce(ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
 
     val runIntake: BooleanEvent = BooleanEvent(loop) { hatVector == Vector(0,-1) }
     val shooterOutake: BooleanEvent = BooleanEvent(loop) { hatVector == Vector(0, 1) }
