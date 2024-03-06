@@ -112,10 +112,10 @@ object Arm : SubsystemBase() {
         voltageApplied = SmartDashboard.getNumber("voltage applied", voltageApplied)
         val currentTick = false
 
-        val p = pos()
-        val dp = p - last
-        val dt = timer.get()
-        vel = dp / dt
+        val armAngle = pos()
+        val deltaAngle = armAngle - last
+        val deltaTime = timer.get()
+        vel = deltaAngle / deltaTime
         timer.reset()
         timer.start()
 //        movingAverage.add(vel)
@@ -143,32 +143,21 @@ object Arm : SubsystemBase() {
             targetSpeed = 0.0
         }
         SmartDashboard.putNumber("arm target speed", targetSpeed)
-//        if (setpoint !in LOWER_SOFT_STOP..UPPER_SOFT_STOP) {
-////            profile = null
-//            targetSpeed = 0.0
-//            currentPosition = Constants.ArmConstants.ArmHeights.entries.toTypedArray().find { (it.position - p).absoluteValue < 0.05 }
-//        }
+
         var output = pid.calculate(pos(), setpoint)
         output += kv * targetSpeed
-        output += ks + sin(p) * ksin
-//
-//        if (p < UPPER_SOFT_STOP) {
-//            output = output.coerceAtLeast(ks + sin(p) * ksin - 0.2)
-//            println("UPPER SOFT STOP")
-//        } else if (p > LOWER_SOFT_STOP) {
-//            output = output.coerceAtMost(ks + sin(p) * ksin + 0.2)
-//            println("LOWER SOFT STOP")
-//        } else {
-//            println("ur good bro")
-//        }
+        output += ks + sin(armAngle) * ksin
+
+
         SmartDashboard.putNumber("output", output)
         SmartDashboard.putNumber("target pos", setpoint)
         setVoltage(output)
-        last = p
+        last = armAngle
     }
 
     /**
      * Set the desired angle of the arm in radians
+     * @param newPos desired arm angle in radians
      */
     fun setGoal(newPos: Double) {
         if (newPos !in UPPER_SOFT_STOP..LOWER_SOFT_STOP) return
@@ -178,17 +167,20 @@ object Arm : SubsystemBase() {
         initState = TrapezoidProfile.State(pos(), vel)
         goalState = TrapezoidProfile.State(setpoint, 0.0)
     }
-
+    /** Stops the motors and sets to coast mode so the arm will drop */
     fun release() {
         armMotor.stopMotor()
         armMotorSecondary.stopMotor()
         armMotor.idleMode = CANSparkBase.IdleMode.kCoast
         armMotorSecondary.idleMode = CANSparkBase.IdleMode.kCoast
     }
-
+    /** Returns true if the target speed is not 0 */
     fun isMoving(): Boolean {
         return targetSpeed != 0.0
     }
+
+    /** Sets the voltage of the arm motors
+     * @param volts Wanted voltage*/
     fun setVoltage(volts: Double){
         armMotor.setVoltage(volts)
         armMotorSecondary.setVoltage(volts)
