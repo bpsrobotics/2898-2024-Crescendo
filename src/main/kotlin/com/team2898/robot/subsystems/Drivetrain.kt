@@ -124,7 +124,6 @@ object Drivetrain
     ))
 
     override fun periodic() {
-        publisher.set(states)
         // Update the odometry in the periodic block
 
 //        Constants.ModuleConstants.Ks = SmartDashboard.getNumber("TurningKs", Constants.ModuleConstants.Ks)

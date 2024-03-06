@@ -42,14 +42,16 @@ object Climber : SubsystemBase() {
     override fun periodic() {
 //        output = SmartDashboard.getNumber("output climb", output)
         SmartDashboard.putBoolean("Climb down", !stalled)
+        SmartDashboard.putNumber("climb amps", climbMotor.outputCurrent)
+        SmartDashboard.putNumber("climb amps 2", climbMotorSecondary.outputCurrent)
 //        if (output > 0.0) {
 //            release()
 //        } else {
 //            brake()
 //        }
-        setVoltage(output)
-        println("output " + output)
-        println("current " + climbMotor.outputCurrent)
+//        setVoltage(output)
+//        println("output " + output)
+//        println("current " + climbMotor.outputCurrent)
     }
 
     fun setSpeed(input: Double) {

@@ -9,6 +9,7 @@ import com.team2898.robot.commands.*
 import com.team2898.robot.subsystems.*
 import edu.wpi.first.wpilibj.DataLogManager
 import edu.wpi.first.wpilibj.TimedRobot
+import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.CommandScheduler
@@ -25,6 +26,9 @@ class Robot : TimedRobot() {
     private var m_autonomousCommand: Command? = null
     var autoCommand: Command = InstantCommand({})
     lateinit var robotContainer: RobotContainer
+    val currentTime = Timer()
+    val teleop = TeleOp()
+
     /**
      * This function is run when the robot is first started up and should be used for any
      * initialization code.
@@ -74,35 +78,27 @@ class Robot : TimedRobot() {
     /** This function is called periodically during autonomous.  */
     override fun autonomousPeriodic() {}
     override fun teleopInit() {
+
         // This makes sure that the autonomous stops running when
         // teleop starts running. If you want the autonomous to
         // continue until interrupted by another command, remove
         // this line or comment it out.
-
-        if (m_autonomousCommand != null) {
-            m_autonomousCommand!!.cancel()
-        }
-        TeleOp().schedule()
+        currentTime.reset()
+        currentTime.start()
+        println("init" + currentTime.get())
+        autoCommand.cancel()
+        println("cancel" + currentTime.get())
+        println("default" + currentTime.get())
+        Drivetrain.defaultCommand = teleop
+        println("scheduling" + currentTime.get())
+        teleop.schedule()
+        println("scheduled" + currentTime.get())
 
     }
 
     /** This function is called periodically during operator control.  */
     override fun teleopPeriodic() {
-//        if (OI.driverX && OI.alignmentPad == OI.Direction.UP) {
-//            Drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward).schedule()
-//            println("quasi forward")
-//        } else if (OI.driverX && OI.alignmentPad == OI.Direction.DOWN) {
-//            Drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse).schedule()
-//            println("quasi reverse")
-//        } else if (OI.driverY && OI.alignmentPad == OI.Direction.UP){
-//            Drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward).schedule()
-//            println("dynamic forward")
-//        } else if (OI.driverY && OI.alignmentPad == OI.Direction.DOWN){
-//            Drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse).schedule()
-//            print("dynamic reverse")
-//        } else {
-//            println("not doing")
-//        }
+
     }
     override fun testInit() {
         // Cancels all running commands at the start of test mode.

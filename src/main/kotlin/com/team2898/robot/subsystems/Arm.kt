@@ -40,8 +40,7 @@ object Arm : SubsystemBase() {
 //    var ksin = 0.877281
     var ksin = 0.86
     var ks = -0.078825
-//    var kv = -2.42291
-    var kv = -2.9
+    var kv = -1.8
 //    var kv = -3.42291
     var voltageApplied = 0.0
     var currentPosition: Constants.ArmConstants.ArmHeights? = null
@@ -68,7 +67,8 @@ object Arm : SubsystemBase() {
     )
     // 0.5, 0.0, 0.15 undershoots
 //    val pid = PIDController(0.01, 0.0, 0.5)
-    val pid = PIDController(0.01, 0.0, 0.1)
+//    val pid = PIDController(0.01, 0.0, 0.1)
+    val pid = PIDController(3.0, 0.0, 0.0)
 //    var profile: TrapezoidProfile? = null
     var profile = TrapezoidProfile(constraints)
     var initState = TrapezoidProfile.State(pos(), 0.0)
@@ -122,18 +122,18 @@ object Arm : SubsystemBase() {
         vel = dp / dt
         timer.reset()
         timer.start()
-        movingAverage.add(vel)
-        movingAverage2.add(dp / dt)
-        val rate = movingAverage.average
+//        movingAverage.add(vel)
+//        movingAverage2.add(dp / dt)
+//        val rate = movingAverage.average
 //        val averagedRate = movingAverage2.average
 
-        integral.add((rate - armMotor.encoder.velocity).absoluteValue)
+//        integral.add((rate - armMotor.encoder.velocity).absoluteValue)
 
-        if (stopped) {
-            println("STOPPED")
-            armMotor.set(0.0)
-            return
-        }
+//        if (stopped) {
+//            println("STOPPED")
+//            armMotor.set(0.0)
+//            return
+//        }
 
         pid.p = SmartDashboard.getNumber("arm kp", pid.p)
         pid.d = SmartDashboard.getNumber("arm kd", pid.d)
@@ -152,7 +152,7 @@ object Arm : SubsystemBase() {
 //            targetSpeed = 0.0
 //            currentPosition = Constants.ArmConstants.ArmHeights.entries.toTypedArray().find { (it.position - p).absoluteValue < 0.05 }
 //        }
-        var output = pid.calculate(vel, targetSpeed)
+        var output = pid.calculate(pos(), setpoint)
         output += kv * targetSpeed
         output += ks + sin(p) * ksin
 //
