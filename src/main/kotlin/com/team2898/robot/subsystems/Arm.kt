@@ -22,8 +22,8 @@ import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase
+import frc.engine.utils.initMotorControllers
 import kotlin.math.PI
-import kotlin.math.absoluteValue
 import kotlin.math.sin
 
 
@@ -78,16 +78,12 @@ object Arm : SubsystemBase() {
     private val integral = MovingAverage(50)
 
     init {
-        armMotor.restoreFactoryDefaults()
-        armMotor.setSmartCurrentLimit(40)
-        armMotor.idleMode = CANSparkBase.IdleMode.kBrake
-        armMotor.inverted = true
-        armMotor.burnFlash()
+        initMotorControllers(Constants.ArmConstants.CurrentLimit, CANSparkBase.IdleMode.kBrake, armMotor, armMotorSecondary)
 
-        armMotorSecondary.restoreFactoryDefaults()
-        armMotorSecondary.setSmartCurrentLimit(40)
-        armMotorSecondary.idleMode = CANSparkBase.IdleMode.kBrake
+        armMotor.inverted = true
+
         armMotor.burnFlash()
+        armMotorSecondary.burnFlash()
 
         SmartDashboard.putNumber("arm kp", 0.0)
         SmartDashboard.putNumber("arm kd", 0.0)
@@ -167,10 +163,13 @@ object Arm : SubsystemBase() {
 //        }
         SmartDashboard.putNumber("output", output)
         SmartDashboard.putNumber("target pos", setpoint)
-        voltMove(output)
+        setVoltage(output)
         last = p
     }
 
+    /**
+     * Set the desired angle of the arm in radians
+     */
     fun setGoal(newPos: Double) {
         if (newPos !in UPPER_SOFT_STOP..LOWER_SOFT_STOP) return
         setpoint = newPos
@@ -190,7 +189,7 @@ object Arm : SubsystemBase() {
     fun isMoving(): Boolean {
         return targetSpeed != 0.0
     }
-    fun voltMove(volts: Double){
+    fun setVoltage(volts: Double){
         armMotor.setVoltage(volts)
         armMotorSecondary.setVoltage(volts)
     }

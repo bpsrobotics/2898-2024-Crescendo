@@ -146,6 +146,7 @@ class Constants {
     }
 
     object ArmConstants {
+        const val CurrentLimit = 40
         const val ArmMaxSpeed = 1.5
         const val Arm_MaxAccel = 1.5
         enum class ArmHeights(val position: Double) {
