@@ -22,10 +22,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import kotlin.math.*
 import com.team2898.robot.Constants.*
-import com.team2898.robot.OI.hatVector
-import edu.wpi.first.units.Angle
-import edu.wpi.first.wpilibj.DriverStation
-import edu.wpi.first.wpilibj2.command.InstantCommand
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -41,26 +37,16 @@ enum class DriveMode {
     Called when the Tele-Operated stage of the game begins.
  */
 class TeleOp : Command() {
-    init {
-        addRequirements(Drivetrain)
-    }
+    init { addRequirements(Drivetrain) }
     // Called when the command is started.
     override fun initialize() {
-        //SmartDashboard.putNumber("goal", PI)
-//        Drivetrain.zeroHeading()
-        NavX.reset()
-        breakTimer.start()
-
-
+        NavX.reset() //FIXME: If auto doesn't end pointing the right way, field oriented driving will be messed up
     }
 
     var angle = 0.0
 
-    val pid = TurningPID(3.5,0.05)
-    val kS = 0.1
-    val breakTimer = Timer()
-    var breakTimerGoal = 0.0
-    var drivemode = DriveMode.Normal
+    val robotTurningPID = TurningPID(3.5,0.05)
+    val robotTurningKS = 0.1
     var resetGyroTimer = Timer()
     private val vision = Vision("Camera_Module_v1")
     var alignMode = false
@@ -74,32 +60,16 @@ class TeleOp : Command() {
     fun turnSpeedNormal():Double {
         return -OI.turnX
     }
-    fun turnSpeedDefense():Double {
-        angle += OI.turnX.pow(2).degreesToRadians() * -5 * OI.turnX.sign
-        SmartDashboard.putNumber("angle", angle)
-
-        pid.setPoint = angle
-        var turnSpeed = pid.turnspeedOutputNoNormalize(-NavX.totalRotation.degreesToRadians())
-        if (!turnSpeed.eqEpsilon(0, 0.04)) turnSpeed += kS * turnSpeed.sign
-        return turnSpeed
-    }
     fun turnSpeedFieldOriented(): Double {
         if((abs(OI.turnY)+abs(OI.turnX)).eqEpsilon(0,0.2)) return 0.0
         angle = atan2(OI.turnY,OI.turnX)
         SmartDashboard.putNumber("angle", angle)
 
-        pid.setPoint = angle
-        var turnSpeed = pid.turnspeedOutputNoNormalize(NavX.getInvertedAngle().degreesToRadians())
-        if (!turnSpeed.eqEpsilon(0, 0.04)) turnSpeed += kS * turnSpeed.sign
+        robotTurningPID.setPoint = angle
+        var turnSpeed = robotTurningPID.turnspeedOutputNoNormalize(NavX.getInvertedAngle().degreesToRadians())
+        if (!turnSpeed.eqEpsilon(0, 0.04)) turnSpeed += robotTurningKS * turnSpeed.sign
         return turnSpeed
     }
-//    fun getTurnSpeed():Double {
-//        return when {
-//            OI.leftTrigger > 0.2 -> turnSpeedFieldOriented()
-//            (drivemode == DriveMode.Defense) -> turnSpeedDefense()
-//            else -> turnSpeedNormal()
-//        }
-//    }
     fun handleResetGyro(){
 //        if(OI.resetGyroStart){
 //            resetGyroTimer.reset()
@@ -117,229 +87,71 @@ class TeleOp : Command() {
     }
     val climbReachInputBuffer = Timer()
     val climbLiftInputBuffer = Timer()
-    var angleSpeaker = 0.0
-    var climbDown = false
-//    fun peripheralControls() {
-//        var x1 = 0.0
-//        var y1 = 0.0
-//        var h = 1.41 - 0.23375
-//        if (vision.hasSpecificTarget(targetID)) {
-//            var d = vision.getCameraData(targetID).x
-//            var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
-//            var angleToSpeaker = 0.0
-//            for(i in 1..5) {
-//                angleToSpeaker = (180.0 - atan2(2.08 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88)).degreesToRadians()
-//                x1 = 0.10125 + 0.6*cos(angleToSpeaker)
-//                y1 = 0.255 + 0.6*sin(angleToSpeaker)
-//            }
-//            angleSpeaker =(0.5 * PI) - angleToSpeaker
-//            SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
-//            SmartDashboard.putNumber("arm angle b4", angleSpeaker)
-//        } else {
-//            angleSpeaker = ArmConstants.ArmHeights.SHOOTER1.position
-//        }
-//        if (OI.armSelectUp.asBoolean) {
-//            Arm.setGoal(Arm.pos() - 0.1)
-////            Arm.setGoal(Arm.targetState.up())
-//        }
-//        if (OI.armSelectDown.asBoolean) {
-//            Arm.setGoal(Arm.pos() + 0.1)
-//
-////            Arm.setGoal(Arm.targetState.down())
-//        }
-//        when {
-//            OI.armDirectGround.asBoolean -> {
-//                Arm.setGoal(ArmConstants.ArmHeights.GROUND.position)
-//            }
-//
-//            OI.armDirectStowed.asBoolean -> {
-//                Arm.setGoal(ArmConstants.ArmHeights.STOWED.position)
-//            }
-//
-//            OI.armDirectAmp.asBoolean -> {
-//                Arm.setGoal(ArmConstants.ArmHeights.AMP.position)
-//            }
-//
-//            OI.armDirectShooter1.asBoolean -> {
-//                Arm.setGoal(angleSpeaker)
-//            }
-//
-//            OI.armDirectShooter2.asBoolean -> {
-//                Arm.setGoal(ArmConstants.ArmHeights.SHOOTER2.position)
-//            }
-//        }
-//        if (OI.operatorTrigger.asBoolean) {
-//            Shooter.setVoltage(6.0)
-//        } else if (OI.shooterOutake.asBoolean) {
-//            Shooter.setVoltage(-0.75)
-//        } else {
-//            Shooter.setVoltage(0.0)
-//        }
-//        if (OI.runIntake.asBoolean) {
-//            Intake.intake(0.55)
-//        } else if (OI.shooterOutake.asBoolean) {
-//            Intake.outtake()
-//
-//        } else {
-//            Intake.intake(0.0)
-//        }
-////        if (Arm.pos() > 1.5 || Arm.pos() < -0.1) {
-////            if (climb.asBoolean) {
-////                Climber.setSpeed(-12.0)
-////                climbDown = false
-////            }
-////        } else {
-////            if (!Climber.stalled && !climbDown) {
-////                Climber.setSpeed(12.0)
-////            } else {
-////                Climber.setSpeed(0.0)
-////                climbDown = true
-////            }
-////        }
-//
-//        if (OI.climbUp.asBoolean) {
-//            Climber.setSpeed(12.0)
-//        } else if (OI.climbDown.asBoolean){
-//            Climber.setSpeed(-12.0)
-//        } else {
-//            Climber.setSpeed(0.0)
-//        }
-////        Climber.setVoltage(Climber.output)
-//    }
-fun peripheralControls() {
-    var x1 = 0.0
-    var y1 = 0.0
-    var h = 1.41 - 0.23375
-    if (vision.hasSpecificTarget(targetID)) {
+    fun getAngleToSpeaker() : Double{
+        if (!vision.hasSpecificTarget(targetID)) return ArmConstants.ArmHeights.SHOOTER1.position
+
+        var x1 = 0.0
+        var y1 = 0.0
+        var h = 1.41 - 0.23375
         var d = vision.getCameraData(targetID).x
         var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
         var angleToSpeaker = 0.0
+
         for(i in 1..5) {
             angleToSpeaker = (180.0 - atan2(2.08 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88)).degreesToRadians()
             x1 = 0.10125 + 0.6*cos(angleToSpeaker)
             y1 = 0.255 + 0.6*sin(angleToSpeaker)
         }
-        angleSpeaker =(0.5 * PI) - angleToSpeaker
+        angleToSpeaker =(0.5 * PI) - angleToSpeaker
         SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
-        SmartDashboard.putNumber("arm angle b4", angleSpeaker)
-    } else {
-        angleSpeaker = ArmConstants.ArmHeights.SHOOTER1.position
-    }
-    if (OI.armSelectUp) {
-        Arm.setGoal(Arm.pos() - 0.1)
-//            Arm.setGoal(Arm.targetState.up())
-    }
-    if (OI.armSelectDown) {
-        Arm.setGoal(Arm.pos() + 0.1)
+        SmartDashboard.putNumber("arm angle b4", angleToSpeaker)
 
-//            Arm.setGoal(Arm.targetState.down())
+        return angleToSpeaker
+
     }
-    when {
-        OI.armDirectGround -> {
-            Arm.setGoal(ArmConstants.ArmHeights.GROUND.position)
+    var climbDown = false
+    fun peripheralControls() {
+        when {
+            OI.armSelectUp ->   Arm.setGoal(Arm.pos() - 0.1)
+            OI.armSelectDown -> Arm.setGoal(Arm.pos() + 0.1)
+        }
+        when {
+            OI.armDirectGround ->   Arm.setGoal(ArmConstants.ArmHeights.GROUND.position)
+            OI.armDirectStowed ->   Arm.setGoal(ArmConstants.ArmHeights.STOWED.position)
+            OI.armDirectAmp ->      Arm.setGoal(ArmConstants.ArmHeights.AMP.position)
+            OI.armDirectShooter1 -> Arm.setGoal( getAngleToSpeaker() )
+            OI.armDirectShooter2 -> Arm.setGoal(ArmConstants.ArmHeights.SHOOTER2.position)
+        }
+        when {
+            OI.operatorTrigger ->              Shooter.setVoltage(6.0)
+            OI.hatVector == Vector(0,-1) -> Shooter.setVoltage(-0.75)
+            else ->                            Shooter.stop()
+
+        }
+        when (OI.hatVector) {
+            Vector(0, 1) -> Intake.intake(0.55)
+            Vector(0,-1) -> Intake.outtake()
+            else ->               Intake.intake(0.0)
         }
 
-        OI.armDirectStowed -> {
-            Arm.setGoal(ArmConstants.ArmHeights.STOWED.position)
-        }
-
-        OI.armDirectAmp -> {
-            Arm.setGoal(ArmConstants.ArmHeights.AMP.position)
-        }
-
-        OI.armDirectShooter1 -> {
-            Arm.setGoal(angleSpeaker)
-        }
-
-        OI.armDirectShooter2 -> {
-            Arm.setGoal(ArmConstants.ArmHeights.SHOOTER2.position)
+        when {
+            OI.climbUp ->   Climber.setSpeed(12.0)
+            OI.climbDown -> Climber.setSpeed(-12.0)
+            else ->         Climber.setSpeed(0.0)
         }
     }
-    if (OI.operatorTrigger) {
-        Shooter.setVoltage(6.0)
-    } else if (hatVector == Vector(0,-1)) {
-        Shooter.setVoltage(-0.75)
-    } else {
-        Shooter.setVoltage(0.0)
-    }
-    if (hatVector == Vector(0, 1)) {
-        Intake.intake(0.55)
-    } else if (hatVector == Vector(0,-1)) {
-        Intake.outtake()
 
-    } else {
-        Intake.intake(0.0)
-    }
-//        if (Arm.pos() > 1.5 || Arm.pos() < -0.1) {
-//            if (climb.asBoolean) {
-//                Climber.setSpeed(-12.0)
-//                climbDown = false
-//            }
-//        } else {
-//            if (!Climber.stalled && !climbDown) {
-//                Climber.setSpeed(12.0)
-//            } else {
-//                Climber.setSpeed(0.0)
-//                climbDown = true
-//            }
-//        }
-
-    if (OI.climbUp) {
-        Climber.setSpeed(12.0)
-    } else if (OI.climbDown){
-        Climber.setSpeed(-12.0)
-    } else {
-        Climber.setSpeed(0.0)
-    }
-//        Climber.setVoltage(Climber.output)
-}
-
-    val ANGULAR_P = 0.1
-    val ANGULAR_D = 0.0
-    val turnController = PIDController(ANGULAR_P, 0.0, ANGULAR_D)
-    var target = 0.0
+    val turnController = PIDController(0.1, 0.0, 0.0)
     fun alignRobot() {
-        var currentPose = Odometry.supplyPose()
-        var poseYaw = 0.0
-        var rotationSpeed = 0.0
-        var targetRotation = currentPose.rotation.degrees
+        // Doesn't run the function if there isn't a target or if the button isn't pressed.
+        if (!vision.hasSpecificTarget(targetID) || !OI.alignButton) return
 
-        if (vision.hasSpecificTarget(targetID)) {
-//            println("see")
-        }
-        if (vision.hasSpecificTarget(targetID)) {
-            target = vision.getCameraYaw(targetID)
-//            if (!vision.hasSpecificTarget(4)) {
-//                targetRotation = (1*PI)
-//                rotationSpeed = -turnController.calculate(currentPose.rotation.radians, targetRotation)
-//            }
-            if (OI.alignButtonPressed && !alignMode) {
-                alignMode = true
-            }
-            if (OI.alignButtonRelease) {
-                alignMode = false
-            }
-            if (alignMode) {
-//                println("target rotation" + targetRotation)
-//                println("Turning")
-//                println("alignMode" + alignMode)
+        // Get the desired rotation of the robot by adding the degrees needed to face the target
+        var targetRotation = Odometry.pose.rotation.degrees + vision.getCameraYaw(targetID)
+        var rotationSpeed = turnController.calculate(Odometry.pose.rotation.radians, targetRotation.degreesToRadians())
 
-
-                targetRotation = currentPose.rotation.degrees + target
-//                val targetRotationNegativeError = targetRotation - 3.0
-//                val targetRotationPositiveError = targetRotation + 3.0
-//                if (currentPose.rotation.degrees >= targetRotationNegativeError && currentPose.rotation.degrees <= targetRotationPositiveError) {
-//                    alignMode = false
-//                }
-                rotationSpeed = turnController.calculate(currentPose.rotation.radians, targetRotation.degreesToRadians())
-                println("Pose.yaw:" + poseYaw.degreesToRadians())
-                Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
+        Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
             // Use our forward/turn speeds to control the drivetrain
-            }
-
-
-            // Use our forward/turn speeds to control the drivetrain
-        }
     }
     override fun execute() {
         handleResetGyro()
@@ -358,19 +170,11 @@ fun peripheralControls() {
     }
 
     // Called once the command ends or is interrupted.
-    override fun end(interrupted: Boolean) {
-    }
+    override fun end(interrupted: Boolean) {}
 
 
     // Returns true when the command should end.
     override fun isFinished(): Boolean {
         return false
-    }
-
-    companion object {
-        enum class DriveMode {
-            Normal,
-            Defense
-        }
     }
 }
