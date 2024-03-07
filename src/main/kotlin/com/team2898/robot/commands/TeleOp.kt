@@ -118,19 +118,19 @@ class TeleOp : Command() {
         }
         when {
             OI.operatorTrigger ->              Shooter.setVoltage(6.0)
-            OI.hatVector == Vector(0,-1) -> Shooter.setVoltage(-0.75)
+            OI.hatVector == Vector(0,1) -> Shooter.setVoltage(-0.75)
             else ->                            Shooter.stop()
 
         }
         when (OI.hatVector) {
-            Vector(0, 1) -> Intake.intake(0.55)
-            Vector(0,-1) -> Intake.outtake()
+            Vector(0, -1) -> Intake.intake(0.55)
+            Vector(0,1) -> Intake.outtake()
             else ->               Intake.intake(0.0)
         }
 
         when {
-            OI.climbUp ->   Climber.setSpeed(12.0)
-            OI.climbDown -> Climber.setSpeed(-12.0)
+            OI.climbUp ->   Climber.setSpeed(-12.0)
+            OI.climbDown -> Climber.setSpeed(12.0)
             else ->         Climber.setSpeed(0.0)
         }
     }

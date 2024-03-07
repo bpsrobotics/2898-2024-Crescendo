@@ -40,7 +40,7 @@ object Arm : SubsystemBase() {
 //    var ksin = 0.877281
     var ksin = 0.86
     var ks = -0.078825
-    var kv = -1.8
+    var kv = -2.3
 //    var kv = -3.42291
     var voltageApplied = 0.0
 
@@ -65,9 +65,10 @@ object Arm : SubsystemBase() {
         Arm_MaxAccel
     )
     // 0.5, 0.0, 0.15 undershoots
+    // 2.65, 1.5, 0,0
 //    val pid = PIDController(0.01, 0.0, 0.5)
 //    val pid = PIDController(0.01, 0.0, 0.1)
-    val pid = PIDController(3.0, 0.0, 0.0)
+    val pid = PIDController(2.0, 0.0, 0.5)
     var profile = TrapezoidProfile(constraints)
     var initState = TrapezoidProfile.State(pos(), 0.0)
     var goalState = TrapezoidProfile.State(pos(),0.0)
@@ -98,8 +99,8 @@ object Arm : SubsystemBase() {
 
     override fun periodic() {
         SmartDashboard.putNumber("arm position ", pos())
-        SmartDashboard.putNumber("quotient", armMotor.encoder.velocity / movingAverage.average)
         SmartDashboard.putNumber("arm current", armMotor.outputCurrent)
+        SmartDashboard.putNumber("arm current 2", armMotorSecondary.outputCurrent)
         SmartDashboard.putNumber("arm duty cycle", armMotor.appliedOutput)
         SmartDashboard.putNumber("rate", movingAverage.average)
         SmartDashboard.putNumber("raw pos", encoder.absolutePosition)
@@ -126,8 +127,8 @@ object Arm : SubsystemBase() {
 //            return
 //        }
 
-        pid.p = SmartDashboard.getNumber("arm kp", pid.p)
-        pid.d = SmartDashboard.getNumber("arm kd", pid.d)
+//        pid.p = SmartDashboard.getNumber("arm kp", pid.p)
+//        pid.d = SmartDashboard.getNumber("arm kd", pid.d)
 
 
         targetSpeed = profile.calculate(profileTimer.get(),
@@ -137,10 +138,11 @@ object Arm : SubsystemBase() {
 
         SmartDashboard.putNumber("arm target speed", targetSpeed)
 
-        var output = pid.calculate(pos(), setpoint)
+        var output = -pid.calculate(armAngle, setpoint)
+        println("pid output $output")
         output += kv * targetSpeed
         output += ks + sin(armAngle) * ksin
-
+        println("final output $output")
 
         SmartDashboard.putNumber("output", output)
         SmartDashboard.putNumber("target pos", setpoint)

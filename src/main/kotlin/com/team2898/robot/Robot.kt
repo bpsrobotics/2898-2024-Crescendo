@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.util.Named
 import com.pathplanner.lib.auto.NamedCommands
 import com.team2898.robot.commands.*
 import com.team2898.robot.subsystems.*
+import com.team2898.robot.subsystems.Arm.pos
 import edu.wpi.first.wpilibj.DataLogManager
 import edu.wpi.first.wpilibj.TimedRobot
 import edu.wpi.first.wpilibj.Timer
@@ -65,7 +66,9 @@ class Robot : TimedRobot() {
     }
 
     /** This function is called once each time the robot enters Disabled mode.  */
-    override fun disabledInit() {}
+    override fun disabledInit() {
+        Arm.setGoal(pos())
+    }
     override fun disabledPeriodic() {}
 
     /** This autonomous runs the autonomous command selected by your [RobotContainer] class.  */
