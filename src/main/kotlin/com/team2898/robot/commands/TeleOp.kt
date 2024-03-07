@@ -13,6 +13,7 @@ import com.team2898.engine.utils.Sugar.radiansToDegrees
 import com.team2898.engine.utils.TurningPID
 import com.team2898.engine.utils.Vector
 import com.team2898.engine.utils.odometry.Vision
+import com.team2898.robot.Constants
 import com.team2898.robot.OI
 import com.team2898.robot.subsystems.*
 import edu.wpi.first.math.controller.PIDController
@@ -22,6 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import kotlin.math.*
 import com.team2898.robot.Constants.*
+import edu.wpi.first.wpilibj.DriverStation
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -44,12 +46,12 @@ class TeleOp : Command() {
     var resetGyroTimer = Timer()
     private val vision = Vision("Camera_Module_v1")
     var alignMode = false
-//    val targetID = if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
-//        Constants.VisionConstants.RED_ALLIANCE_SPEAKER_TAG_ID
-//    } else{
-//        Constants.VisionConstants.BLUE_ALLIANCE_SPEAKER_TAG_ID
-//    }
-    val targetID = 4
+    val targetID = if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+        Constants.VisionConstants.RED_ALLIANCE_SPEAKER_TAG_ID
+    } else{
+        Constants.VisionConstants.BLUE_ALLIANCE_SPEAKER_TAG_ID
+    }
+//    val targetID = 4
     // Called every time the scheduler runs while the command is scheduled.
     fun turnSpeedNormal():Double {
         return -OI.turnX
@@ -83,20 +85,23 @@ class TeleOp : Command() {
     val climbLiftInputBuffer = Timer()
     fun getAngleToSpeaker() : Double{
         if (!vision.hasSpecificTarget(targetID)) return ArmConstants.ArmHeights.SHOOTER1.position
-
+        val velocity = 28.33
         var x1 = 0.0
         var y1 = 0.0
         var h = 1.41 - 0.23375
+        var h2 = 2.08
         var d = vision.getCameraData(targetID).x
         var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
         var angleToSpeaker = 0.0
 
         for(i in 1..5) {
-            angleToSpeaker = (180.0 - atan2(2.08 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88)).degreesToRadians()
-            x1 = 0.10125 + 0.6*cos(angleToSpeaker)
+            angleToSpeaker = (180.0 - atan2(h2 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88))
+            x1 = 0.1 + 0.6*cos(angleToSpeaker)
             y1 = 0.255 + 0.6*sin(angleToSpeaker)
         }
-        angleToSpeaker =(0.5 * PI) - angleToSpeaker
+        val a = (180 - angleToSpeaker - (90+26.42+10.88)).degreesToRadians()
+        h2 = 2.08 + (2.08 - ((x1 + distToSpeaker)*tan(a) - 9.8*(x1+distToSpeaker).pow(2)/(2*velocity.pow(2)*cos(a).pow(2))+y1))
+        angleToSpeaker =(0.5 * PI) - (180.0 - atan2(h2 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88)).degreesToRadians()
         SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
         SmartDashboard.putNumber("arm angle b4", angleToSpeaker)
 
