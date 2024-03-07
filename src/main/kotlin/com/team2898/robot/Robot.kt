@@ -28,6 +28,7 @@ class Robot : TimedRobot() {
     lateinit var robotContainer: RobotContainer
     val currentTime = Timer()
     val teleop = TeleOp()
+    val commandScheduler = CommandScheduler.getInstance()
 
     /**
      * This function is run when the robot is first started up and should be used for any
@@ -60,7 +61,7 @@ class Robot : TimedRobot() {
         // commands, running already-scheduled commands, removing finished or interrupted commands,
         // and running subsystem periodic() methods.  This must be called from the robot's periodic
         // block in order for anything in the Command-based framework to work.
-        CommandScheduler.getInstance().run()
+        commandScheduler.run()
     }
 
     /** This function is called once each time the robot enters Disabled mode.  */

@@ -83,13 +83,12 @@ object Odometry : SubsystemBase(), PoseProvider {
                 Drivetrain.rearLeft.position,
                 Drivetrain.rearRight.position
             ))
-        velocity = Translation2d((lastPose.x - pose.x)/timer.get(), (lastPose.y - pose.y)/timer.get())
-        lastPose = pose
-        SmartDashboard.putNumber("Odometry/FieldX", pose.x)
-        SmartDashboard.putNumber("Odometry/FieldY", pose.y)
-        SmartDashboard.putNumber("Odometry/Angle", pose.rotation.degrees)
-        SmartDashboard.putNumberArray("Odometry/velocity", arrayOf(velocity.x,velocity.y))
-        SmartDashboard.putNumber("Odometry/test", timer.get())
+//        velocity = Translation2d((lastPose.x - pose.x)/timer.get(), (lastPose.y - pose.y)/timer.get())
+//        lastPose = pose
+//        SmartDashboard.putNumber("Odometry/FieldX", pose.x)
+//        SmartDashboard.putNumber("Odometry/FieldY", pose.y)
+//        SmartDashboard.putNumber("Odometry/Angle", pose.rotation.degrees)
+//        SmartDashboard.putNumberArray("Odometry/velocity", arrayOf(velocity.x,velocity.y))
         timer.reset()
     }
     @Suppress("unused")

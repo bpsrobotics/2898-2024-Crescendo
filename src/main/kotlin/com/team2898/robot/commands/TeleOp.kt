@@ -149,12 +149,12 @@ class TeleOp : Command() {
     }
     override fun execute() {
         handleResetGyro()
-        alignRobot()
+//        alignRobot()
         peripheralControls()
         Drivetrain.drive(
             OI.translationX,
             OI.translationY,
-            turnSpeedNormal(),
+           -OI.turnX,
             fieldRelative = true,
             rateLimit = true,
             secondOrder = true

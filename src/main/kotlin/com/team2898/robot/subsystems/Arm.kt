@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 import frc.engine.utils.initMotorControllers
 import kotlin.math.PI
+import kotlin.math.absoluteValue
 import kotlin.math.sin
 
 
@@ -36,14 +37,12 @@ object Arm : SubsystemBase() {
     var setpoint = pos()
     private const val UPPER_SOFT_STOP = -0.275
     val LOWER_SOFT_STOP = 1.76
-    private var stopped = false
 //    var ksin = 0.877281
     var ksin = 0.86
     var ks = -0.078825
     var kv = -1.8
 //    var kv = -3.42291
     var voltageApplied = 0.0
-    var currentPosition: Constants.ArmConstants.ArmHeights? = null
 
     var vel = 0.0
 
@@ -69,13 +68,11 @@ object Arm : SubsystemBase() {
 //    val pid = PIDController(0.01, 0.0, 0.5)
 //    val pid = PIDController(0.01, 0.0, 0.1)
     val pid = PIDController(3.0, 0.0, 0.0)
-//    var profile: TrapezoidProfile? = null
     var profile = TrapezoidProfile(constraints)
     var initState = TrapezoidProfile.State(pos(), 0.0)
     var goalState = TrapezoidProfile.State(pos(),0.0)
     var targetSpeed = 0.0
 
-    private val integral = MovingAverage(50)
 
     init {
         initMotorControllers(Constants.ArmConstants.CurrentLimit, CANSparkBase.IdleMode.kBrake, armMotor, armMotorSecondary)
@@ -109,8 +106,6 @@ object Arm : SubsystemBase() {
         ks = SmartDashboard.getNumber("arm ks", ks)
         ksin = SmartDashboard.getNumber("arm ksin", ksin)
         kv = SmartDashboard.getNumber("arm kv", kv)
-        voltageApplied = SmartDashboard.getNumber("voltage applied", voltageApplied)
-        val currentTick = false
 
         val armAngle = pos()
         val deltaAngle = armAngle - last
@@ -139,9 +134,7 @@ object Arm : SubsystemBase() {
             initState,
             goalState
         ).velocity
-        if (pos() in (setpoint-0.01)..(setpoint+0.01)) {
-            targetSpeed = 0.0
-        }
+
         SmartDashboard.putNumber("arm target speed", targetSpeed)
 
         var output = pid.calculate(pos(), setpoint)

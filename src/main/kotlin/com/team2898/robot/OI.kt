@@ -40,7 +40,7 @@ object OI : SubsystemBase() {
      */
     private const val DEADZONE_THRESHOLD = 0.1
 
-    val loop = EventLoop()
+//    val loop = EventLoop()
     /**
      * Utility function for controller axis, optional deadzone and square/cube for extra fine-grain control
      */
@@ -124,6 +124,7 @@ object OI : SubsystemBase() {
         270 -> Vector(-1,0)
         else -> Vector.zero
     }
+
 
 //    val climb: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_UP, loop).debounce(Constants.ButtonConstants.CLIMBER_WAIT_DURATION)
 
