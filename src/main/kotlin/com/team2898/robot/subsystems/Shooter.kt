@@ -56,13 +56,13 @@ object Shooter : SubsystemBase() {
     var botFF = ff.calculate(botGoal)
     init{
         shooterMotorTop.restoreFactoryDefaults()
-        shooterMotorTop.setSmartCurrentLimit(10)
+        shooterMotorTop.setSmartCurrentLimit(40)
         shooterMotorTop.idleMode = CANSparkBase.IdleMode.kCoast
         shooterMotorTop.inverted = true
         shooterMotorTop.burnFlash()
 
         shooterMotorBot.restoreFactoryDefaults()
-        shooterMotorBot.setSmartCurrentLimit(10)
+        shooterMotorBot.setSmartCurrentLimit(40)
         shooterMotorBot.idleMode = CANSparkBase.IdleMode.kCoast
         shooterMotorBot.inverted = true
         shooterMotorBot.burnFlash()

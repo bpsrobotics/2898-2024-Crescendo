@@ -40,7 +40,7 @@ object Arm : SubsystemBase() {
 //    var ksin = 0.877281
     var ksin = 0.86
     var ks = -0.078825
-    var kv = -5.0
+    var kv = -2.3
 //    var kv = -3.42291
     var voltageApplied = 0.0
 
@@ -68,7 +68,7 @@ object Arm : SubsystemBase() {
     // 2.65, 1.5, 0,0
 //    val pid = PIDController(0.01, 0.0, 0.5)
 //    val pid = PIDController(0.01, 0.0, 0.1)
-    val pid = PIDController(6.0, 0.0, 0.0)
+    val pid = PIDController(3.0, 0.0, 0.0)
     var profile = TrapezoidProfile(constraints)
     var initState = TrapezoidProfile.State(pos(), 0.0)
     var goalState = TrapezoidProfile.State(pos(),0.0)
