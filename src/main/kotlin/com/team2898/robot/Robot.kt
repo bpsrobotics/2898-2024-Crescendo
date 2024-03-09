@@ -36,13 +36,13 @@ class Robot : TimedRobot() {
      * initialization code.
      */
     override fun robotInit() {
+        Odometry
         Drivetrain
 //        DataLogManager.start()
 //        SmartDashboard.putData(Arm)
         Arm
         Shooter
         Intake
-        Climber
 
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
@@ -67,7 +67,7 @@ class Robot : TimedRobot() {
 
     /** This function is called once each time the robot enters Disabled mode.  */
     override fun disabledInit() {
-        Arm.setGoal(pos())
+        Arm.setGoal(Constants.ArmConstants.ArmHeights.STOWED.position)
     }
     override fun disabledPeriodic() {}
 

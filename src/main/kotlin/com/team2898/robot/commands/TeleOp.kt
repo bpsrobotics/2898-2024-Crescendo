@@ -88,7 +88,7 @@ class TeleOp : Command() {
         val velocity = 28.33
         var x1 = 0.0
         var y1 = 0.0
-        var h = 1.41 - 0.23375
+        var h = 1.41 - 0.3
         var h2 = 2.08
         var d = vision.getCameraData(targetID).x
         var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
@@ -97,7 +97,7 @@ class TeleOp : Command() {
         for(i in 1..5) {
             angleToSpeaker = (180.0 - atan2(h2 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88))
             x1 = 0.1 + 0.6*cos(angleToSpeaker)
-            y1 = 0.255 + 0.6*sin(angleToSpeaker)
+            y1 = 0.355 + 0.6*sin(angleToSpeaker)
         }
         val a = (180 - angleToSpeaker - (90+26.42+10.88)).degreesToRadians()
         h2 = 2.08 + (2.08 - ((x1 + distToSpeaker)*tan(a) - 9.8*(x1+distToSpeaker).pow(2)/(2*velocity.pow(2)*cos(a).pow(2))+y1))
@@ -122,8 +122,8 @@ class TeleOp : Command() {
             OI.armDirectShooter2 -> Arm.setGoal(ArmConstants.ArmHeights.SHOOTER2.position)
         }
         when {
-            OI.operatorTrigger ->              Shooter.setVoltage(6.0)
-            OI.hatVector == Vector(0,1) -> Shooter.setVoltage(-0.75)
+            OI.operatorTrigger ->              Shooter.setMotors(1.0)
+            OI.hatVector == Vector(0,1) -> Shooter.setMotors(-0.5)
             else ->                            Shooter.stop()
 
         }
@@ -133,11 +133,11 @@ class TeleOp : Command() {
             else ->               Intake.intake(0.0)
         }
 
-        when {
-            OI.climbUp ->   Climber.setSpeed(-12.0)
-            OI.climbDown -> Climber.setSpeed(12.0)
-            else ->         Climber.setSpeed(0.0)
-        }
+//        when {
+//            OI.climbUp ->   Climber.setSpeed(-12.0)
+//            OI.climbDown -> Climber.setSpeed(12.0)
+//            else ->         Climber.setSpeed(0.0)
+//        }
     }
 
     val turnController = PIDController(0.1, 0.0, 0.0)

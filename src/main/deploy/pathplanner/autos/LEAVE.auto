@@ -1,6 +1,12 @@
 {
   "version": 1.0,
-  "startingPose": null,
+  "startingPose": {
+    "position": {
+      "x": 0.66,
+      "y": 4.53
+    },
+    "rotation": -60.0
+  },
   "command": {
     "type": "sequential",
     "data": {
@@ -8,19 +14,19 @@
         {
           "type": "named",
           "data": {
+            "name": "amp"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
             "name": "speaker"
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "setshooter"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "inAndOut"
+            "pathName": "LEAVE"
           }
         },
         {
@@ -28,15 +34,15 @@
           "data": {
             "commands": [
               {
-                "type": "path",
+                "type": "named",
                 "data": {
-                  "pathName": "StraightNote"
+                  "name": "setshooter"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "intake"
+                  "name": "inAndOut"
                 }
               }
             ]

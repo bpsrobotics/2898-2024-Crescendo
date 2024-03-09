@@ -88,16 +88,17 @@ class Constants {
         const val TurningEncoderVelocityFactor = 2 * Math.PI / 60.0 // radians per second
         const val TurningEncoderPositionPIDMinInput = 0.0 // radians
         const val TurningEncoderPositionPIDMaxInput = TurningEncoderPositionFactor // radians
-        var DrivingP = 0.5
+        var DrivingP = 0.75
         var DrivingI = 0.0
         var DrivingD = 0.0
         const val DrivingFF = 1 / DriveWheelFreeSpeedRps
-        const val DrivingKs = 0.0
-        const val DrivingKv = 0.0
+        const val DrivingKs = 1.0
+        const val DrivingKv = 1.0
         const val DrivingKa = 0.0
         const val DrivingMinOutput = -1.0
         const val DrivingMaxOutput = 1.0
-        var TurningP = 0.9
+//        var TurningP = 0.9
+        var TurningP = 1.0
         var TurningI = 0.0
         var TurningD = 0.0
 //        var Ks = 0.06 //0.085
@@ -106,8 +107,8 @@ class Constants {
         const val TurningMaxOutput = 1.0
         val DrivingMotorIdleMode = CANSparkBase.IdleMode.kBrake
         val TurningMotorIdleMode = CANSparkBase.IdleMode.kBrake
-        const val DrivingMotorCurrentLimit = 50 // amps
-        const val TurningMotorCurrentLimit = 20 // amps
+        const val DrivingMotorCurrentLimit = 17 // amps
+        const val TurningMotorCurrentLimit = 3 // amps
     }
 
     object OIConstants {
@@ -146,7 +147,7 @@ class Constants {
     }
 
     object ArmConstants {
-        const val CurrentLimit = 40
+        const val CurrentLimit = 10
         const val ArmMaxSpeed = 1.5
         const val Arm_MaxAccel = 1.5
         enum class ArmHeights(val position: Double) {
@@ -160,7 +161,7 @@ class Constants {
     }
 
     object IntakeConstants{
-        const val CURRENT_LIMIT = 20
+        const val CURRENT_LIMIT = 10
         const val INTAKE_SPEED = 0.75
         const val STOP_BUFFER = 1.0
     }

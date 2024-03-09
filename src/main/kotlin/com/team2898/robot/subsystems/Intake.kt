@@ -26,7 +26,7 @@ object Intake : SubsystemBase() {
     val gracePeriod get() = !bufferTimer.hasElapsed(STOP_BUFFER + 5.0)
 
     init {
-        initMotorControllers(Constants.IntakeConstants.CURRENT_LIMIT, CANSparkBase.IdleMode.kBrake)
+        initMotorControllers(Constants.IntakeConstants.CURRENT_LIMIT, CANSparkBase.IdleMode.kBrake, intakeMotor)
         intakeMotor.inverted = true
         intakeMotor.burnFlash()
         bufferTimer.start()
