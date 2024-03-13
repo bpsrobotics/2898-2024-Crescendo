@@ -31,23 +31,17 @@ object Odometry : SubsystemBase(), PoseProvider {
             Drivetrain.rearLeft.position,
             Drivetrain.rearRight.position
         ))
-    override val pose: Pose2d
-        get() = SwerveOdometry.poseMeters
+    override var pose: Pose2d = SwerveOdometry.poseMeters
     fun supplyPose(): Pose2d {
         return Pose2d(pose.x, pose.y, pose.rotation)
     }
     fun autoPose(): Pose2d {
-        return Pose2d(pose.x, pose.y, pose.rotation)
+        return Pose2d(pose.x, pose.y, -pose.rotation)
     }
 
 
     val chassisSpeeds: ChassisSpeeds
         get() = Constants.DriveConstants.DriveKinematics.toChassisSpeeds(Drivetrain.frontLeft.state, Drivetrain.frontRight.state, Drivetrain.rearLeft.state, Drivetrain.rearRight.state)
-    val chassisSpeedsConsumer = {
-        x: ChassisSpeeds -> chassisSpeeds
-        Unit
-    }
-    val chassisSpeedsSupplier: Supplier<ChassisSpeeds> = Supplier{ chassisSpeeds }
 
 
 
@@ -92,9 +86,10 @@ object Odometry : SubsystemBase(), PoseProvider {
         timer.reset()
     }
     @Suppress("unused")
-    fun resetOdometry(pose: Pose2d?) {
+    fun resetOdometry(newpose: Pose2d) {
+        pose = Pose2d(newpose.x, newpose.y, -newpose.rotation)
         SwerveOdometry.resetPosition(
-            Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
+            Rotation2d.fromDegrees(newpose.rotation.degrees), arrayOf(
                 Drivetrain.frontLeft.position,
                 Drivetrain.frontRight.position,
                 Drivetrain.rearLeft.position,
@@ -105,8 +100,8 @@ object Odometry : SubsystemBase(), PoseProvider {
 
     override fun initSendable(builder: SendableBuilder) {
         SendableRegistry.setName(this, toString())
-        builder.addDoubleProperty("x", { pose.x }, null)
-        builder.addDoubleProperty("y", { pose.y }, null)
+        builder.addDoubleProperty("x", {pose.x}) {}
+        builder.addDoubleProperty("y", { pose.y }){}
         builder.addDoubleProperty("rotation", { pose.rotation.radians }, null)
     }
 }

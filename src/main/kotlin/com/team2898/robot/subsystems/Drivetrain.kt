@@ -161,9 +161,9 @@ object Drivetrain
      *
      * @param pose The pose to which to set the odometry.
      */
-    fun resetOdometry(pose: Pose2d?) {
-        Odometry.resetOdometry(pose)
-    }
+//    fun resetOdometry(pose: Pose2d?) {
+//        Odometry.resetOdometry(pose)
+//    }
 
 //    // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
 //    private val d_appliedVoltage: MutableMeasure<Voltage> = mutable(Volts.of(0.0))
@@ -280,7 +280,8 @@ object Drivetrain
 
 
     fun chassisDrive(speeds: ChassisSpeeds) {
-        val wantedStates = DriveKinematics.toSwerveModuleStates(speeds)
+        val wantedspeeds = ChassisSpeeds(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, -speeds.omegaRadiansPerSecond)
+        val wantedStates = DriveKinematics.toSwerveModuleStates(wantedspeeds)
         setModuleStates(wantedStates)
     }
 

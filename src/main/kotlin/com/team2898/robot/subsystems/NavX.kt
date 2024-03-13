@@ -28,7 +28,7 @@ object NavX : SubsystemBase() {
         rotationalSpeed = TurningPID.minCircleDist(navx.angle.degreesToRadians(), lastRotation.degreesToRadians()).radiansToDegrees()/timeSinceUpdate
         lastRotation = navx.angle
         SmartDashboard.putNumber("Odometry/TotalRotation", totalRotation)
-        SmartDashboard.putNumber("Odometry/Rotation", navx.angle)
+        SmartDashboard.putNumber("Odometry/Rotation", -navx.angle)
 
     }
     fun reset(){

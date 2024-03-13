@@ -8,6 +8,7 @@ import com.pathplanner.lib.auto.NamedCommands
 import com.team2898.robot.commands.*
 import com.team2898.robot.subsystems.*
 import com.team2898.robot.subsystems.Arm.pos
+import edu.wpi.first.cameraserver.CameraServer
 import edu.wpi.first.wpilibj.DataLogManager
 import edu.wpi.first.wpilibj.TimedRobot
 import edu.wpi.first.wpilibj.Timer
@@ -36,17 +37,19 @@ class Robot : TimedRobot() {
      * initialization code.
      */
     override fun robotInit() {
-        Odometry
-        Drivetrain
-//        DataLogManager.start()
-//        SmartDashboard.putData(Arm)
-        Arm
-        Shooter
-        Intake
-
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
         robotContainer = RobotContainer()
+
+//        CameraServer.startAutomaticCapture()
+
+        SmartDashboard.putData(Odometry)
+        Drivetrain
+//        DataLogManager.start()
+        SmartDashboard.putData(Arm)
+//        Arm
+        Shooter
+        Intake
     }
 
     /**

@@ -43,10 +43,11 @@ class RobotContainer {
         NamedCommands.registerCommand("intake", IntakeNote())
         NamedCommands.registerCommand("setshooter", SetShooter())
         NamedCommands.registerCommand("inAndOut", InAndOut())
+        NamedCommands.registerCommand("sixPiece1", ArmMove(Constants.ArmConstants.ArmHeights.SIXPIECE1))
         // Configure the trigger bindings
         configureBindings()
 
-        autoCommandChooser = AutoBuilder.buildAutoChooser("straightNote")
+        autoCommandChooser = AutoBuilder.buildAutoChooser("6piece")
 
 
         SmartDashboard.putData("Auto mode", autoCommandChooser)

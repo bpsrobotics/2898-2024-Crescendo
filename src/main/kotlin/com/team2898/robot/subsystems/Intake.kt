@@ -45,7 +45,7 @@ object Intake : SubsystemBase() {
 
     fun intake(speed: Double){
         if (!intakeState) {
-            println("stopping intake")
+//            println("stopping intake")
             output = 0.0
             return
         }

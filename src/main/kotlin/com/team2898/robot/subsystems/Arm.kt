@@ -5,6 +5,7 @@ import com.revrobotics.CANSparkBase
 import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.team2898.engine.utils.MovingAverage
+import com.team2898.engine.utils.Sugar.clamp
 import com.team2898.engine.utils.Sugar.radiansToDegrees
 import com.team2898.robot.Constants
 import com.team2898.robot.Constants.ArmConstants.ArmMaxSpeed
@@ -25,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase
 import frc.engine.utils.initMotorControllers
 import kotlin.math.PI
 import kotlin.math.absoluteValue
+import kotlin.math.sign
 import kotlin.math.sin
 
 
@@ -40,7 +42,7 @@ object Arm : SubsystemBase() {
 //    var ksin = 0.877281
     var ksin = 0.86
     var ks = -0.078825
-    var kv = -2.3
+    var kv = -1.5
 //    var kv = -3.42291
     var voltageApplied = 0.0
 
@@ -68,7 +70,8 @@ object Arm : SubsystemBase() {
     // 2.65, 1.5, 0,0
 //    val pid = PIDController(0.01, 0.0, 0.5)
 //    val pid = PIDController(0.01, 0.0, 0.1)
-    val pid = PIDController(3.0, 0.0, 0.0)
+    val pid = PIDController(4.0, 0.0, 0.5)
+    var pidCalc = 0.0
     var profile = TrapezoidProfile(constraints)
     var initState = TrapezoidProfile.State(pos(), 0.0)
     var goalState = TrapezoidProfile.State(pos(),0.0)
@@ -114,21 +117,7 @@ object Arm : SubsystemBase() {
         vel = deltaAngle / deltaTime
         timer.reset()
         timer.start()
-//        movingAverage.add(vel)
-//        movingAverage2.add(dp / dt)
-//        val rate = movingAverage.average
-//        val averagedRate = movingAverage2.average
 
-//        integral.add((rate - armMotor.encoder.velocity).absoluteValue)
-
-//        if (stopped) {
-//            println("STOPPED")
-//            armMotor.set(0.0)
-//            return
-//        }
-
-//        pid.p = SmartDashboard.getNumber("arm kp", pid.p)
-//        pid.d = SmartDashboard.getNumber("arm kd", pid.d)
 
 
         targetSpeed = profile.calculate(profileTimer.get(),
@@ -137,8 +126,9 @@ object Arm : SubsystemBase() {
         ).velocity
 
         SmartDashboard.putNumber("arm target speed", targetSpeed)
-
-        var output = -pid.calculate(armAngle, setpoint)
+        pidCalc = -pid.calculate(armAngle, setpoint)
+        SmartDashboard.putNumber("pid calc", pidCalc)
+        var output = pidCalc.clamp(-3.5,3.5)
         output += kv * targetSpeed
         output += ks + sin(armAngle) * ksin
 
@@ -167,9 +157,9 @@ object Arm : SubsystemBase() {
         armMotor.idleMode = CANSparkBase.IdleMode.kCoast
         armMotorSecondary.idleMode = CANSparkBase.IdleMode.kCoast
     }
-    /** Returns true if the target speed is not 0 */
+    /** Returns true if the target speed is not 0 and pid is not moving the arm */
     fun isMoving(): Boolean {
-        return targetSpeed != 0.0
+        return (targetSpeed != 0.0) && (pidCalc > 0.25)
     }
 
     /** Sets the voltage of the arm motors

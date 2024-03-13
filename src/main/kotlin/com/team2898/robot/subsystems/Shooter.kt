@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine
+import frc.engine.utils.initMotorControllers
 import java.lang.System.currentTimeMillis
 import kotlin.math.abs
 
@@ -55,15 +56,11 @@ object Shooter : SubsystemBase() {
     var botPID = pid.calculate(wheelSpeedBot, botGoal)
     var botFF = ff.calculate(botGoal)
     init{
-        shooterMotorTop.restoreFactoryDefaults()
-        shooterMotorTop.setSmartCurrentLimit(40)
-        shooterMotorTop.idleMode = CANSparkBase.IdleMode.kCoast
+        initMotorControllers(40,CANSparkBase.IdleMode.kCoast, shooterMotorTop, shooterMotorBot)
+
         shooterMotorTop.inverted = true
         shooterMotorTop.burnFlash()
 
-        shooterMotorBot.restoreFactoryDefaults()
-        shooterMotorBot.setSmartCurrentLimit(40)
-        shooterMotorBot.idleMode = CANSparkBase.IdleMode.kCoast
         shooterMotorBot.inverted = true
         shooterMotorBot.burnFlash()
 

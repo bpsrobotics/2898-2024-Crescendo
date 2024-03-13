@@ -32,7 +32,7 @@ class Constants {
     object DriveConstants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
-        const val MaxSpeedMetersPerSecond = 4.5
+        const val MaxSpeedMetersPerSecond = 3.5
         const val MaxAngularSpeed = 2 * Math.PI // radians per second (2*PI)
         const val DirectionSlewRate = 2.0 // radians per second
         const val MagnitudeSlewRate = 1.8 // percent per second (1 = 100%)
@@ -46,10 +46,10 @@ class Constants {
 
         // Distance between front and back wheels on robot: CHANGE TO MATCH WITH ROBOT
         val DriveKinematics = SwerveDriveKinematics(
-                Translation2d(-WheelBase / 2, TrackWidth / 2), // Front Left (-,+) 4:4
-                Translation2d(-WheelBase / 2, -TrackWidth / 2), // Front Right (+,+)1:3
-                Translation2d(WheelBase / 2, TrackWidth / 2), // Back Left (-,-)3:1
-                Translation2d(WheelBase / 2, -TrackWidth / 2)) //Back Right (+,-)2:2
+                Translation2d(-WheelBase / 2, TrackWidth / 2), // Front Left (-,+) 4:4 :1 :2
+                Translation2d(-WheelBase / 2, -TrackWidth / 2), // Front Right (+,+) 1:3 :4 :3
+                Translation2d(WheelBase / 2, TrackWidth / 2), // Back Left (-,-) 3:1 :2 :1
+                Translation2d(WheelBase / 2, -TrackWidth / 2)) //Back Right (+,-) 2:2 :3 :4
 
         // Angular offsets of the modules relative to the chassis in radians
         const val FrontLeftChassisAngularOffset  = 0.0
@@ -76,14 +76,9 @@ class Constants {
         const val WheelDiameterMeters = 0.1016
         const val WheelCircumferenceMeters = WheelDiameterMeters * Math.PI
 
-        // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15 teeth on the bevel pinion
-//        const val kDrivingMotorReduction = 45.0 * 22 / (kDrivingMotorPinionTeeth * 15)
-        const val DrivingMotorReduction = (14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0) //Gear Ratio of MK4I L2
-        const val DriveWheelFreeSpeedRps = (DrivingMotorFreeSpeedRps * WheelCircumferenceMeters
-                / DrivingMotorReduction)
-        const val DrivingEncoderPositionFactor = (WheelDiameterMeters * Math.PI
-                * DrivingMotorReduction) // meters
-        const val DrivingEncoderVelocityFactor = DrivingEncoderPositionFactor / 60.0 // meters per second velocity =
+        const val DrivingEncoderPositionFactor = (WheelDiameterMeters * Math.PI / 6.75) // Wheel Diameter * PI * Gear Ratio
+
+        const val DrivingEncoderVelocityFactor = DrivingEncoderPositionFactor / 60.0 // meters per second velocity
         const val TurningEncoderPositionFactor = 2 * Math.PI // radians
         const val TurningEncoderVelocityFactor = 2 * Math.PI / 60.0 // radians per second
         const val TurningEncoderPositionPIDMinInput = 0.0 // radians
@@ -91,7 +86,6 @@ class Constants {
         var DrivingP = 0.5
         var DrivingI = 0.0
         var DrivingD = 0.0
-        const val DrivingFF = 1 / DriveWheelFreeSpeedRps
         const val DrivingKs = 0.0
         const val DrivingKv = 0.0
         const val DrivingKa = 0.0
@@ -132,7 +126,7 @@ class Constants {
         const val TranslationI = 0.0
         const val TranslationD = 0.0
 
-        const val RotationP = 0.8
+        const val RotationP = 0.5
         const val RotationI = 0.0
         const val RotationD = 0.0
 
@@ -154,7 +148,8 @@ class Constants {
             STOWED(0.183),
             AMP(-0.1),
             SHOOTER1(1.0),
-            SHOOTER2(1.3)   //base
+            SHOOTER2(1.3),   //base
+            SIXPIECE1(1.2)
 
         }
     }
