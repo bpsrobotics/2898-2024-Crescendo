@@ -31,7 +31,7 @@ object Odometry : SubsystemBase(), PoseProvider {
             Drivetrain.rearLeft.position,
             Drivetrain.rearRight.position
         ))
-    override var pose: Pose2d = SwerveOdometry.poseMeters
+    var pose = Pose2d()
     fun supplyPose(): Pose2d {
         return Pose2d(pose.x, pose.y, pose.rotation)
     }
@@ -70,7 +70,7 @@ object Odometry : SubsystemBase(), PoseProvider {
     }
     override fun update(){
         NavX.update(timer.get())
-        SwerveOdometry.update(
+        pose = SwerveOdometry.update(
             Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
                 Drivetrain.frontLeft.position,
                 Drivetrain.frontRight.position,
@@ -89,7 +89,7 @@ object Odometry : SubsystemBase(), PoseProvider {
     fun resetOdometry(newpose: Pose2d) {
         pose = Pose2d(newpose.x, newpose.y, -newpose.rotation)
         SwerveOdometry.resetPosition(
-            Rotation2d.fromDegrees(newpose.rotation.degrees), arrayOf(
+            Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
                 Drivetrain.frontLeft.position,
                 Drivetrain.frontRight.position,
                 Drivetrain.rearLeft.position,

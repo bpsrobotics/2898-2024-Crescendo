@@ -12,7 +12,7 @@
         "y": 5.5410316277334815
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "baseOfSpeaker"
     },
     {
       "anchor": {
@@ -25,7 +25,7 @@
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "6piece-1End"
     }
   ],
   "rotationTargets": [],

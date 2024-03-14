@@ -50,6 +50,7 @@ class Robot : TimedRobot() {
 //        Arm
         Shooter
         Intake
+        Climber
     }
 
     /**

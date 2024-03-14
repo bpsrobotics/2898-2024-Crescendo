@@ -42,7 +42,7 @@ object Arm : SubsystemBase() {
 //    var ksin = 0.877281
     var ksin = 0.86
     var ks = -0.078825
-    var kv = -1.5
+    var kv = -1.82291
 //    var kv = -3.42291
     var voltageApplied = 0.0
 
@@ -159,7 +159,7 @@ object Arm : SubsystemBase() {
     }
     /** Returns true if the target speed is not 0 and pid is not moving the arm */
     fun isMoving(): Boolean {
-        return (targetSpeed != 0.0) && (pidCalc > 0.25)
+        return (targetSpeed != 0.0) && (pidCalc.absoluteValue > 0.25)
     }
 
     /** Sets the voltage of the arm motors

@@ -32,7 +32,7 @@ class Constants {
     object DriveConstants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
-        const val MaxSpeedMetersPerSecond = 3.5
+        const val MaxSpeedMetersPerSecond = 4.5
         const val MaxAngularSpeed = 2 * Math.PI // radians per second (2*PI)
         const val DirectionSlewRate = 2.0 // radians per second
         const val MagnitudeSlewRate = 1.8 // percent per second (1 = 100%)
@@ -83,12 +83,15 @@ class Constants {
         const val TurningEncoderVelocityFactor = 2 * Math.PI / 60.0 // radians per second
         const val TurningEncoderPositionPIDMinInput = 0.0 // radians
         const val TurningEncoderPositionPIDMaxInput = TurningEncoderPositionFactor // radians
-        var DrivingP = 0.5
+        var DrivingP = 0.1
         var DrivingI = 0.0
         var DrivingD = 0.0
-        const val DrivingKs = 0.0
-        const val DrivingKv = 0.0
-        const val DrivingKa = 0.0
+//        const val DrivingKs = 0.11937
+        const val DrivingKs = 0.01937
+//        const val DrivingKv = 2.6335
+        const val DrivingKv = 0.1335
+        const val DrivingKa = 0.06035
+//        const val DrivingKa = 0.46035
         const val DrivingMinOutput = -1.0
         const val DrivingMaxOutput = 1.0
         var TurningP = 0.9
@@ -100,7 +103,7 @@ class Constants {
         const val TurningMaxOutput = 1.0
         val DrivingMotorIdleMode = CANSparkBase.IdleMode.kBrake
         val TurningMotorIdleMode = CANSparkBase.IdleMode.kBrake
-        const val DrivingMotorCurrentLimit = 50 // amps
+        const val DrivingMotorCurrentLimit = 40 // amps
         const val TurningMotorCurrentLimit = 20 // amps
     }
 
@@ -122,7 +125,7 @@ class Constants {
         const val PYController = 1.0
         const val PThetaController = 1.0
 
-        const val TranslationP = 1.0
+        const val TranslationP = 5.0
         const val TranslationI = 0.0
         const val TranslationD = 0.0
 
@@ -149,7 +152,7 @@ class Constants {
             AMP(-0.1),
             SHOOTER1(1.0),
             SHOOTER2(1.3),   //base
-            SIXPIECE1(1.2)
+            SIXPIECE1(1.128)
 
         }
     }

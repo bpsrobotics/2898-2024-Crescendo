@@ -98,12 +98,6 @@
           "data": {
             "commands": [
               {
-                "type": "path",
-                "data": {
-                  "pathName": "6piece-2"
-                }
-              },
-              {
                 "type": "sequential",
                 "data": {
                   "commands": [

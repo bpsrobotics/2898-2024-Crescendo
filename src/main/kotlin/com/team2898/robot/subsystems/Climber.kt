@@ -28,7 +28,7 @@ object Climber : SubsystemBase() {
     init {
         SmartDashboard.putNumber("output climb", output)
         initMotorControllers(Constants.ClimberConstants.CURRENT_LIMIT, CANSparkBase.IdleMode.kBrake, climbMotor, climbMotorSecondary)
-        climbMotorSecondary.follow(climbMotor)
+        climbMotorSecondary.follow(climbMotor,true )
 
         climbMotor.burnFlash()
         climbMotorSecondary.burnFlash()
@@ -52,23 +52,23 @@ object Climber : SubsystemBase() {
     }
 
     fun setSpeed(input: Double) {
-//        if (stallTimer.hasElapsed(1.0)) {
-//            if (!stalled) {
-//                if (buffer.calculate(climbMotor.outputCurrent > STALL_CURRENT)) {
-//                    output = 0.0
-//                    stalled = true
-//                } else {
-//                    output = input
-//                }
-//            } else {
-//                output = 0.0
-//                stallTimer.reset()
-//                stallTimer.start()
-//            }
-//        } else {
-//            output = 0.0
-//        }
-        output = input
+        if (stallTimer.hasElapsed(1.0)) {
+            if (!stalled) {
+                if (buffer.calculate(climbMotor.outputCurrent > STALL_CURRENT)) {
+                    output = 0.0
+                    stalled = true
+                } else {
+                    output = input
+                }
+            } else {
+                output = 0.0
+                stallTimer.reset()
+                stallTimer.start()
+            }
+        } else {
+            output = 0.0
+        }
+//        output = input
 
     }
     fun setVoltage(input: Double){

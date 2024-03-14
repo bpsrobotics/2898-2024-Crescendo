@@ -133,11 +133,11 @@ class TeleOp : Command() {
             else ->               Intake.intake(0.0)
         }
 
-//        when {
-//            OI.climbUp ->   Climber.setSpeed(-12.0)
-//            OI.climbDown -> Climber.setSpeed(12.0)
-//            else ->         Climber.setSpeed(0.0)
-//        }
+        when {
+            OI.climbUp ->   Climber.setSpeed(-12.0)
+            OI.climbDown -> Climber.setSpeed(12.0)
+            else ->         Climber.setSpeed(0.0)
+        }
     }
 
     val turnController = PIDController(0.1, 0.0, 0.0)
