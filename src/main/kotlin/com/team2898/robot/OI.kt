@@ -150,6 +150,7 @@ object OI : SubsystemBase() {
     val armDirectStowed get() = operatorController.getRawButton(ARM_DIRECT_STOWED)
     val armDirectAmp get() = operatorController.getRawButton(ARM_DIRECT_AMP)
     val armDirectShooter1 get() = operatorController.getRawButton(ARM_DIRECT_SHOOTER1)
+    val armDirectShooter1Pressed get() = operatorController.getRawButtonPressed(ARM_DIRECT_SHOOTER1)
     val armDirectShooter2 get() = operatorController.getRawButton(ARM_DIRECT_SHOOTER2)
 
 //    val runIntake: BooleanEvent = BooleanEvent(loop) { hatVector == Vector(0,-1) }

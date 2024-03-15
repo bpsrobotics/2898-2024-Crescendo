@@ -7,6 +7,7 @@ package com.team2898.robot.commands
 //import com.team2898.robot.OI
 //import com.team2898.robot.subsystems.Arm
 
+import com.team2898.engine.utils.MovingAverage
 import com.team2898.engine.utils.Sugar.degreesToRadians
 import com.team2898.engine.utils.Sugar.eqEpsilon
 import com.team2898.engine.utils.Sugar.radiansToDegrees
@@ -23,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import kotlin.math.*
 import com.team2898.robot.Constants.*
+import edu.wpi.first.math.filter.LinearFilter
 import edu.wpi.first.wpilibj.DriverStation
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -83,33 +85,37 @@ class TeleOp : Command() {
     }
     val climbReachInputBuffer = Timer()
     val climbLiftInputBuffer = Timer()
-    fun getAngleToSpeaker() : Double{
+    fun getAngleToSpeaker(d:Double) : Double{
         if (!vision.hasSpecificTarget(targetID)) return ArmConstants.ArmHeights.SHOOTER1.position
         val velocity = 28.33
         var x1 = 0.0
         var y1 = 0.0
-        var h = 1.41 - 0.3
+        var h = 1.41 - 0.19125
         var h2 = 2.08
-        var d = vision.getCameraData(targetID).x
+
         var distToSpeaker = sqrt(d.pow(2)-h.pow(2))
         var angleToSpeaker = 0.0
 
         for(i in 1..5) {
             angleToSpeaker = (180.0 - atan2(h2 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88))
-            x1 = 0.1 + 0.6*cos(angleToSpeaker)
-            y1 = 0.355 + 0.6*sin(angleToSpeaker)
+            x1 = 0.1 + 0.6*cos(angleToSpeaker.degreesToRadians())
+            y1 = 0.19125 + 0.6*sin(angleToSpeaker.degreesToRadians())
         }
         val a = (180 - angleToSpeaker - (90+26.42+10.88)).degreesToRadians()
         h2 = 2.08 + (2.08 - ((x1 + distToSpeaker)*tan(a) - 9.8*(x1+distToSpeaker).pow(2)/(2*velocity.pow(2)*cos(a).pow(2))+y1))
-        angleToSpeaker =(0.5 * PI) - (180.0 - atan2(h2 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88)).degreesToRadians()
+        val angleReturn =(0.5 * PI) - (180.0 - atan2(h2 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10.88)).degreesToRadians()
         SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
-        SmartDashboard.putNumber("arm angle b4", angleToSpeaker)
-
-        return angleToSpeaker
+        SmartDashboard.putNumber("arm angle b4", angleReturn)
+        return angleReturn
 
     }
     var climbDown = false
+    val distanceAverage = LinearFilter.movingAverage(5)
     fun peripheralControls() {
+        var visiondist = 0.0
+        if (vision.hasSpecificTarget(targetID)) {
+            visiondist = distanceAverage.calculate(vision.getCameraData(targetID).x)
+        }
         when {
             OI.armSelectUp ->   Arm.setGoal(Arm.pos() - 0.1)
             OI.armSelectDown -> Arm.setGoal(Arm.pos() + 0.1)
@@ -118,7 +124,7 @@ class TeleOp : Command() {
             OI.armDirectGround ->   Arm.setGoal(ArmConstants.ArmHeights.GROUND.position)
             OI.armDirectStowed ->   Arm.setGoal(ArmConstants.ArmHeights.STOWED.position)
             OI.armDirectAmp ->      Arm.setGoal(ArmConstants.ArmHeights.AMP.position)
-            OI.armDirectShooter1 -> Arm.setGoal( getAngleToSpeaker() )
+            OI.armDirectShooter1Pressed -> Arm.setGoal( getAngleToSpeaker(visiondist) )
             OI.armDirectShooter2 -> Arm.setGoal(ArmConstants.ArmHeights.SHOOTER2.position)
         }
         when {
@@ -141,16 +147,18 @@ class TeleOp : Command() {
     }
 
     val turnController = PIDController(0.1, 0.0, 0.0)
+    private var targetRotation = Odometry.pose.rotation.degrees
     fun alignRobot() {
-        // Doesn't run the function if there isn't a target or if the button isn't pressed.
-        if (!vision.hasSpecificTarget(targetID) || !OI.alignButton) return
-
-        // Get the desired rotation of the robot by adding the degrees needed to face the target
-        var targetRotation = Odometry.pose.rotation.degrees + vision.getCameraYaw(targetID)
-        var rotationSpeed = turnController.calculate(Odometry.pose.rotation.radians, targetRotation.degreesToRadians())
-
-        Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
-            // Use our forward/turn speeds to control the drivetrain
+        // Doesn't run the function if there isn't a target.
+        if (vision.hasSpecificTarget(targetID)){
+            targetRotation = Odometry.pose.rotation.degrees + vision.getCameraYaw(targetID)
+        }
+        if (OI.alignButton) {
+                // Get the desired rotation of the robot by adding the degrees needed to face the target
+            var rotationSpeed = turnController.calculate(Odometry.pose.rotation.radians, targetRotation.degreesToRadians())
+            Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
+                // Use our forward/turn speeds to control the drivetrain
+        }
     }
     override fun execute() {
         handleResetGyro()
