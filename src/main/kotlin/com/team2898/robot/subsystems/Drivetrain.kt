@@ -91,6 +91,7 @@ object Drivetrain
         .getStructArrayTopic("MyStates", SwerveModuleState.struct).publish()
 
     val modules = arrayOf(frontLeft, frontRight, rearLeft, rearRight)
+    val moduleStates = arrayOf(frontLeft.state, frontRight.state, rearLeft.state, rearRight.state)
     init {
 //        SmartDashboard.putNumber("TurningKs", Constants.ModuleConstants.Ks)
         SmartDashboard.putNumber("TurningKP", Constants.ModuleConstants.TurningP)
@@ -122,10 +123,9 @@ object Drivetrain
             rearLeft.position,
             rearRight.position
     ))
-
     override fun periodic() {
         // Update the odometry in the periodic block
-
+        publisher.set(moduleStates)
 //        Constants.ModuleConstants.Ks = SmartDashboard.getNumber("TurningKs", Constants.ModuleConstants.Ks)
         Constants.ModuleConstants.TurningP = SmartDashboard.getNumber("TurningKP", Constants.ModuleConstants.TurningP)
         Constants.ModuleConstants.TurningI = SmartDashboard.getNumber("TurningKI", Constants.ModuleConstants.TurningI)

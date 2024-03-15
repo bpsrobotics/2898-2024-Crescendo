@@ -42,7 +42,7 @@ object Arm : SubsystemBase() {
 //    var ksin = 0.877281
     var ksin = 0.86
     var ks = -0.078825
-    var kv = -1.82291
+    var kv = -1.92291
 //    var kv = -3.42291
     var voltageApplied = 0.0
 

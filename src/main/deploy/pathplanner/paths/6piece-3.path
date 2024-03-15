@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.57,
-        "y": 4.26
+        "x": 2.748701298114341,
+        "y": 4.167946461634323
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.66983602917237,
-        "y": 4.26572427105348
+        "x": 2.848537327286711,
+        "y": 4.173670732687803
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "6piece-2End"
     },
     {
       "anchor": {
-        "x": 2.4662937107606133,
-        "y": 6.6706619771483915
+        "x": 2.8460832247880394,
+        "y": 6.953069564502119
       },
       "prevControl": {
-        "x": 2.144933352737406,
-        "y": 6.018203068434607
+        "x": 2.524722866764832,
+        "y": 6.300610655788335
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "6piece-3end"
     }
   ],
   "rotationTargets": [
@@ -39,9 +39,9 @@
   "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 4.5,
-    "maxAcceleration": 3.0,
-    "maxAngularVelocity": 540.0,
-    "maxAngularAcceleration": 720.0
+    "maxAcceleration": 1.0,
+    "maxAngularVelocity": 360.0,
+    "maxAngularAcceleration": 240.0
   },
   "goalEndState": {
     "velocity": 0,

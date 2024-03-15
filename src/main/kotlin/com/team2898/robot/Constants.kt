@@ -73,7 +73,7 @@ class Constants {
 
         // Calculations required for driving motor conversion factors and feed forward
         const val DrivingMotorFreeSpeedRps = NeoMotorConstants.FreeSpeedRpm / 60
-        const val WheelDiameterMeters = 0.1016
+        const val WheelDiameterMeters = 0.0979840867
         const val WheelCircumferenceMeters = WheelDiameterMeters * Math.PI
 
         const val DrivingEncoderPositionFactor = (WheelDiameterMeters * Math.PI / 6.75) // Wheel Diameter * PI * Gear Ratio
@@ -83,15 +83,21 @@ class Constants {
         const val TurningEncoderVelocityFactor = 2 * Math.PI / 60.0 // radians per second
         const val TurningEncoderPositionPIDMinInput = 0.0 // radians
         const val TurningEncoderPositionPIDMaxInput = TurningEncoderPositionFactor // radians
-        var DrivingP = 0.1
+//        var DrivingP = 0.1
+//        var DrivingI = 0.0
+//        var DrivingD = 0.0
+////        const val DrivingKs = 0.11937
+//        const val DrivingKs = 0.01937
+////        const val DrivingKv = 2.6335
+//        const val DrivingKv = 0.1335
+//        const val DrivingKa = 0.06035
+////        const val DrivingKa = 0.46035
+        var DrivingP = 0.06
         var DrivingI = 0.0
-        var DrivingD = 0.0
-//        const val DrivingKs = 0.11937
-        const val DrivingKs = 0.01937
-//        const val DrivingKv = 2.6335
-        const val DrivingKv = 0.1335
-        const val DrivingKa = 0.06035
-//        const val DrivingKa = 0.46035
+        var DrivingD = 0.01
+        const val DrivingKs = 0.0
+        const val DrivingKv = 0.55
+        const val DrivingKa = 0.0
         const val DrivingMinOutput = -1.0
         const val DrivingMaxOutput = 1.0
         var TurningP = 0.9
@@ -152,7 +158,8 @@ class Constants {
             AMP(-0.1),
             SHOOTER1(1.0),
             SHOOTER2(1.3),   //base
-            SIXPIECE1(1.128)
+            SIXPIECE1(1.128),
+            SIXPIECE2(1.05)
 
         }
     }
