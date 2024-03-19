@@ -155,19 +155,6 @@
               }
             ]
           }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "6piece-3"
-                }
-              }
-            ]
-          }
         }
       ]
     }

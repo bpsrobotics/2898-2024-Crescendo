@@ -46,10 +46,10 @@ class Constants {
 
         // Distance between front and back wheels on robot: CHANGE TO MATCH WITH ROBOT
         val DriveKinematics = SwerveDriveKinematics(
-                Translation2d(-WheelBase / 2, TrackWidth / 2), // Front Left (-,+) 4:4 :1 :2
-                Translation2d(-WheelBase / 2, -TrackWidth / 2), // Front Right (+,+) 1:3 :4 :3
-                Translation2d(WheelBase / 2, TrackWidth / 2), // Back Left (-,-) 3:1 :2 :1
-                Translation2d(WheelBase / 2, -TrackWidth / 2)) //Back Right (+,-) 2:2 :3 :4
+                Translation2d(-WheelBase / 2, TrackWidth / 2), // Front Left (-,+) 4:4 :1 :1
+                Translation2d(-WheelBase / 2, -TrackWidth / 2), // Front Right (+,+) 1:3 :4 :2
+                Translation2d(WheelBase / 2, TrackWidth / 2), // Back Left (-,-) 3:1 :2 :4
+                Translation2d(WheelBase / 2, -TrackWidth / 2)) //Back Right (+,-) 2:2 :3 :3
 
         // Angular offsets of the modules relative to the chassis in radians
         const val FrontLeftChassisAngularOffset  = 0.0
@@ -92,7 +92,7 @@ class Constants {
 //        const val DrivingKv = 0.1335
 //        const val DrivingKa = 0.06035
 ////        const val DrivingKa = 0.46035
-        var DrivingP = 0.06
+        var DrivingP = 0.05
         var DrivingI = 0.0
         var DrivingD = 0.01
         const val DrivingKs = 0.0
@@ -110,7 +110,7 @@ class Constants {
         val DrivingMotorIdleMode = CANSparkBase.IdleMode.kBrake
         val TurningMotorIdleMode = CANSparkBase.IdleMode.kBrake
         const val DrivingMotorCurrentLimit = 40 // amps
-        const val TurningMotorCurrentLimit = 20 // amps
+        const val TurningMotorCurrentLimit = 10 // amps
     }
 
     object OIConstants {
@@ -158,14 +158,14 @@ class Constants {
             AMP(-0.1),
             SHOOTER1(1.0),
             SHOOTER2(1.3),   //base
-            SIXPIECE1(1.128),
+            SIXPIECE1(1.1),
             SIXPIECE2(1.05)
 
         }
     }
 
     object IntakeConstants{
-        const val CURRENT_LIMIT = 20
+        const val CURRENT_LIMIT = 15
         const val INTAKE_SPEED = 0.75
         const val STOP_BUFFER = 1.0
     }

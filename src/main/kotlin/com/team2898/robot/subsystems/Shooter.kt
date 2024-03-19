@@ -56,7 +56,7 @@ object Shooter : SubsystemBase() {
     var botPID = pid.calculate(wheelSpeedBot, botGoal)
     var botFF = ff.calculate(botGoal)
     init{
-        initMotorControllers(40,CANSparkBase.IdleMode.kCoast, shooterMotorTop, shooterMotorBot)
+        initMotorControllers(35,CANSparkBase.IdleMode.kCoast, shooterMotorTop, shooterMotorBot)
 
         shooterMotorTop.inverted = true
         shooterMotorTop.burnFlash()

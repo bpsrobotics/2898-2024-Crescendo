@@ -20,10 +20,10 @@ class IntakeNote : Command() {
     }
 
     override fun isFinished(): Boolean {
-        return time.hasElapsed(0.5) || Intake.hasNote
+        return Intake.hasNote
     }
 
     override fun end(interrupted: Boolean) {
-        Intake.intake(0.0)
+        Intake.intake(-0.1)
     }
 }

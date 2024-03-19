@@ -89,9 +89,11 @@ object Drivetrain
     val states = arrayOf(frontLeft.state, frontRight.state, rearLeft.state, rearRight.state)
     var publisher = NetworkTableInstance.getDefault()
         .getStructArrayTopic("MyStates", SwerveModuleState.struct).publish()
+    var publisher2 = NetworkTableInstance.getDefault()
+        .getStructArrayTopic("Target States", SwerveModuleState.struct).publish()
+
 
     val modules = arrayOf(frontLeft, frontRight, rearLeft, rearRight)
-    val moduleStates = arrayOf(frontLeft.state, frontRight.state, rearLeft.state, rearRight.state)
     init {
 //        SmartDashboard.putNumber("TurningKs", Constants.ModuleConstants.Ks)
         SmartDashboard.putNumber("TurningKP", Constants.ModuleConstants.TurningP)
@@ -124,6 +126,8 @@ object Drivetrain
             rearRight.position
     ))
     override fun periodic() {
+        val moduleStates = arrayOf(frontLeft.state, frontRight.state, rearLeft.state, rearRight.state)
+
         // Update the odometry in the periodic block
         publisher.set(moduleStates)
 //        Constants.ModuleConstants.Ks = SmartDashboard.getNumber("TurningKs", Constants.ModuleConstants.Ks)
@@ -273,6 +277,7 @@ object Drivetrain
         frontRight.setDesiredState(swerveModuleStates.get(1))
         rearLeft.setDesiredState(swerveModuleStates.get(2))
         rearRight.setDesiredState(swerveModuleStates.get(3))
+        publisher2.set(swerveModuleStates)
 //        chassisDrive(if (secondOrder) secondOrderSpeeds else speed)
 
     }
@@ -280,7 +285,7 @@ object Drivetrain
 
 
     fun chassisDrive(speeds: ChassisSpeeds) {
-        val wantedspeeds = ChassisSpeeds(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, -speeds.omegaRadiansPerSecond)
+        val wantedspeeds = ChassisSpeeds(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond)
         val wantedStates = DriveKinematics.toSwerveModuleStates(wantedspeeds)
         setModuleStates(wantedStates)
     }
@@ -342,7 +347,7 @@ object Drivetrain
             HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
                 PIDConstants(TranslationP, TranslationI, TranslationD),  // Translation PID constants
                 PIDConstants(RotationP, RotationI, RotationD),  // Rotation PID constants
-                MaxSpeedMetersPerSecond,  // Max module speed, in m/s
+                2.0,  // Max module speed, in m/s
                 0.7112,  // Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() // Default path replanning config. See the API for the options here
             ),

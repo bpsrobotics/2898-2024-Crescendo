@@ -28,4 +28,6 @@ object RobotMap {
 
     //DIO IDs
     const val ArmDigitalInput = 1
+    const val IntakeBeamBreak = 2
+
 }

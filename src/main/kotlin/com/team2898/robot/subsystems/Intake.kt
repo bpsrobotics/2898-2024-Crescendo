@@ -5,23 +5,28 @@ import com.revrobotics.CANSparkLowLevel
 import com.revrobotics.CANSparkMax
 import com.team2898.robot.Constants
 import com.team2898.robot.Constants.IntakeConstants.STOP_BUFFER
+import com.team2898.robot.RobotMap.IntakeBeamBreak
 
 import com.team2898.robot.RobotMap.IntakeId
 import edu.wpi.first.math.filter.Debouncer
 import edu.wpi.first.math.filter.LinearFilter
+import edu.wpi.first.wpilibj.DigitalInput
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.SubsystemBase
 import frc.engine.utils.initMotorControllers
+import kotlin.math.sign
 
 object Intake : SubsystemBase() {
     private val intakeMotor = CANSparkMax(IntakeId, CANSparkLowLevel.MotorType.kBrushed)
-    var hasNote = false
+    private val beamBreak = DigitalInput(IntakeBeamBreak)
+//    var hasNote = false
     var output = 0.0
     val currentFilter = LinearFilter.movingAverage(20)
     var currentAverage = 0.0
-    val buffer = Debouncer(0.04, Debouncer.DebounceType.kRising)
+    val buffer = Debouncer(0.1, Debouncer.DebounceType.kRising)
     val bufferTimer = Timer()
+    val hasNote get() = beamBreak.get()
     val intakeState get() = bufferTimer.hasElapsed(STOP_BUFFER)
     val gracePeriod get() = !bufferTimer.hasElapsed(STOP_BUFFER + 5.0)
 
@@ -30,6 +35,7 @@ object Intake : SubsystemBase() {
         intakeMotor.inverted = true
         intakeMotor.burnFlash()
         bufferTimer.start()
+
     }
 
     override fun periodic() {
@@ -38,31 +44,46 @@ object Intake : SubsystemBase() {
         SmartDashboard.putNumber("intake output", output)
         SmartDashboard.putNumber("current average", currentAverage)
         SmartDashboard.putNumber("intake timer ", bufferTimer.get())
+        SmartDashboard.putBoolean("beam break", beamBreak.get())
         currentAverage = currentFilter.calculate(intakeMotor.outputCurrent)
 
         intakeMotor.set(output)
     }
 
     fun intake(speed: Double){
-        if (!intakeState) {
-//            println("stopping intake")
+        if (!intakeState){
             output = 0.0
             return
         }
-
-        if (buffer.calculate(currentAverage > 7.0) && !hasNote && !gracePeriod) {
+        if (buffer.calculate(hasNote) && !gracePeriod) {
             output = 0.0
             bufferTimer.restart()
-            hasNote = true
             return
         }
-
-        if (gracePeriod) {
+        if (gracePeriod && hasNote) {
             output = speed
         } else {
             output = speed
-            hasNote = false
         }
+
+//        if (!intakeState) {
+//            output = 0.0
+//            return
+//        }
+//
+//        if (buffer.calculate(currentAverage > 7.0) && !hasNote && !gracePeriod) {
+//            output = 0.0
+//            bufferTimer.restart()
+//            hasNote = true
+//            return
+//        }
+//
+//        if (gracePeriod || hasNote) {
+//            output = speed
+//        } else {
+//            output = speed
+//            hasNote = false
+//        }
     }
 
     fun outtake() {

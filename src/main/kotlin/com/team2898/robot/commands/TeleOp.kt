@@ -97,13 +97,13 @@ class TeleOp : Command() {
         var angleToSpeaker = 0.0
 
         for(i in 1..5) {
-            angleToSpeaker = (180.0 - atan2(h2 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90))
+            angleToSpeaker = (180.0 - atan2(h2 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10))
             x1 = 0.1 + 0.6*cos(angleToSpeaker.degreesToRadians())
             y1 = 0.355 + 0.6*sin(angleToSpeaker.degreesToRadians())
         }
-        val a = (180 - angleToSpeaker - (90+26.42)).degreesToRadians()
+        val a = (180 - angleToSpeaker - (90+26.42+10)).degreesToRadians()
         h2 = 2.03 + (2.03 - ((x1 + distToSpeaker)*tan(a) - 9.8*(x1+distToSpeaker).pow(2)/(2*velocity.pow(2)*cos(a).pow(2))+y1))
-        val angleReturn =(0.5 * PI) - (180.0 - atan2(h2 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90)).degreesToRadians()
+        val angleReturn =(0.5 * PI) - (180.0 - atan2(h2 - y1, distToSpeaker + x1).radiansToDegrees() - (26.42+90+10)).degreesToRadians()
         SmartDashboard.putNumber("AngleToSpeaker", distToSpeaker)
         SmartDashboard.putNumber("arm angle b4", angleReturn)
         return angleReturn

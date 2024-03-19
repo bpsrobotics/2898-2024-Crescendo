@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.68723829737102,
-        "y": 5.5410316277334815
+        "x": 2.2520534720784746,
+        "y": 5.599460783737701
       },
       "isLocked": false,
       "linkedName": "baseOfSpeaker"
@@ -33,7 +33,7 @@
   "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 4.5,
-    "maxAcceleration": 1.0,
+    "maxAcceleration": 1.5,
     "maxAngularVelocity": 360.0,
     "maxAngularAcceleration": 240.0
   },

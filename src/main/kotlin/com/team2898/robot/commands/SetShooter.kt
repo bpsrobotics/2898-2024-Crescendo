@@ -19,7 +19,7 @@ class SetShooter : Command() {
     }
 
     override fun isFinished(): Boolean {
-        return time.hasElapsed(1.0) || Shooter.wheelSpeedTop == 2000.0
+        return time.hasElapsed(1.0) || Shooter.wheelSpeedTop == 4000.0
     }
 
     override fun end(interrupted: Boolean) {

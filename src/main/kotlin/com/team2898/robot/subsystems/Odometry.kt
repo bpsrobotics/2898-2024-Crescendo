@@ -1,26 +1,20 @@
 package com.team2898.robot.subsystems
 
+import com.team2898.engine.utils.odometry.PoseProvider
 import com.team2898.engine.utils.units.Degrees
 import com.team2898.engine.utils.units.Meters
-import com.team2898.engine.utils.odometry.PoseProvider
-import com.team2898.engine.utils.odometry.Vision
 import com.team2898.robot.Constants
-import edu.wpi.first.math.Matrix
-import edu.wpi.first.math.Nat
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.ChassisSpeeds
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry
-import edu.wpi.first.math.numbers.N1
-import edu.wpi.first.math.numbers.N3
+import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.util.sendable.SendableBuilder
 import edu.wpi.first.util.sendable.SendableRegistry
 import edu.wpi.first.wpilibj.Timer
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.SubsystemBase
-import java.util.function.Supplier
+
 
 object Odometry : SubsystemBase(), PoseProvider {
     var SwerveOdometry = SwerveDriveOdometry(
@@ -32,11 +26,20 @@ object Odometry : SubsystemBase(), PoseProvider {
             Drivetrain.rearRight.position
         ))
     var pose = Pose2d()
+
+    var poseA = Pose2d()
+    var poseB = Pose2d()
+
+    // WPILib
+    var publisher = NetworkTableInstance.getDefault()
+        .getStructTopic("MyPose", Pose2d.struct).publish()
+    var arrayPublisher = NetworkTableInstance.getDefault()
+        .getStructArrayTopic("MyPoseArray", Pose2d.struct).publish()
     fun supplyPose(): Pose2d {
         return Pose2d(pose.x, pose.y, pose.rotation)
     }
     fun autoPose(): Pose2d {
-        return Pose2d(pose.x, pose.y, -pose.rotation)
+        return Pose2d(pose.x, pose.y, pose.rotation)
     }
 
 
@@ -70,6 +73,8 @@ object Odometry : SubsystemBase(), PoseProvider {
     }
     override fun update(){
         NavX.update(timer.get())
+        publisher.set(poseA)
+        arrayPublisher.set(arrayOf(poseA, poseB))
         pose = SwerveOdometry.update(
             Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
                 Drivetrain.frontLeft.position,
@@ -77,6 +82,7 @@ object Odometry : SubsystemBase(), PoseProvider {
                 Drivetrain.rearLeft.position,
                 Drivetrain.rearRight.position
             ))
+        poseA = pose
 //        velocity = Translation2d((lastPose.x - pose.x)/timer.get(), (lastPose.y - pose.y)/timer.get())
 //        lastPose = pose
 //        SmartDashboard.putNumber("Odometry/FieldX", pose.x)

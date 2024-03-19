@@ -42,7 +42,7 @@ class Robot : TimedRobot() {
         robotContainer = RobotContainer()
 
 //        CameraServer.startAutomaticCapture()
-
+        Odometry
         SmartDashboard.putData(Odometry)
         Drivetrain
 //        DataLogManager.start()
