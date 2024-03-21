@@ -87,7 +87,7 @@ class TeleOp : Command() {
     val climbLiftInputBuffer = Timer()
     fun getAngleToSpeaker(d:Double) : Double{
         if (!vision.hasSpecificTarget(targetID)) return ArmConstants.ArmHeights.SHOOTER1.position
-        val velocity = 28.33
+        val velocity = 16.0
         var x1 = 0.0
         var y1 = 0.0
         var h = 1.41 - 0.19125
@@ -139,19 +139,23 @@ class TeleOp : Command() {
             else ->               Intake.intake(0.0)
         }
 
-        when {
-            OI.climbUp ->   Climber.setSpeed(-12.0)
-            OI.climbDown -> Climber.setSpeed(12.0)
-            else ->         Climber.setSpeed(0.0)
-        }
+//        when {
+//            OI.climbUp ->   Climber.setSpeed(-12.0)
+//            OI.climbDown -> Climber.setSpeed(12.0)
+//            else ->         Climber.setSpeed(0.0)
+//        }
     }
 
-    val turnController = PIDController(0.1, 0.0, 0.0)
+    val turnController = PIDController(0.3, 0.0, 0.0)
     private var targetRotation = Odometry.pose.rotation.degrees
     fun alignRobot() {
         // Doesn't run the function if there isn't a target.
+        var Yaw = 0.0
         if (vision.hasSpecificTarget(targetID)){
-            targetRotation = Odometry.pose.rotation.degrees + vision.getCameraYaw(targetID)
+            Yaw = vision.getCameraYaw(targetID)
+        }
+        if (OI.alignButtonPressed) {
+            targetRotation = Odometry.pose.rotation.degrees - Yaw
         }
         if (OI.alignButton) {
                 // Get the desired rotation of the robot by adding the degrees needed to face the target
@@ -159,10 +163,13 @@ class TeleOp : Command() {
             Drivetrain.drive(0.0, 0.0, rotationSpeed, true, true, true)
                 // Use our forward/turn speeds to control the drivetrain
         }
+        SmartDashboard.putNumber("AlignYaw", Yaw)
+        SmartDashboard.putNumber("targetRotation", targetRotation)
+        SmartDashboard.putNumber("CurrentRotation", Odometry.pose.rotation.degrees)
     }
     override fun execute() {
         handleResetGyro()
-//        alignRobot()
+        alignRobot()
         peripheralControls()
         Drivetrain.drive(
             OI.translationX,
