@@ -1,9 +1,12 @@
 package com.team2898.robot.subsystems
 
 import com.team2898.engine.utils.odometry.PoseProvider
+import com.team2898.engine.utils.odometry.Vision
 import com.team2898.engine.utils.units.Degrees
 import com.team2898.engine.utils.units.Meters
 import com.team2898.robot.Constants
+import com.team2898.robot.subsystems.NavX
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.geometry.Translation2d
@@ -14,6 +17,10 @@ import edu.wpi.first.util.sendable.SendableBuilder
 import edu.wpi.first.util.sendable.SendableRegistry
 import edu.wpi.first.wpilibj.Timer
 import edu.wpi.first.wpilibj2.command.SubsystemBase
+import org.photonvision.EstimatedRobotPose
+import org.photonvision.PhotonCamera
+import org.photonvision.PhotonPoseEstimator
+import org.photonvision.targeting.PhotonTrackedTarget
 
 
 object Odometry : SubsystemBase(), PoseProvider {
@@ -25,7 +32,18 @@ object Odometry : SubsystemBase(), PoseProvider {
             Drivetrain.rearLeft.position,
             Drivetrain.rearRight.position
         ))
+    var SwervePoseEstimator = SwerveDrivePoseEstimator(
+        Constants.DriveConstants.DriveKinematics,
+        Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
+            Drivetrain.frontLeft.position,
+            Drivetrain.frontRight.position,
+            Drivetrain.rearLeft.position,
+            Drivetrain.rearRight.position
+        ), Pose2d(0.0,0.0, Rotation2d(0.0,0.0))
+    )
+    private val vision = Vision("Camera_Module_v1")
     var pose = Pose2d()
+    var Estimatedpose = Pose2d()
 
     var poseA = Pose2d()
     var poseB = Pose2d()
@@ -37,6 +55,9 @@ object Odometry : SubsystemBase(), PoseProvider {
         .getStructArrayTopic("MyPoseArray", Pose2d.struct).publish()
     fun supplyPose(): Pose2d {
         return Pose2d(pose.x, pose.y, pose.rotation)
+    }
+    fun supplyEstimatedPose(): Pose2d {
+        return Pose2d(Estimatedpose.x, Estimatedpose.y, Estimatedpose.rotation)
     }
     fun autoPose(): Pose2d {
         return Pose2d(pose.x, pose.y, pose.rotation)
@@ -72,6 +93,23 @@ object Odometry : SubsystemBase(), PoseProvider {
         update()
     }
     override fun update(){
+
+        SwervePoseEstimator.update(Rotation2d.fromDegrees(NavX.getInvertedAngle()), arrayOf(
+            Drivetrain.frontLeft.position,
+            Drivetrain.frontRight.position,
+            Drivetrain.rearLeft.position,
+            Drivetrain.rearRight.position
+        ))
+        var result = vision.cam.latestResult
+        if (vision.hasTargets()) {
+            var imageCaptureTime = result.timestampSeconds
+
+            var camPose = vision.getEstimatedPose(Estimatedpose)
+            SwervePoseEstimator.addVisionMeasurement(
+                Pose2d(camPose.), imageCaptureTime
+            )
+        }
+        Estimatedpose = SwervePoseEstimator.
         NavX.update(timer.get())
         publisher.set(poseA)
         arrayPublisher.set(arrayOf(poseA, poseB))

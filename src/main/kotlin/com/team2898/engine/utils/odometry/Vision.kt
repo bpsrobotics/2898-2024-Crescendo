@@ -1,15 +1,12 @@
 package com.team2898.engine.utils.odometry
 
-import com.team2898.robot.subsystems.Drivetrain
 import edu.wpi.first.apriltag.AprilTag
 import edu.wpi.first.apriltag.AprilTagFieldLayout
 import edu.wpi.first.apriltag.AprilTagFields
 import edu.wpi.first.math.geometry.*
-import edu.wpi.first.wpilibj.DriverStation
 import org.photonvision.EstimatedRobotPose
 import org.photonvision.PhotonCamera
 import org.photonvision.PhotonPoseEstimator
-import org.photonvision.targeting.PhotonTrackedTarget
 import java.util.*
 
 
@@ -39,7 +36,6 @@ class Vision (
         Rotation3d(0.0, 0.0, 0.0)
     )
     val aprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile)
-
 
     val PoseEstimator = PhotonPoseEstimator(
         aprilTagFieldLayout,
