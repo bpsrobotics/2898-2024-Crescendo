@@ -110,6 +110,8 @@ object OI : SubsystemBase() {
 //    val resetGyro: BooleanEvent = driverController.rightBumper(loop).debounce(0.5).rising()
     val resetGyro get() = driverController.rightBumper
 
+    val climb get() = operatorController.getRawButton(12)
+
     val alignButton
         get() = driverController.yButton
     val alignButtonRelease

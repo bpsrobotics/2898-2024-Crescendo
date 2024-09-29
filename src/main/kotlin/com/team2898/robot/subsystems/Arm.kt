@@ -42,7 +42,8 @@ object Arm : SubsystemBase() {
 //    var ksin = 0.877281
     var ksin = 0.86
     var ks = -0.078825
-    var kv = -1.72291
+    var kv = -1.32291
+//    var kv = -1.72291
 //    var kv = -3.42291
     var voltageApplied = 0.0
 
@@ -70,18 +71,23 @@ object Arm : SubsystemBase() {
     // 2.65, 1.5, 0,0
 //    val pid = PIDController(0.01, 0.0, 0.5)
 //    val pid = PIDController(0.01, 0.0, 0.1)
-    val pid = PIDController(4.0, 0.0, 0.5)
+    val pid = PIDController(6.0, 0.0, 0.5)
     var pidCalc = 0.0
     var profile = TrapezoidProfile(constraints)
     var initState = TrapezoidProfile.State(pos(), 0.0)
     var goalState = TrapezoidProfile.State(pos(),0.0)
     var targetSpeed = 0.0
 
+    var climbMode = false
+    var climbVoltage = 0.0
+    val holdVoltage = -1.0
 
     init {
         initMotorControllers(Constants.ArmConstants.CurrentLimit, CANSparkBase.IdleMode.kBrake, armMotor, armMotorSecondary)
 
         armMotor.inverted = true
+
+        climbMode = false
 
         armMotor.burnFlash()
         armMotorSecondary.burnFlash()
@@ -131,7 +137,11 @@ object Arm : SubsystemBase() {
         var output = pidCalc.clamp(-3.5,3.5)
         output += kv * targetSpeed
         output += ks + sin(armAngle) * ksin
-
+        if (climbMode && pos() < Constants.ArmConstants.ArmHeights.SHOOTER2.position) {
+            output = climbVoltage
+        } else if (climbMode && pos() > Constants.ArmConstants.ArmHeights.SHOOTER2.position) {
+            output = holdVoltage
+        }
         SmartDashboard.putNumber("output", output)
         SmartDashboard.putNumber("target pos", setpoint)
         setVoltage(output)
@@ -150,6 +160,10 @@ object Arm : SubsystemBase() {
         initState = TrapezoidProfile.State(pos(), vel)
         goalState = TrapezoidProfile.State(setpoint, 0.0)
     }
+    fun climb() {
+        climbMode = true
+        climbVoltage = -2.0
+    }
     /** Stops the motors and sets to coast mode so the arm will drop */
     fun release() {
         armMotor.stopMotor()
@@ -159,7 +173,7 @@ object Arm : SubsystemBase() {
     }
     /** Returns true if the target speed is not 0 and pid is not moving the arm */
     fun isMoving(): Boolean {
-        return (targetSpeed != 0.0) && (pidCalc.absoluteValue > 0.25)
+        return (targetSpeed != 0.0) && (pidCalc.absoluteValue > 0.1)
     }
 
     /** Sets the voltage of the arm motors

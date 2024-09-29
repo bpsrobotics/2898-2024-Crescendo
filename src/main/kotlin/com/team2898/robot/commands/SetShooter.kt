@@ -14,7 +14,7 @@ class SetShooter : Command() {
     override fun initialize() {
         time.reset()
         time.start()
-        Shooter.setVoltage(7.0)
+        Shooter.setVoltage(8.0)
         println("shooter")
     }
 

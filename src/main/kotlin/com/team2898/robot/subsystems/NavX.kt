@@ -14,6 +14,10 @@ object NavX : SubsystemBase() {
     private var lastRotation = 0.0
     var rotationalSpeed = 0.0
 
+    init {
+        navx.angleAdjustment = -90.0
+    }
+
     /** @return The NavX's angle multiplied by -1 */
     fun getInvertedAngle(): Double{
         return -navx.angle
@@ -23,7 +27,6 @@ object NavX : SubsystemBase() {
 //        .plus(90.0).mod(360.0)
     }
     fun update(timeSinceUpdate: Double){
-        navx.angleAdjustment
         totalRotation += TurningPID.minCircleDist(navx.angle.degreesToRadians(), lastRotation.degreesToRadians()).radiansToDegrees()
         rotationalSpeed = TurningPID.minCircleDist(navx.angle.degreesToRadians(), lastRotation.degreesToRadians()).radiansToDegrees()/timeSinceUpdate
         lastRotation = navx.angle

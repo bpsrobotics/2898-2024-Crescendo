@@ -128,7 +128,7 @@ class TeleOp : Command() {
             OI.armDirectShooter2 -> Arm.setGoal(ArmConstants.ArmHeights.SHOOTER2.position)
         }
         when {
-            OI.operatorTrigger ->              Shooter.setVoltage(6.0)
+            OI.operatorTrigger ->              Shooter.setVoltage(8.0)
             OI.hatVector == Vector(0,1) -> Shooter.setVoltage(-0.75)
             else ->                            Shooter.stop()
 

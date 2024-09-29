@@ -16,7 +16,7 @@ class IntakeNote : Command() {
     override fun initialize() {
         time.reset()
         time.start()
-        Intake.intake(0.5)
+        Intake.intake(0.65)
     }
 
     override fun isFinished(): Boolean {

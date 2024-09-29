@@ -258,7 +258,7 @@ object Drivetrain
             currentRotation = rotLimiter.calculate(rot)
         } else {
             xSpeedCommanded = xSpeed
-            ySpeedCommanded = ySpeed
+            ySpeedCommanded = ySpeed  
             currentRotation = rot
         }
 
@@ -277,6 +277,7 @@ object Drivetrain
         frontRight.setDesiredState(swerveModuleStates.get(1))
         rearLeft.setDesiredState(swerveModuleStates.get(2))
         rearRight.setDesiredState(swerveModuleStates.get(3))
+//        chassisDrive(if (secondOrder) secondOrderSpeeds else speed)
         publisher2.set(swerveModuleStates)
 //        chassisDrive(if (secondOrder) secondOrderSpeeds else speed)
 
@@ -285,7 +286,7 @@ object Drivetrain
 
 
     fun chassisDrive(speeds: ChassisSpeeds) {
-        val wantedspeeds = ChassisSpeeds(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond)
+        val wantedspeeds = ChassisSpeeds(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, -speeds.omegaRadiansPerSecond)
         val wantedStates = DriveKinematics.toSwerveModuleStates(wantedspeeds)
         setModuleStates(wantedStates)
     }

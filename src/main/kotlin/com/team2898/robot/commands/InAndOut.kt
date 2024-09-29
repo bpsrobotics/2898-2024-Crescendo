@@ -17,18 +17,17 @@ class InAndOut : Command() {
     }
 
     override fun execute() {
-        if (!time.hasElapsed(0.1)) {
+        if (!time.hasElapsed(0.1) && Intake.hasNote) {
             Intake.output = -0.4
         } else {
             if (!time.hasElapsed(0.5)) {
                 Intake.output = 0.7
             }
         }
-        println("whart")
     }
 
     override fun isFinished(): Boolean {
-        return time.hasElapsed(1.0)
+        return time.hasElapsed(0.5)
     }
 
     override fun end(interrupted: Boolean) {

@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.5243140113475007,
-        "y": 5.252624823189756
+        "x": 2.258520821407187,
+        "y": 5.62
       },
       "isLocked": false,
       "linkedName": "6piece-1End"
     },
     {
       "anchor": {
-        "x": 2.748701298114341,
-        "y": 4.167946461634323
+        "x": 1.0,
+        "y": 5.62
       },
       "prevControl": {
-        "x": 2.2131007014089956,
-        "y": 4.391924892983831
+        "x": 1.6057750537892932,
+        "y": 5.608641446290526
       },
       "nextControl": null,
       "isLocked": false,
@@ -39,13 +39,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -30.0,
-    "rotateFast": true
+    "rotation": 0,
+    "rotateFast": false
   },
   "reversed": false,
   "folder": null,
   "previewStartingState": {
-    "rotation": 0.0,
+    "rotation": 0,
     "velocity": 0
   },
   "useDefaultConstraints": true

@@ -101,6 +101,7 @@ class Constants {
         const val DrivingMinOutput = -1.0
         const val DrivingMaxOutput = 1.0
         var TurningP = 0.9
+//        var TurningP = 0.75
         var TurningI = 0.0
         var TurningD = 0.0
 //        var Ks = 0.06 //0.085
@@ -109,7 +110,7 @@ class Constants {
         const val TurningMaxOutput = 1.0
         val DrivingMotorIdleMode = CANSparkBase.IdleMode.kBrake
         val TurningMotorIdleMode = CANSparkBase.IdleMode.kBrake
-        const val DrivingMotorCurrentLimit = 40 // amps
+        const val DrivingMotorCurrentLimit = 30 // amps
         const val TurningMotorCurrentLimit = 10 // amps
     }
 
@@ -135,7 +136,7 @@ class Constants {
         const val TranslationI = 0.0
         const val TranslationD = 0.0
 
-        const val RotationP = 0.5
+        const val RotationP = 0.01
         const val RotationI = 0.0
         const val RotationD = 0.0
 
@@ -158,7 +159,7 @@ class Constants {
             AMP(-0.1),
             SHOOTER1(1.0),
             SHOOTER2(1.3),   //base
-            SIXPIECE1(1.1),
+            SIXPIECE1(1.15),
             SIXPIECE2(1.05)
 
         }

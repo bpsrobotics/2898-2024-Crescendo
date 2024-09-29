@@ -22,7 +22,7 @@ object RobotMap {
 
     // CANcoder IDs
     const val FrontLeftCANCoderID = 44
-    const val FrontRightCANCoderID = 11
+    const val FrontRightCANCoderID = 21
     const val RearRightCANCoderID = 22
     const val RearLeftCANCoderID = 33
 
