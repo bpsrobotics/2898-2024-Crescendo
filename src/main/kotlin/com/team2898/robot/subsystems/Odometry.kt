@@ -101,15 +101,15 @@ object Odometry : SubsystemBase(), PoseProvider {
             Drivetrain.rearRight.position
         ))
         var result = vision.cam.latestResult
-        if (vision.hasTargets()) {
-            var imageCaptureTime = result.timestampSeconds
-
-            var camPose = vision.getEstimatedPose(Estimatedpose)
-            SwervePoseEstimator.addVisionMeasurement(
-                Pose2d(camPose.), imageCaptureTime
-            )
-        }
-        Estimatedpose = SwervePoseEstimator.
+//        if (vision.hasTargets()) {
+//            var imageCaptureTime = result.timestampSeconds
+//
+//            var camPose = vision.getEstimatedPose(Estimatedpose)
+//            SwervePoseEstimator.addVisionMeasurement(
+//                Pose2d(camPose), imageCaptureTime
+//            )
+//        }
+//        Estimatedpose = SwervePoseEstimator
         NavX.update(timer.get())
         publisher.set(poseA)
         arrayPublisher.set(arrayOf(poseA, poseB))
