@@ -13,6 +13,10 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile
 import edu.wpi.first.math.util.Units
 import edu.wpi.first.wpilibj2.command.Command
 import com.team2898.engine.utils.units.*
+import edu.wpi.first.wpilibj.Filesystem
+import edu.wpi.first.wpilibj.Joystick
+import edu.wpi.first.wpilibj.XboxController
+import java.io.File
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -29,6 +33,9 @@ import com.team2898.engine.utils.units.*
  */
 @Suppress("MemberVisibilityCanBePrivate")
 class Constants {
+    private val driverController = XboxController(0)
+    private val operatorController = Joystick(1)
+
     object DriveConstants {
         // Driving Parameters - Note that these are not the maximum capable speeds of
         // the robot, rather the allowed maximum speeds
@@ -58,6 +65,9 @@ class Constants {
         const val BackRightChassisAngularOffset  = 0.0
 
         const val GyroReversed = false
+
+        // YAGSL File Configs
+        val DRIVE_CONFIG: File = File(Filesystem.getDeployDirectory(), "/swerve")
 
     }
 

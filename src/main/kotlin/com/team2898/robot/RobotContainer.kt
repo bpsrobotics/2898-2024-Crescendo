@@ -12,11 +12,13 @@ import com.team2898.robot.commands.ArmMove
 import com.team2898.robot.commands.InAndOut
 import com.team2898.robot.commands.IntakeNote
 import com.team2898.robot.commands.SetShooter
+import edu.wpi.first.wpilibj.Filesystem
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
 import edu.wpi.first.wpilibj2.command.button.Trigger
+import java.io.File
 
 
 /**
@@ -30,7 +32,6 @@ class RobotContainer {
     //private val m_exampleSubsystem = ExampleSubsystem()
     // Replace with CommandPS4Controller or CommandJoystick if needed
     private val m_driverController = CommandXboxController(0)
-
     private var autoCommandChooser: SendableChooser<Command> = SendableChooser()
 
 
