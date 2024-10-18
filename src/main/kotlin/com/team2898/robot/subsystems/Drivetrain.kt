@@ -190,7 +190,7 @@ object Drivetrain : SubsystemBase() {
         AutoBuilder.configureHolonomic(
             Odometry::autoPose,  // Robot pose supplier
             Odometry::resetOdometry,  // Method to reset odometry (will be called if your auto has a starting pose)
-            Odometry::chassisSpeeds,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            this::getRobotVelocity,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
             this::chassisDrive,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
                 PIDConstants(TranslationP, TranslationI, TranslationD),  // Translation PID constants
@@ -274,12 +274,6 @@ object Drivetrain : SubsystemBase() {
     fun addVisionMeasurement(measurement: Pose2d, timestamp: Double) {
         swerveDrive.addVisionMeasurement(measurement, timestamp)
     }
-
-
-
-
-
-
 
 
 
