@@ -64,10 +64,8 @@ class Constants {
         const val BackLeftChassisAngularOffset   = 0.0
         const val BackRightChassisAngularOffset  = 0.0
 
-        const val GyroReversed = false
-
         // YAGSL File Configs
-        val DRIVE_CONFIG: File = File(Filesystem.getDeployDirectory(), "/swerve")
+        val DRIVE_CONFIG: File = File(Filesystem.getDeployDirectory(), "/swerve/")
 
     }
 
@@ -133,7 +131,6 @@ class Constants {
     }
 
     object AutoConstants {
-        var commandMap: HashMap<String, Command> = HashMap()
 
         const val MaxAccelerationMetersPerSecondSquared = 3.0
         const val MaxAngularSpeedRadiansPerSecond = Math.PI
