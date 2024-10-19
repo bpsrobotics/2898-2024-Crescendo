@@ -28,8 +28,6 @@ class Robot : TimedRobot() {
     private var m_autonomousCommand: Command? = null
     var autoCommand: Command = InstantCommand({})
     lateinit var robotContainer: RobotContainer
-    val currentTime = Timer()
-    val teleop = TeleOp()
     val commandScheduler = CommandScheduler.getInstance()
 
     /**
@@ -42,14 +40,6 @@ class Robot : TimedRobot() {
         robotContainer = RobotContainer()
 
 //        CameraServer.startAutomaticCapture()
-        Odometry
-        SmartDashboard.putData(Odometry)
-        Drivetrain
-//        DataLogManager.start()
-        SmartDashboard.putData(Arm)
-//        Arm
-        Shooter
-        Intake
 //        Climber
     }
 
@@ -77,7 +67,6 @@ class Robot : TimedRobot() {
 
     /** This autonomous runs the autonomous command selected by your [RobotContainer] class.  */
     override fun autonomousInit() {
-
         autoCommand = robotContainer.getAutonomousCommand()
         autoCommand.let { autoCommand.schedule() }
 
@@ -91,16 +80,10 @@ class Robot : TimedRobot() {
         // teleop starts running. If you want the autonomous to
         // continue until interrupted by another command, remove
         // this line or comment it out.
-        currentTime.reset()
-        currentTime.start()
-        println("init" + currentTime.get())
+
         autoCommand.cancel()
-        println("cancel" + currentTime.get())
-        println("default" + currentTime.get())
-        Drivetrain.defaultCommand = teleop
-        println("scheduling" + currentTime.get())
-        teleop.schedule()
-        println("scheduled" + currentTime.get())
+
+
 
     }
 

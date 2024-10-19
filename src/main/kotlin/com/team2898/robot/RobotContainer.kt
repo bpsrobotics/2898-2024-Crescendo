@@ -8,17 +8,27 @@ package com.team2898.robot
 import com.pathplanner.lib.auto.AutoBuilder
 import com.pathplanner.lib.auto.NamedCommands
 import com.pathplanner.lib.commands.PathPlannerAuto
+import com.team2898.engine.utils.Vector
+import com.team2898.robot.Constants.ArmConstants
 import com.team2898.robot.commands.ArmMove
 import com.team2898.robot.commands.InAndOut
 import com.team2898.robot.commands.IntakeNote
 import com.team2898.robot.commands.SetShooter
+import com.team2898.robot.commands.swerve.NavXReset
+import com.team2898.robot.commands.swerve.TeleopDriveCommand
+import com.team2898.robot.subsystems.*
+import edu.wpi.first.math.MathUtil
 import edu.wpi.first.wpilibj.Filesystem
+import edu.wpi.first.wpilibj.Joystick
+import edu.wpi.first.wpilibj.XboxController
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard
 import edu.wpi.first.wpilibj2.command.Command
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController
 import edu.wpi.first.wpilibj2.command.button.Trigger
 import java.io.File
+import kotlin.math.pow
+import kotlin.math.sign
 
 
 /**
@@ -31,12 +41,35 @@ class RobotContainer {
     // The robot's subsystems and commands are defined here...
     //private val m_exampleSubsystem = ExampleSubsystem()
     // Replace with CommandPS4Controller or CommandJoystick if needed
-    private val m_driverController = CommandXboxController(0)
+    private val driverController = XboxController(0)
+    private val operatorController = Joystick(1)
+
     private var autoCommandChooser: SendableChooser<Command> = SendableChooser()
+
+    val teleopDrive: TeleopDriveCommand =
+        TeleopDriveCommand(
+            { MathUtil.applyDeadband(-driverController.leftY, 0.1) },
+            { MathUtil.applyDeadband(-driverController.leftX, 0.1) },
+            { MathUtil.applyDeadband(-driverController.rightX, 0.1)},
+            { driverController.rightTriggerAxis },
+        )
+
+
 
 
     /** The container for the robot. Contains subsystems, OI devices, and commands.  */
     init {
+        initializeObjects()
+
+        // Configure the trigger bindings
+        configureBindings()
+
+        autoCommandChooser = AutoBuilder.buildAutoChooser("6piece")
+
+        Drivetrain.defaultCommand = teleopDrive
+
+        SmartDashboard.putData("Auto mode", autoCommandChooser)
+
         NamedCommands.registerCommand("ground", ArmMove(Constants.ArmConstants.ArmHeights.GROUND))
         NamedCommands.registerCommand("speaker", ArmMove(Constants.ArmConstants.ArmHeights.SHOOTER2))
         NamedCommands.registerCommand("stowed", ArmMove(Constants.ArmConstants.ArmHeights.STOWED))
@@ -45,19 +78,20 @@ class RobotContainer {
         NamedCommands.registerCommand("setshooter", SetShooter())
         NamedCommands.registerCommand("inAndOut", InAndOut())
         NamedCommands.registerCommand("sixPiece1", ArmMove(Constants.ArmConstants.ArmHeights.SIXPIECE1))
-        // Configure the trigger bindings
-        configureBindings()
-
-        autoCommandChooser = AutoBuilder.buildAutoChooser("6piece")
-
-
-        SmartDashboard.putData("Auto mode", autoCommandChooser)
-
 
     }
     fun getAutonomousCommand(): Command{
         val path = autoCommandChooser.selected
         return path
+    }
+
+    private fun initializeObjects() {
+        Odometry
+        SmartDashboard.putData(Odometry)
+        Drivetrain
+        Arm
+        Shooter
+        Intake
     }
 
     /**
@@ -73,16 +107,31 @@ class RobotContainer {
         // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
         // cancelling on release.
         //m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand())
-        // guard for bot-on-board
+        when {
+            OI.armSelectUp ->   Arm.setGoal(Arm.pos() - 0.1)
+            OI.armSelectDown -> Arm.setGoal(Arm.pos() + 0.1)
+            OI.resetGyro -> NavXReset()
+        }
+        when {
+            OI.armDirectGround ->   Arm.setGoal(ArmConstants.ArmHeights.GROUND.position)
+            OI.armDirectStowed ->   Arm.setGoal(ArmConstants.ArmHeights.STOWED.position)
+            OI.armDirectAmp ->      Arm.setGoal(ArmConstants.ArmHeights.AMP.position)
+            OI.armDirectShooter2 -> Arm.setGoal(ArmConstants.ArmHeights.SHOOTER2.position)
+        }
+        when {
+            OI.operatorTrigger ->              Shooter.setVoltage(8.0)
+            OI.hatVector == Vector(0,1) -> Shooter.setVoltage(-0.75)
+            else ->                            Shooter.stop()
+
+        }
+        when (OI.hatVector) {
+            Vector(0, -1) -> Intake.intake(0.55)
+            Vector(0,1) -> Intake.outtake()
+            else ->               Intake.intake(0.0)
+        }
+
+
 
     }
 
-     /**
-         * Use this to pass the autonomous command to the main [Robot] class.
-         *
-         * @return the command to run in autonomous
-         */
-        // An example command will be run in autonomous
-
-            //Autos.exampleAuto(m_exampleSubsystem)
 }

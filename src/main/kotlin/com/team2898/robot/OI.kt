@@ -107,7 +107,7 @@ object OI : SubsystemBase() {
         get() = driverController.yButton
     val driverX
         get() = driverController.xButton
-//    val resetGyro: BooleanEvent = driverController.rightBumper(loop).debounce(0.5).rising()
+    //    val resetGyro: BooleanEvent = driverController.rightBumper(loop).debounce(0.5).rising()
     val resetGyro get() = driverController.rightBumper
 
     val climb get() = operatorController.getRawButton(12)
@@ -130,7 +130,7 @@ object OI : SubsystemBase() {
 
 //    val climb: BooleanEvent = operatorController.button(Constants.ButtonConstants.CLIMBER_UP, loop).debounce(Constants.ButtonConstants.CLIMBER_WAIT_DURATION)
 
-//    val armSelectUp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_UP, loop).rising()
+    //    val armSelectUp: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_UP, loop).rising()
 //    val armSelectDown: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DOWN, loop).rising()
 //
 //    val armDirectGround: BooleanEvent = operatorController.button(Constants.ButtonConstants.ARM_DIRECT_GROUND, loop).debounce(Constants.ButtonConstants.ARM_DIRECT_WAIT_DURATION).rising()
@@ -194,9 +194,9 @@ object OI : SubsystemBase() {
         else -> Direction.INACTIVE
     }
 
-//    val operatorTrigger: BooleanEvent = operatorController.button(1, loop)
+    //    val operatorTrigger: BooleanEvent = operatorController.button(1, loop)
     val operatorTrigger get() = operatorController.getRawButton(1)
-//    val operatorTriggerReleased: BooleanEvent = operatorTrigger.falling()
+    //    val operatorTriggerReleased: BooleanEvent = operatorTrigger.falling()
     object Rumble {
         private var isRumbling  = false
         private var rumbleTime  = 0.0

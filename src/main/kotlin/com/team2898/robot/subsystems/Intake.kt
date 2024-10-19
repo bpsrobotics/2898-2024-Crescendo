@@ -20,7 +20,6 @@ import kotlin.math.sign
 object Intake : SubsystemBase() {
     private val intakeMotor = CANSparkMax(IntakeId, CANSparkLowLevel.MotorType.kBrushed)
     private val beamBreak = DigitalInput(IntakeBeamBreak)
-//    var hasNote = false
     var output = 0.0
     val currentFilter = LinearFilter.movingAverage(20)
     var currentAverage = 0.0
@@ -66,24 +65,7 @@ object Intake : SubsystemBase() {
             output = speed
         }
 
-//        if (!intakeState) {
-//            output = 0.0
-//            return
-//        }
-//
-//        if (buffer.calculate(currentAverage > 7.0) && !hasNote && !gracePeriod) {
-//            output = 0.0
-//            bufferTimer.restart()
-//            hasNote = true
-//            return
-//        }
-//
-//        if (gracePeriod || hasNote) {
-//            output = speed
-//        } else {
-//            output = speed
-//            hasNote = false
-//        }
+
     }
 
     fun outtake() {

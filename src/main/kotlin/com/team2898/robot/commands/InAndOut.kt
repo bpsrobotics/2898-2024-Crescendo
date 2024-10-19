@@ -13,7 +13,6 @@ class InAndOut : Command() {
     override fun initialize() {
         time.reset()
         time.start()
-
     }
 
     override fun execute() {
