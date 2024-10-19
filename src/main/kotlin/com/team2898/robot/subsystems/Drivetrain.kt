@@ -172,12 +172,12 @@ object Drivetrain : SubsystemBase() {
             startPosition = GeometryUtil.flipFieldPose(startPosition)
         }
 
-        if (setOdomAtStart)
-        {
-            if (startPosition != null) {
-                resetOdometry(startPosition)
-            }
-        }
+//        if (setOdomAtStart)
+//        {
+//            if (startPosition != null) {
+//                resetOdometry(startPosition)
+//            }
+//        }
 
         // TODO: Configure path planner's AutoBuilder
         return PathPlannerAuto(autoName)
