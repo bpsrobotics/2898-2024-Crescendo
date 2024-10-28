@@ -73,7 +73,7 @@ object Odometry : SubsystemBase(), PoseProvider {
     }
     override fun update(){
 
-        var result = vision.cam.latestResult
+//        var result = vision.cam.latestResult
 
         NavX.update(timer.get())
         publisher.set(poseA)

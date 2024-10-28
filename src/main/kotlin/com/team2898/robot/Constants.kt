@@ -65,7 +65,7 @@ class Constants {
         const val BackRightChassisAngularOffset  = 0.0
 
         // YAGSL File Configs
-        val DRIVE_CONFIG: File = File(Filesystem.getDeployDirectory(), "/swerve/")
+        val DRIVE_CONFIG: File = File(Filesystem.getDeployDirectory(), "/swerve")
 
     }
 

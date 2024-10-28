@@ -93,7 +93,7 @@ object Drivetrain : SubsystemBase() {
             e.printStackTrace()
             throw RuntimeException("error creating swerve",e)
         }
-        swerveDrive.setHeadingCorrection(true) // Heading correction should only be used while controlling the robot via angle.
+        swerveDrive.setHeadingCorrection(false) // Heading correction should only be used while controlling the robot via angle.
         swerveDrive.setCosineCompensator(false) //!SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for simulations since it causes discrepancies not seen in real life.
         if (visionDriveTest) {
 //                setupPhotonVision()
@@ -121,6 +121,8 @@ object Drivetrain : SubsystemBase() {
     ) {
         swerveDrive.drive(translation, rotation, fieldOriented, false)
     }
+
+
 
     /**
      * Advanced drive method that translates and rotates the robot, with a custom center of rotation.
