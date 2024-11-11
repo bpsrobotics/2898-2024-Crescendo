@@ -18,11 +18,13 @@ import com.team2898.robot.Constants.AutoConstants.TranslationD
 import com.team2898.robot.Constants.AutoConstants.TranslationI
 import com.team2898.robot.Constants.AutoConstants.TranslationP
 import com.team2898.robot.subsystems.Drivetrain.swerveDrive
-import com.team2898.robot.subsystems.Odometry.resetOdometry
+import edu.wpi.first.math.VecBuilder
 import edu.wpi.first.math.geometry.Pose2d
+import edu.wpi.first.math.geometry.Rotation2d
 import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.ChassisSpeeds
 import edu.wpi.first.math.kinematics.SwerveModuleState
+import edu.wpi.first.math.trajectory.Trajectory
 import edu.wpi.first.math.util.Units
 import edu.wpi.first.networktables.NetworkTableInstance
 import edu.wpi.first.networktables.StructArrayPublisher
@@ -108,50 +110,131 @@ object Drivetrain : SubsystemBase() {
 
 
 
-    /**
-     * Simple drive method that translates and rotates the robot.
-     * @param translation The desired X and Y velocity of the robot.
-     * @param rotation The desired rotational velocity of the robot.
-     * @param fieldOriented Whether the robot's motion should be field oriented or robot oriented.
-     */
-    fun drive(
-        translation: Translation2d,
-        rotation: Double,
-        fieldOriented: Boolean,
-    ) {
-        swerveDrive.drive(translation, rotation, fieldOriented, false)
-    }
-
 
 
     /**
-     * Advanced drive method that translates and rotates the robot, with a custom center of rotation.
-     * @param translation The desired X and Y velocity of the robot.
-     * @param rotation The desired rotational velocity of the robot.
-     * @param fieldOriented Whether the robot's motion should be field oriented or robot oriented.
-     * @param centerOfRotation The center of rotation of the robot.
+     * Setup AutoBuilder for PathPlanner.
      */
-    fun pivotdrive(
-        translation: Translation2d,
-        rotation: Double,
-        fieldOriented: Boolean,
-        centerOfRotation: Translation2d,
-    ) {
-        swerveDrive.drive(translation, rotation, fieldOriented, false, centerOfRotation)
+    fun setupPathPlanner() {
+        AutoBuilder.configureHolonomic(
+            this::getPose,  // Robot pose supplier
+            this::resetOdometry,  // Method to reset odometry (will be called if your auto has a starting pose)
+            this::getRobotVelocity,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            this::chassisDrive,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+            HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+                PIDConstants(TranslationP, TranslationI, TranslationD),  // Translation PID constants
+                PIDConstants(RotationP, RotationI, RotationD),  // Rotation PID constants
+                Constants.DriveConstants.MaxSpeedMetersPerSecond,  // Max module speed, in m/s
+                0.4567,  // Drive base radius in meters. Distance from robot center to furthest module.
+                ReplanningConfig() // Default path replanning config. See the API for the options here
+            ),
+            BooleanSupplier {
+
+                // Boolean supplier that controls when the path will be mirrored for the red alliance
+                // This will flip the path being followed to the red side of the field.
+                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+                val alliance = DriverStation.getAlliance()
+                if (alliance.isPresent) {
+                    alliance.get() == Alliance.Red
+                }
+                false
+            },
+            this // Reference to this subsystem to set requirements
+        )
     }
 
     /**
-     * Simple drive method that uses ChassisSpeeds to control the robot.
-     * @param velocity The desired ChassisSpeeds of the robot
+     * Directly send voltage to the drive motors.
+     * @param volts The voltage to send to the motors.
      */
-    fun chassisDrive(velocity: ChassisSpeeds) {
-        swerveDrive.drive(velocity)
-    }
-    fun driveFieldOriented(velocity: ChassisSpeeds?) {
-        swerveDrive.driveFieldOriented(velocity)
+    fun setRawMotorVoltage(volts: Double){
+        swerveDrive.modules.forEach {
+            it.driveMotor.voltage = volts
+        }
     }
 
+//    /**
+//     * Get a SysIdRoutine for the drive motors.
+//     * @see SysIdRoutine
+//     * @return A custom SysIdRoutine for the drive motors.
+//     */
+//    fun getDriveSysIDRoutine(): SysIdRoutine {
+//        return SysIdRoutine(
+//            SysIdRoutine.Config(),
+//            SysIdRoutine.Mechanism(
+//                { volts: Measure<Voltage> ->
+//                    swerveDrive.modules.forEach {
+//                        it.driveMotor.voltage = volts into Units.Volt
+//                    }
+//                },
+//                { log: SysIdRoutineLog ->
+//                    swerveDrive.modules.forEach {
+//                        logDriveMotor(it, log)
+//                    }
+//                },
+//                this
+//            )
+//        )
+//    }
+//
+//    /**
+//     * Generate a full command to SysID the drive motors
+//     * @return A command that SysIDs the drive motors.
+//     */
+//    fun getDriveSysIDCommand(): Command {
+//        return SequentialCommandGroup(
+//            getDriveSysIDRoutine().dynamic(SysIdRoutine.Direction.kForward),
+//            WaitCommand(1.0),
+//            getDriveSysIDRoutine().dynamic(SysIdRoutine.Direction.kReverse),
+//            WaitCommand(1.0),
+//            getDriveSysIDRoutine().quasistatic(SysIdRoutine.Direction.kForward),
+//            WaitCommand(1.0),
+//            getDriveSysIDRoutine().quasistatic(SysIdRoutine.Direction.kReverse)
+//        )
+//    }
+//
+//    /**
+//     * Logging function to easily log for SysID.
+//     * @see SysIdRoutineLog
+//     * @param module The module to log.
+//     * @param log The SysIdRoutineLog to log to.
+//     */
+//    private fun logDriveMotor(module: SwerveModule, log: SysIdRoutineLog){
+//        log.motor(module.configuration.name)
+//            .voltage(Units.Volt.of(module.driveMotor.voltage))
+//            .linearPosition(Units.Meters.of(module.driveMotor.position))
+//            .linearVelocity(Units.MetersPerSecond.of(module.driveMotor.velocity))
+//    }
 
+
+
+    /**
+     * Return SysID command for drive motors from YAGSL
+     * @return A command that SysIDs the drive motors.
+     */
+    fun sysIdDriveMotor(): Command? {
+        return SwerveDriveTest.generateSysIdCommand(
+            SwerveDriveTest.setDriveSysIdRoutine(
+                SysIdRoutine.Config(),
+                this,
+                swerveDrive, 12.0),
+            3.0, 5.0, 3.0
+        )
+    }
+
+    /**
+     * Return SysID command for angle motors from YAGSL
+     * @return A command that SysIDs the angle motors.
+     */
+    fun sysIdAngleMotorCommand(): Command {
+        return SwerveDriveTest.generateSysIdCommand(
+            SwerveDriveTest.setAngleSysIdRoutine(
+                SysIdRoutine.Config(),
+                this, swerveDrive
+            ),
+            3.0, 5.0, 3.0
+        )
+    }
 
     /**
      * Gets a command that follows a path created in PathPlanner.
@@ -174,58 +257,140 @@ object Drivetrain : SubsystemBase() {
             startPosition = GeometryUtil.flipFieldPose(startPosition)
         }
 
-//        if (setOdomAtStart)
-//        {
-//            if (startPosition != null) {
-//                resetOdometry(startPosition)
-//            }
-//        }
+        if (setOdomAtStart)
+        {
+            if (startPosition != null) {
+                resetOdometry(startPosition)
+            }
+        }
 
         // TODO: Configure path planner's AutoBuilder
         return PathPlannerAuto(autoName)
     }
 
     /**
-     * Setup AutoBuilder for PathPlanner.
+     * Simple drive method that translates and rotates the robot.
+     * @param translation The desired X and Y velocity of the robot.
+     * @param rotation The desired rotational velocity of the robot.
+     * @param fieldOriented Whether the robot's motion should be field oriented or robot oriented.
      */
-    fun setupPathPlanner() {
-        AutoBuilder.configureHolonomic(
-            Odometry::autoPose,  // Robot pose supplier
-            Odometry::resetOdometry,  // Method to reset odometry (will be called if your auto has a starting pose)
-            this::getRobotVelocity,  // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            this::chassisDrive,  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
-            HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                PIDConstants(TranslationP, TranslationI, TranslationD),  // Translation PID constants
-                PIDConstants(RotationP, RotationI, RotationD),  // Rotation PID constants
-                2.0,  // Max module speed, in m/s
-                0.7112,  // Drive base radius in meters. Distance from robot center to furthest module.
-                ReplanningConfig() // Default path replanning config. See the API for the options here
-            ),
-            BooleanSupplier {
-
-                // Boolean supplier that controls when the path will be mirrored for the red alliance
-                // This will flip the path being followed to the red side of the field.
-                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-                val alliance = DriverStation.getAlliance()
-                if (alliance.isPresent) {
-                    alliance.get() == Alliance.Red
-                }
-                false
-            },
-            this // Reference to this subsystem to set requirements
-        )
+    fun drive(
+        translation: Translation2d,
+        rotation: Double,
+        fieldOriented: Boolean,
+    ) {
+        swerveDrive.drive(translation, rotation, fieldOriented, false)
     }
 
+    /**
+     * Advanced drive method that translates and rotates the robot, with a custom center of rotation.
+     * @param translation The desired X and Y velocity of the robot.
+     * @param rotation The desired rotational velocity of the robot.
+     * @param fieldOriented Whether the robot's motion should be field oriented or robot oriented.
+     * @param centerOfRotation The center of rotation of the robot.
+     */
+    fun drive(
+        translation: Translation2d,
+        rotation: Double,
+        fieldOriented: Boolean,
+        centerOfRotation: Translation2d,
+    ) {
+        swerveDrive.drive(translation, rotation, fieldOriented, false, centerOfRotation)
+    }
 
     /**
-     * Directly send voltage to the drive motors.
-     * @param volts The voltage to send to the motors.
+     * Simple drive method that uses ChassisSpeeds to control the robot.
+     * @param velocity The desired ChassisSpeeds of the robot
      */
-    fun setRawMotorVoltage(volts: Double){
-        swerveDrive.modules.forEach {
-            it.driveMotor.voltage = volts
-        }
+    fun drive(velocity: ChassisSpeeds) {
+        swerveDrive.drive(velocity)
+    }
 
+    /**
+     * Method to set the desired speeds of the swerve drive.
+     * @param chassisSpeeds The desired speeds of the swerve drive.
+     */
+    fun chassisDrive(chassisSpeeds: ChassisSpeeds) {
+        swerveDrive.setChassisSpeeds(chassisSpeeds)
+    }
+
+    /**
+     * Method to get the Kinematics object of the swerve drive.
+     */
+    fun getKinematics() = swerveDrive.kinematics
+
+    /**
+     * Method to reset the odometry of the robot to a desired pose.
+     * @param initialHolonomicPose The desired pose to reset the odometry to.
+     */
+    fun resetOdometry(initialHolonomicPose: Pose2d) {
+        swerveDrive.resetOdometry(initialHolonomicPose)
+    }
+
+    /**
+     * Method to get the current pose of the robot.
+     * @return The current pose of the robot.
+     */
+    fun getPose() = swerveDrive.pose
+
+    /**
+     * Method to display a desired trajectory to a field2d object.
+     */
+    fun postTrajectory(trajectory: Trajectory) {
+        swerveDrive.postTrajectory(trajectory)
+    }
+
+    /**
+     * Method to zero the gyro.
+     */
+    fun zeroGyro() {
+        swerveDrive.zeroGyro()
+    }
+
+    /**
+     * Method to toggle the motor's brakes.
+     * @param brake Whether to set the motor's brakes to true or false.
+     */
+    fun setMotorBrake(brake: Boolean) {
+        swerveDrive.setMotorIdleMode(brake)
+    }
+
+    /**
+     * Method to get the current heading of the robot.
+     * @return The current heading of the robot.
+     */
+    fun getHeading() = swerveDrive.yaw
+
+    /**
+     * Method to generate a ChassisSpeeds object from a desired X, Y, and Rotational velocity.
+     * @param vForward The desired forward velocity of the robot.
+     * @param vSide The desired side velocity of the robot.
+     * @param angle The desired rotational velocity of the robot.
+     * @return The generated ChassisSpeeds object.
+     */
+    fun getTargetSpeeds(
+        vForward: Double,
+        vSide: Double,
+        angle: Rotation2d,
+    ): ChassisSpeeds {
+        return swerveDrive.swerveController.getTargetSpeeds(vForward, vSide, angle.radians, getHeading().radians, maximumSpeed)
+    }
+
+    /**
+     * Method to generate a ChassisSpeeds object from a desired X, Y, and angle X and Y components.
+     * @param vForward The desired forward velocity of the robot.
+     * @param vSide The desired side velocity of the robot.
+     * @param headingX The desired X component of the angle.
+     * @param headingY The desired Y component of the angle.
+     * @return The generated ChassisSpeeds object.
+     */
+    fun getTargetSpeeds(
+        vForward: Double,
+        vSide: Double,
+        headingX: Double,
+        headingY: Double
+    ): ChassisSpeeds {
+        return swerveDrive.swerveController.getTargetSpeeds(vForward, vSide, headingX, headingY, getHeading().radians, maximumSpeed)
     }
 
     /**
@@ -278,5 +443,20 @@ object Drivetrain : SubsystemBase() {
     }
 
 
+    /**
+     * Set the standard deviations of the vision measurements.
+     * @param stdDevX The standard deviation of the X component of the vision measurements.
+     * @param stdDevY The standard deviation of the Y component of the vision measurements.
+     * @param stdDevTheta The standard deviation of the rotational component of the vision measurements.
+     */
+    fun setVisionMeasurementStdDevs(stdDevX: Double, stdDevY: Double, stdDevTheta: Double) {
+        swerveDrive.swerveDrivePoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(stdDevX, stdDevY, stdDevTheta))
+    }
+
+
+    /** function to toggle field oriented drive */
+    fun toggleFieldOriented() {
+        fieldOriented = !fieldOriented
+    }
 
 }

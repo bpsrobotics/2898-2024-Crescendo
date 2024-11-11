@@ -62,11 +62,12 @@ class RobotContainer {
         initializeObjects()
 
         // Configure the trigger bindings
-        configureBindings()
 
         autoCommandChooser = AutoBuilder.buildAutoChooser("6piece")
 
         Drivetrain.defaultCommand = teleopDrive
+
+        configureBindings()
 
         SmartDashboard.putData("Auto mode", autoCommandChooser)
 
@@ -86,8 +87,6 @@ class RobotContainer {
     }
 
     private fun initializeObjects() {
-        Odometry
-        SmartDashboard.putData(Odometry)
         Drivetrain
         Arm
         Shooter
